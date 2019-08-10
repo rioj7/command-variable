@@ -1,0 +1,30 @@
+{
+  "name": "command-variable",
+  "displayName": "Command Variable",
+  "description": "Calculate command variables for launch.json and tasks.json",
+  "publisher": "rioj7",
+  "license": "MIT",
+  "version": "0.1.0",
+  "engines": {"vscode": "^1.37.0"},
+  "categories": ["Other"],
+  "keywords": ["command","variable","launch","tasks"],
+  "icon": "images/icon.png",
+  "galleryBanner": {"color": "#000080", "theme": "dark"},
+  "activationEvents": [
+    "onCommand:extension.commandvariable.file.relativeDirDots",
+    "onCommand:extension.commandvariable.workspace.folderBasename1Up",
+    "onCommand:extension.commandvariable.workspace.folderBasename2Up",
+    "onCommand:extension.commandvariable.workspace.folderBasename3Up",
+    "onCommand:extension.commandvariable.workspace.folderBasename4Up",
+    "onCommand:extension.commandvariable.workspace.folderBasename5Up"
+  ],
+  "main": "./extension.js",
+  "homepage": "https://github.com/rioj7/command-variable",
+  "bugs": {
+    "url": "https://github.com/rioj7/command-variable/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rioj7/command-variable.git"
+  }
+}

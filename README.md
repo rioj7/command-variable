@@ -6,6 +6,9 @@ One of the variables allows the [result of a command](https://code.visualstudio.
 This extension provides a number of commands that give a result based on the current file or the workspace path
 
 * `extension.commandvariable.file.relativeDirDots` : The directory of the current file relative to the workspace root directory with dots as separator. Can be used to specify a Python module.
+* `extension.commandvariable.file.filePosix` : The same result as `${file}` but in Posix form. Directory separator '`/`', and drive designation as '`/z/project/`'
+* `extension.commandvariable.file.fileDirnamePosix` : The same result as `${fileDirname}` but in Posix form. 
+* `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form. 
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename3Up` : The directory name 3 Up of the workspace root directory.

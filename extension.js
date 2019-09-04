@@ -70,6 +70,16 @@ function activate(context) {
       return workspaceFolderBasenameNUp(5);
     })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.selectedText', () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) { vscode.window.showErrorMessage('No editor'); return "Unknown"; }
+      var selectStart = editor.document.offsetAt(editor.selection.start);
+      var selectEnd = editor.document.offsetAt(editor.selection.end);
+      var docText = editor.document.getText();
+      return docText.substring(selectStart, selectEnd);
+    })
+  );
 };
 
 function deactivate() {}

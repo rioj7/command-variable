@@ -80,6 +80,24 @@ function activate(context) {
       return docText.substring(selectStart, selectEnd);
     })
   );
+  var positionLineColumn = function (kind, lineChar) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) { vscode.window.showErrorMessage('No editor'); return '1'; }
+    var position = (kind==='start') ? editor.selection.start : editor.selection.end;
+    return (( lineChar==='line' ? position.line : position.character ) + 1 ).toString();
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.selectionStartLineNumber', () => { return positionLineColumn('start', 'line'); })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.selectionStartColumnNumber', () => { return positionLineColumn('start', 'column'); })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.selectionEndLineNumber', () => { return positionLineColumn('end', 'line'); })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.selectionEndColumnNumber', () => { return positionLineColumn('end', 'column'); })
+  );
 };
 
 function deactivate() {}

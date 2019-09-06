@@ -15,6 +15,10 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.workspace.folderBasename4Up` : The directory name 4 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename5Up` : The directory name 5 Up of the workspace root directory.
 * `extension.commandvariable.selectedText` : The selected text in the active editor, empty string if nothing selected.
+* `onCommand:extension.commandvariable.selectionStartLineNumber` : Line number of the selection start
+* `onCommand:extension.commandvariable.selectionStartColumnNumber` : Column number of the selection start
+* `onCommand:extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
+* `onCommand:extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
 
 Becasue it is not possible to give an extension command arguments, we have to put the arguments in the command name.
 

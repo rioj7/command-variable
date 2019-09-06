@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engines": {"vscode": "^1.37.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks"],
@@ -20,7 +20,11 @@
     "onCommand:extension.commandvariable.workspace.folderBasename3Up",
     "onCommand:extension.commandvariable.workspace.folderBasename4Up",
     "onCommand:extension.commandvariable.workspace.folderBasename5Up",
-    "onCommand:extension.commandvariable.selectedText"
+    "onCommand:extension.commandvariable.selectedText",
+    "onCommand:extension.commandvariable.selectionStartLineNumber",
+    "onCommand:extension.commandvariable.selectionStartColumnNumber",
+    "onCommand:extension.commandvariable.selectionEndLineNumber",
+    "onCommand:extension.commandvariable.selectionEndColumnNumber"
   ],
   "main": "./extension.js",
   "homepage": "https://github.com/rioj7/command-variable",

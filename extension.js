@@ -38,6 +38,24 @@ function activate(context) {
       return path2Posix(documentDirName);
     })
   );
+  const activeTextEditorVariable = (action, args, noEditor) => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) { vscode.window.showErrorMessage('No editor'); return noEditor ? noEditor : "Unknown"; }
+    return action(editor, args);
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', (args) => {
+      return activeTextEditorVariable( (editor, _args) => {
+        const path = editor.document.uri.path;
+        for (const key in _args) {
+          if (_args.hasOwnProperty(key)) {
+            if (path.indexOf(key) !== -1) { return _args[key];}
+          }
+        }
+        return "Unknown";
+      }, args);
+    })
+  );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', () => {
       const folders = vscode.workspace.workspaceFolders;

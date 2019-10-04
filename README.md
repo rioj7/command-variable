@@ -20,6 +20,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.selectionStartColumnNumber` : Column number of the selection start
 * `extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
 * `extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
+* `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 
 Because it is not possible to give an extension command arguments, we have to put the arguments in the command name.
 
@@ -48,7 +49,7 @@ The comamnd `extension.commandvariable.file.fileAsKey` makes it possible to sele
 
 The keys of the `args` object are searched for in the path of the active file (directory separator is `/`).
 
-If you have files with the same name use part of the full path to select the corerct one like `"/dir1/main.py"` and `"/dir2/main.py"`.
+If you have files with the same name use part of the full path to select the correct one like `"/dir1/main.py"` and `"/dir2/main.py"`.
 ```json
 {
   "version": "2.0.0",

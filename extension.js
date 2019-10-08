@@ -2,13 +2,29 @@ const vscode = require('vscode');
 const path = require('path');
 
 function activate(context) {
-  var workspaceFolderBasenameNUp = function(n) {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders) { vscode.window.showErrorMessage('No folder open'); return "Unknown"; }
-    const rootParts = folders[0].uri.path.split('/');
+  const activeTextEditorVariable = (action, args, noEditor) => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) { vscode.window.showErrorMessage('No editor'); return noEditor ? noEditor : "Unknown"; }
+    return action(editor, args);
+  };
+  var basenameNUp = function (dirUriPath, n) {
+    const rootParts = dirUriPath.split('/');
     if (n > rootParts.length-2) { vscode.window.showErrorMessage('Not enough parent directories'); return "Unknown"; }
     return rootParts[rootParts.length - (n+1)];
-  }
+  };
+  var workspaceFolderBasenameNUp = function (n) {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders) { vscode.window.showErrorMessage('No folder open'); return "Unknown"; }
+    return basenameNUp(folders[0].uri.path, n);
+  };
+  var fileDirBasenameNUp = function (n) {
+    return activeTextEditorVariable( editor => {
+      const path = editor.document.uri.path;
+      const lastSep = path.lastIndexOf('/');
+      if (lastSep === -1) { return "Unknown"; }
+      return basenameNUp(path.substring(0, lastSep), n);
+    });
+  };
   const nonPosixPathRexEx = new RegExp('^/([a-zA-Z]):/');
   var path2Posix = p => p.replace(nonPosixPathRexEx, '/$1/');
   context.subscriptions.push(
@@ -38,11 +54,6 @@ function activate(context) {
       return path2Posix(documentDirName);
     })
   );
-  const activeTextEditorVariable = (action, args, noEditor) => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { vscode.window.showErrorMessage('No editor'); return noEditor ? noEditor : "Unknown"; }
-    return action(editor, args);
-  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', (args) => {
       return activeTextEditorVariable( (editor, _args) => {
@@ -54,6 +65,36 @@ function activate(context) {
         }
         return "Unknown";
       }, args);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename', () => {
+      return fileDirBasenameNUp(0);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename1Up', () => {
+      return fileDirBasenameNUp(1);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename2Up', () => {
+      return fileDirBasenameNUp(2);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename3Up', () => {
+      return fileDirBasenameNUp(3);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename4Up', () => {
+      return fileDirBasenameNUp(4);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename5Up', () => {
+      return fileDirBasenameNUp(5);
     })
   );
   context.subscriptions.push(

@@ -7,9 +7,15 @@ This extension provides a number of commands that give a result based on the cur
 
 * `extension.commandvariable.file.relativeDirDots` : The directory of the current file relative to the workspace root directory with dots as separator. Can be used to specify a Python module.
 * `extension.commandvariable.file.filePosix` : The same result as `${file}` but in Posix form. Directory separator '`/`', and drive designation as '`/z/project/`'
-* `extension.commandvariable.file.fileDirnamePosix` : The same result as `${fileDirname}` but in Posix form. 
+* `extension.commandvariable.file.fileDirnamePosix` : The same result as `${fileDirname}` but in Posix form.
 * `extension.commandvariable.file.fileAsKey` : Use part of the file path as a key in a map lookup. Can be used in `lauch.json` to select arguments based on filename.
-* `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form. 
+* `extension.commandvariable.file.fileDirBasename` : The basename of the `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename1Up` : The directory name 1 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename2Up` : The directory name 2 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
+* `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename3Up` : The directory name 3 Up of the workspace root directory.

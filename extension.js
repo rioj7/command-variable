@@ -2,10 +2,20 @@ const vscode = require('vscode');
 const path = require('path');
 
 function activate(context) {
+  const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
+  const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
   const activeTextEditorVariable = (action, args, noEditor) => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) { vscode.window.showErrorMessage('No editor'); return noEditor ? noEditor : "Unknown"; }
+    if (!editor) { return errorMessage('No editor', noEditor); }
     return action(editor, args);
+  };
+  const activeWorkspaceFolder = (action, noWorkSpace) => {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders) { return errorMessage('No folder open', noWorkSpace); }
+    return activeTextEditorVariable( editor => {
+      let folder = vscode.workspace.getWorkspaceFolder(editor.document.uri)
+      return folder ? action(folder, editor) : fileNotInFolderError(noWorkSpace);
+    });
   };
   var basenameNUp = function (dirUriPath, n) {
     const rootParts = dirUriPath.split('/');
@@ -13,9 +23,9 @@ function activate(context) {
     return rootParts[rootParts.length - (n+1)];
   };
   var workspaceFolderBasenameNUp = function (n) {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders) { vscode.window.showErrorMessage('No folder open'); return "Unknown"; }
-    return basenameNUp(folders[0].uri.path, n);
+    return activeWorkspaceFolder( workspaceFolder => {
+      return basenameNUp(workspaceFolder.uri.path, n);
+    });
   };
   var fileDirBasenameNUp = function (n) {
     return activeTextEditorVariable( editor => {
@@ -25,18 +35,16 @@ function activate(context) {
       return basenameNUp(path.substring(0, lastSep), n);
     });
   };
-  const nonPosixPathRexEx = new RegExp('^/([a-zA-Z]):/');
-  var path2Posix = p => p.replace(nonPosixPathRexEx, '/$1/');
+  const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
+  var path2Posix = p => p.replace(nonPosixPathRegEx, '/$1/');
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeDirDots', () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) { vscode.window.showErrorMessage('No editor'); return "Unknown"; }
-      const folders = vscode.workspace.workspaceFolders;
-      if (!folders) { vscode.window.showErrorMessage('No folder open'); return "Unknown"; }
-      const rootPath = folders[0].uri.path;
-      const documentDirName = path.dirname(editor.document.uri.path);
-      if (documentDirName.indexOf(rootPath) !== 0) { vscode.window.showErrorMessage('File not in workspace folder'); return "Unknown"; }
-      return documentDirName.substring(rootPath.length + 1).replace(/\//g, () => ".");
+      return activeWorkspaceFolder( (workspaceFolder, editor) => {
+        const rootPath = workspaceFolder.uri.path;
+        const documentDirName = path.dirname(editor.document.uri.path);
+        if (documentDirName.indexOf(rootPath) !== 0) { return fileNotInFolderError(); } // should never happen here
+        return documentDirName.substring(rootPath.length + 1).replace(/\//g, () => ".");
+      });
     })
   );
   context.subscriptions.push(
@@ -99,9 +107,9 @@ function activate(context) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', () => {
-      const folders = vscode.workspace.workspaceFolders;
-      if (!folders) { vscode.window.showErrorMessage('No folder open'); return "Unknown"; }
-      return path2Posix(folders[0].uri.path);
+      return activeWorkspaceFolder( workspaceFolder => {
+        return path2Posix(workspaceFolder.uri.path);
+      });
     })
   );
   context.subscriptions.push(

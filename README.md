@@ -27,8 +27,11 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
 * `extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
+* `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
+* `extension.commandvariable.rememberPick` : retreive a remembered pick by key
 
-Because it is not possible to give an extension command arguments, we have to put the arguments in the command name.
+
+We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
 
 ## Usage
 An example `launch.json` :
@@ -78,6 +81,56 @@ If you have files with the same name use part of the full path to select the cor
         "calculation.py": "-n 4224",
         "client.py": "-i calc-out.yaml"
       }
+    }
+  ]
+}
+```
+
+## pickStringRemember and rememberPick
+
+`pickStringRemember` has te same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). And both commands have configuration attribute **`key`**. The **`key`** is used to store and retrieve a particular pick.
+
+The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Task 1",
+      "type": "shell",
+      "command": "dostuff1",
+      "args": ["-p", "${input:pickPath}"]
+    },
+    {
+      "label": "Task 2",
+      "type": "shell",
+      "command": "dostuff2",
+      "args": ["-p", "${input:rememberPath}"]
+    },
+    {
+      "label": "Do Task 1 and 2",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Task 1", "Task 2"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "pickPath",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "key": "path",
+        "options": [ "path/to/directory/A", "path/to/Z" ],
+        "description": "Choose a path"
+      }
+    },
+    {
+      "id": "rememberPath",
+      "type": "command",
+      "command": "extension.commandvariable.rememberPick",
+      "args": { "key": "path" }
     }
   ]
 }

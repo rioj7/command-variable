@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const path = require('path');
 
 function activate(context) {
+  const getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
   const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
   const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
   const activeTextEditorVariable = (action, args, noEditor) => {
@@ -167,6 +168,23 @@ function activate(context) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.dirSep', () => { return process.platform === 'win32' ? '\\' : '/'; })
+  );
+  let pickRemember = { __not_yet: "I don't remember" };
+  async function pickStringRemember(args) {
+    const result = await vscode.window.showQuickPick(
+      getProperty(args, 'options', ['item1', 'item2']), {
+      placeHolder: getProperty(args, 'description', 'Choose:')
+    });
+    if (result !== undefined) {
+      pickRemember[getProperty(args, 'key', '__unknown')] = result;
+    }
+    return result !== undefined ? result : getProperty(args, 'default', 'Escaped');
+  }
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', (args) => { return pickStringRemember(args); })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.rememberPick', (args) => { return getProperty(pickRemember, getProperty(args, 'key', '__unknown'), pickRemember['__not_yet']); })
   );
 };
 

@@ -4,10 +4,10 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "engines": {"vscode": "^1.37.0"},
   "categories": ["Other"],
-  "keywords": ["command","variable","launch","tasks","multi-root ready"],
+  "keywords": ["command","variable","launch","tasks","date","multi-root ready"],
   "icon": "images/icon.png",
   "galleryBanner": {"color": "#000080", "theme": "dark"},
   "activationEvents": [
@@ -34,8 +34,18 @@
     "onCommand:extension.commandvariable.selectionEndColumnNumber",
     "onCommand:extension.commandvariable.dirSep",
     "onCommand:extension.commandvariable.pickStringRemember",
-    "onCommand:extension.commandvariable.rememberPick"
+    "onCommand:extension.commandvariable.rememberPick",
+    "onCommand:extension.commandvariable.dateTime",
+    "onCommand:extension.commandvariable.dateTimeInEditor"
   ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.commandvariable.dateTimeInEditor",
+        "title": "Language-sensitive format of current Date and Time"
+      }
+    ]
+  },
   "main": "./extension.js",
   "homepage": "https://github.com/rioj7/command-variable",
   "bugs": {

@@ -29,6 +29,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
+* `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale)
+* `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
@@ -134,4 +136,113 @@ The configuration attributes need to be passed to the command in the `args` attr
     }
   ]
 }
+```
+
+## dateTime
+
+For `keybindings.json` use `extension.commandvariable.dateTimeInEditor`.
+
+For `launch.json` and `tasks.json` use `extension.commandvariable.dateTime`.
+
+This command uses [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat) to create a language-sensitive format of current date and time.
+
+The `locale` and `options` command arguments are the arguments for the [`Intl.DateTimeFormat constructor`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/DateTimeFormat) and are optional.
+
+The `locale` command argument can be a single string or an array of strings of language tags. If not specified the browser default locale is used.
+
+The `template` command argument is an optional template string that uses the same placeholder syntax as the [Javascript template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals). You can add as many literal text as needed.
+
+The only expressions valid are the `type` values returned by the [`Intl.DateTimeFormat.prototype.formatToParts()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/formatToParts) method. See first example.
+
+If there is no `template` command argument the value parts of the `Intl.DateTimeFormat.prototype.formatToParts()` are joined. See second example.
+
+### Example 1
+```json
+  {
+    "key": "ctrl+shift+alt+f4",
+    "when": "editorTextFocus",
+    "command": "extension.commandvariable.dateTimeInEditor",
+    "args": {
+      "locale": "en-US",
+      "options": {
+        "year": "numeric",
+        "month": "2-digit",
+        "day": "2-digit",
+        "hour12": false,
+        "hour": "2-digit",
+        "minute": "2-digit",
+        "second": "2-digit"
+      },
+      "template": "${year}${month}${day}-${hour}${minute}${second}"
+    }
+  }
+```
+The result is
+```
+2020/03/19-18:01:18
+```
+### Example 2
+
+You can use a different locale and number system and use the long format:
+```json
+  {
+    "key": "ctrl+shift+alt+f5",
+    "when": "editorTextFocus",
+    "command": "extension.commandvariable.dateTimeInEditor",
+    "args": {
+      "locale": "fr-FR-u-nu-deva",
+      "options": {
+        "dateStyle": "full",
+        "timeStyle": "full"
+      }
+    }
+  }
+```
+The result is
+```
+jeudi १९ mars २०२० à १७:५९:५७ heure normale d’Europe centrale
+```
+
+### Example 3
+
+For `launch.json` and `tasks.json` use the `inputs` attribute:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo date",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:shortDate}" ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "shortDate",
+      "type": "command",
+      "command": "extension.commandvariable.dateTime",
+      "args": {
+        "locale": "es-ES",
+        "options": {
+          "weekday": "long",
+          "year": "numeric",
+          "month": "2-digit",
+          "day": "2-digit",
+          "hour12": false,
+          "hour": "2-digit",
+          "minute": "2-digit",
+          "second": "2-digit"
+        },
+        "template": "${weekday}__${year}${month}${day}T${hour}${minute}${second}"
+      }
+    }
+  ]
+}
+```
+The result is:
+```
+jueves__20200319T184634
 ```

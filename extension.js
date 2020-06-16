@@ -5,6 +5,16 @@ function activate(context) {
   const getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
   const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
   const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
+  const isString = obj => typeof obj === 'string';
+  function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8-to-str-tiny
+    lim = lim == null ? src.length : lim
+    for (var i = off || 0, s = ''; i < lim; i++) {
+      var h = src[i].toString(16)
+      if (h.length < 2) h = '0' + h
+      s += '%' + h
+    }
+    return decodeURIComponent(s)
+  }
   const activeTextEditorVariable = (action, args, noEditor) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { return errorMessage('No editor', noEditor); }
@@ -104,6 +114,13 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename5Up', () => {
       return fileDirBasenameNUp(5);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
+      if (!isString(args.fileName)) return "Unknown";
+      let contentUTF8 = await vscode.workspace.fs.readFile(vscode.Uri.file(args.fileName));
+      return utf8_to_str(contentUTF8);
     })
   );
   context.subscriptions.push(

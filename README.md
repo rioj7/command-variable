@@ -15,6 +15,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
+* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see example.
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
@@ -82,6 +83,41 @@ If you have files with the same name use part of the full path to select the cor
       "args": {
         "calculation.py": "-n 4224",
         "client.py": "-i calc-out.yaml"
+      }
+    }
+  ]
+}
+```
+
+## File Content
+
+Sometimes you want to use the result of a shell script (batch file). Setting environment variables will not work because they modify only the child shell.
+
+If you store the content in a file you can retrieve this with the `extension.commandvariable.file.content` command.
+
+The content of the file is assumed to be encoded with UTF-8.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo FileContent",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:fileContent}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "fileContent",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "c:\\temp\\result.txt"
       }
     }
   ]

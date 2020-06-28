@@ -15,7 +15,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
-* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see example.
+* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
@@ -57,7 +57,7 @@ You can use a Tasks to [see the value of a variable substitution](https://code.v
 
 ## FileAsKey
 
-The comamnd `extension.commandvariable.file.fileAsKey` makes it possible to select a string based on the current active file.
+The command `extension.commandvariable.file.fileAsKey` makes it possible to select a string based on the current active file.
 
 The keys of the `args` object are searched for in the path of the active file (directory separator is `/`).
 
@@ -126,7 +126,7 @@ The content of the file is assumed to be encoded with UTF-8.
 
 ## pickStringRemember and rememberPick
 
-`pickStringRemember` has te same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). And both commands have configuration attribute **`key`**. The **`key`** is used to store and retrieve a particular pick.
+`pickStringRemember` has the same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). And both commands have configuration attribute **`key`**. The **`key`** is used to store and retrieve a particular pick.
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
 

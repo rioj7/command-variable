@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": {"vscode": "^1.37.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks","date","multi-root ready"],
@@ -12,6 +12,8 @@
   "galleryBanner": {"color": "#000080", "theme": "dark"},
   "activationEvents": [
     "onCommand:extension.commandvariable.file.relativeDirDots",
+    "onCommand:extension.commandvariable.file.relativeFilePosix",
+    "onCommand:extension.commandvariable.file.relativeFileDirnamePosix",
     "onCommand:extension.commandvariable.file.filePosix",
     "onCommand:extension.commandvariable.file.fileDirnamePosix",
     "onCommand:extension.commandvariable.file.fileAsKey",

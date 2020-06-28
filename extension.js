@@ -48,14 +48,28 @@ function activate(context) {
   };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
   var path2Posix = p => p.replace(nonPosixPathRegEx, '/$1/');
+  var relative_FileOrDirname_Posix = (get_dirname) => {
+    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+      const rootPath = workspaceFolder.uri.path;
+      let documentPath = editor.document.uri.path;
+      if (get_dirname) { documentPath = path.dirname(editor.document.uri.path); }
+      if (documentPath.indexOf(rootPath) !== 0) { return fileNotInFolderError(); } // should never happen here
+      return documentPath.substring(rootPath.length + 1);
+    });
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.relativeFilePosix', () => {
+      return relative_FileOrDirname_Posix(false);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.relativeFileDirnamePosix', () => {
+      return relative_FileOrDirname_Posix(true);
+    })
+  );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeDirDots', () => {
-      return activeWorkspaceFolder( (workspaceFolder, editor) => {
-        const rootPath = workspaceFolder.uri.path;
-        const documentDirName = path.dirname(editor.document.uri.path);
-        if (documentDirName.indexOf(rootPath) !== 0) { return fileNotInFolderError(); } // should never happen here
-        return documentDirName.substring(rootPath.length + 1).replace(/\//g, () => ".");
-      });
+      return relative_FileOrDirname_Posix(true).replace(/\//g, () => ".");
     })
   );
   context.subscriptions.push(

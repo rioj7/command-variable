@@ -8,6 +8,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.relativeDirDots` : The directory of the current file relative to the workspace root directory with dots as separator. Can be used to specify a Python module.
 * `extension.commandvariable.file.filePosix` : The same result as `${file}` but in Posix form. Directory separator '`/`', and drive designation as '`/z/project/`'
 * `extension.commandvariable.file.fileDirnamePosix` : The same result as `${fileDirname}` but in Posix form.
+* `extension.commandvariable.file.relativeFilePosix` : The same result as `${relativeFile}` but in Posix form.
+* `extension.commandvariable.file.relativeFileDirnamePosix` : The same result as `${relativeFileDirname}` but in Posix form.
 * `extension.commandvariable.file.fileAsKey` : Use part of the file path as a key in a map lookup. Can be used in `lauch.json` to select arguments based on filename.
 * `extension.commandvariable.file.fileDirBasename` : The basename of the `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename1Up` : The directory name 1 Up of `${fileDirname}`

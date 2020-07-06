@@ -179,6 +179,13 @@ function activate(context) {
       return docText.substring(selectStart, selectEnd);
     })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.currentLineText', () => {
+      return activeTextEditorVariable( editor => {
+        return editor.document.lineAt(editor.selection.start).text;
+      });
+    })
+  );
   var positionLineColumn = function (kind, lineChar) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { vscode.window.showErrorMessage('No editor'); return '1'; }

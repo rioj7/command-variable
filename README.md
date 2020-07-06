@@ -29,6 +29,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.selectionStartColumnNumber` : Column number of the selection start
 * `extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
 * `extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
+* `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is.
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key

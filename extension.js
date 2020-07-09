@@ -138,6 +138,20 @@ function activate(context) {
     })
   );
   context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.pickFile', args => {
+      args = args || {};
+      let globInclude = getProperty(args, 'include', '**/*');
+      let globExclude = getProperty(args, 'exclude', 'undefined');
+      let maxResults  = getProperty(args, 'maxResults', undefined);
+      if (globExclude === 'undefined') globExclude = undefined;
+      if (globExclude === 'null') globExclude = null;
+
+      return vscode.workspace.findFiles(globInclude, globExclude, maxResults).then( uriList => {
+        return vscode.window.showQuickPick(uriList.map(u => u.fsPath));
+      });
+    })
+  );
+  context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', () => {
       return activeWorkspaceFolder( workspaceFolder => {
         return path2Posix(workspaceFolder.uri.path);

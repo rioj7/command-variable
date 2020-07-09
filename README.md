@@ -18,6 +18,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
 * `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content).
+* `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
@@ -121,6 +122,53 @@ The content of the file is assumed to be encoded with UTF-8.
       "command": "extension.commandvariable.file.content",
       "args": {
         "fileName": "c:\\temp\\result.txt"
+      }
+    }
+  ]
+}
+```
+
+## Pick File
+
+If you want to pick a file and use it in your `launch.json` or `tasks.json` you can use the `extension.commandvariable.file.pickFile` command.
+
+This command uses [`vscode.workspace.findFiles`](https://code.visualstudio.com/api/references/vscode-api#workspace.findFiles) to get a list of files to show in a Quick Pick selection box.
+
+You can set the following arguments to this command:
+
+* `include` : a [Glob Pattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) that defines the files to search for (default: `"**/*"`)
+* `exclude` : a Glob Pattern that defines files and folders to exclude. (default: `"undefined"`)
+
+    Two special strings are possible to pass special values:
+    * `"undefined"` to set the `exclude` argument to `undefined` to use default excludes
+    * `"null"` to set the `exclude` argument to `null` to use **no** excludes
+
+    **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
+
+* `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo FilePick",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:filePick}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "filePick",
+      "type": "command",
+      "command": "extension.commandvariable.file.pickFile",
+      "args": {
+        "include": "**/*.{htm,html,xhtml}",
+        "exclude": "**/{scratch,backup}/**"
       }
     }
   ]

@@ -101,6 +101,10 @@ If you store the content in a file you can retrieve this with the `extension.com
 
 The content of the file is assumed to be encoded with UTF-8.
 
+VSC does not substitute [variables](https://code.visualstudio.com/docs/editor/variables-reference) in `"inputs"` part of `tasks.json`. 
+
+The extension supports the variable `${workspaceFolder}` in the filename specifcation. 
+
 ```json
 {
   "version": "2.0.0",
@@ -126,6 +130,58 @@ The content of the file is assumed to be encoded with UTF-8.
     }
   ]
 }
+```
+
+## File Content Key Values
+
+If you have a file that contains key-value pairs and you want the value for a given key you can use the command `extension.commandvariable.file.content`. The argument `"key"` specifies for which key you want the value. If the key is not found and you have a `"default"` argument that string is returned else `"Unknown"` is returned.
+
+### Key-Value files
+
+A key-value file consists of lines that contain key-value pairs.
+
+The file can contain comments and empty lines. A comment line starts with `#` or `//`. You can have whitespace before the comment characters.
+
+A key-value pair is a line in the file that specifies the key and the value separated by a character. The supported separators are `:` and `=`. The line is split with the following regular expression: `^\s*([^:=]+)[:=](.*)`
+
+Everything, after the starting whitespace, before the first separator is the key, everything after the separator is the value. You can have a separator character in the value. Only the first separator is important.
+
+### Example
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo FileContentKey",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:fileContentKey}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "fileContentKey",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "${workspaceFolder}/key-values.txt",
+        "key": "PLUGIN",
+        "default": "special-plugin"
+      }
+    }
+  ]
+}
+```
+
+**key-values.txt**
+```txt
+// a few key values
+PLUGIN=cool-pugin
+THEME=new-school
 ```
 
 ## Pick File

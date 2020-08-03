@@ -130,11 +130,27 @@ function activate(context) {
       return fileDirBasenameNUp(5);
     })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
-      if (!isString(args.fileName)) return "Unknown";
+  const readFileContent = async (args) => {
+    if (!isString(args.fileName)) return "Unknown";
+    // variables are not substituted
+    return activeWorkspaceFolder( async (workspaceFolder, editor) => {
+      args.fileName = args.fileName.replace("${workspaceFolder}", workspaceFolder.uri.fsPath);
       let contentUTF8 = await vscode.workspace.fs.readFile(vscode.Uri.file(args.fileName));
       return utf8_to_str(contentUTF8);
+    });
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
+      let fileContent = await readFileContent(args);
+      let key = args.key;
+      if (!key) { return fileContent; }
+      for (const kvLine of fileContent.split(/\r?\n/)) {
+        if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
+        let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
+        if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
+      }
+      if (args.default) { return args.default; }
+      return "Unknown";
     })
   );
   context.subscriptions.push(

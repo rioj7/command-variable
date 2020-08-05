@@ -17,7 +17,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
-* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content).
+* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs).
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
@@ -132,7 +132,7 @@ The extension supports the variable `${workspaceFolder}` in the filename specifc
 }
 ```
 
-## File Content Key Values
+## File Content Key Value pairs
 
 If you have a file that contains key-value pairs and you want the value for a given key you can use the command `extension.commandvariable.file.content`. The argument `"key"` specifies for which key you want the value. If the key is not found and you have a `"default"` argument that string is returned else `"Unknown"` is returned.
 
@@ -142,7 +142,9 @@ A key-value file consists of lines that contain key-value pairs.
 
 The file can contain comments and empty lines. A comment line starts with `#` or `//`. You can have whitespace before the comment characters.
 
-A key-value pair is a line in the file that specifies the key and the value separated by a character. The supported separators are `:` and `=`. The line is split with the following regular expression: `^\s*([^:=]+)[:=](.*)`
+A key-value pair is a line in the file that specifies the key and the value separated by a character. The supported separators are `:` and `=`. The line is split with the following regular expression: `^\s*([^:=]+)(?:[:=])(.*)`
+
+The non-capturing group `(?:)` is only needed in this Markdown file to [prevent detection of a Markdown link](https://github.com/microsoft/vscode/issues/103846).
 
 Everything, after the starting whitespace, before the first separator is the key, everything after the separator is the value. You can have a separator character in the value. Only the first separator is important.
 

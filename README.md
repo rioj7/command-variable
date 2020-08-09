@@ -318,7 +318,7 @@ If there is no `template` command argument the value parts of the `Intl.DateTime
         "minute": "2-digit",
         "second": "2-digit"
       },
-      "template": "${year}${month}${day}-${hour}${minute}${second}"
+      "template": "${year}/${month}/${day}-${hour}:${minute}:${second}"
     }
   }
 ```

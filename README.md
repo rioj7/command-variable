@@ -25,12 +25,12 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.workspace.folderBasename3Up` : The directory name 3 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename4Up` : The directory name 4 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename5Up` : The directory name 5 Up of the workspace root directory.
-* `extension.commandvariable.selectedText` : The selected text in the active editor, empty string if nothing selected.
+* `extension.commandvariable.selectedText` : The selected text in the active editor, empty string if nothing selected. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.selectionStartLineNumber` : Line number of the selection start
 * `extension.commandvariable.selectionStartColumnNumber` : Column number of the selection start
 * `extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
 * `extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
-* `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is.
+* `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
@@ -278,6 +278,37 @@ The configuration attributes need to be passed to the command in the `args` attr
       "type": "command",
       "command": "extension.commandvariable.rememberPick",
       "args": { "key": "path" }
+    }
+  ]
+}
+```
+
+## Multicursor and text
+
+The commands `extension.commandvariable.selectedText` and `extension.commandvariable.currentLineText` combine the content in case of multi cursors. The default separator used is `"\n"`.
+
+The selections are sorted in the order they appear in the file.
+
+You can change the separator by specifying an argument object for the command with a property `"separator"`:
+
+```
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo (selected:currentLine) Text",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:multiCursorText}" ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "multiCursorText",
+      "type": "command",
+      "command": "extension.commandvariable.selectedText",
+      "args": { "separator": "@--@" }
     }
   ]
 }

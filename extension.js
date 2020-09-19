@@ -199,20 +199,29 @@ function activate(context) {
       return workspaceFolderBasenameNUp(5);
     })
   );
+  let concatMapSelections = function (args, map_func) {
+    args = args || {};
+    let separator = getProperty(args, 'separator', '\n');
+    return activeTextEditorVariable( editor => {
+      return editor.selections.sort((a, b) => { return a.start.compareTo(b.start); })
+          .map( s => map_func(editor, s) )
+          .join(separator);
+    });
+  };
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectedText', () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) { vscode.window.showErrorMessage('No editor'); return "Unknown"; }
-      var selectStart = editor.document.offsetAt(editor.selection.start);
-      var selectEnd = editor.document.offsetAt(editor.selection.end);
-      var docText = editor.document.getText();
-      return docText.substring(selectStart, selectEnd);
+    vscode.commands.registerCommand('extension.commandvariable.selectedText', args => {
+      return concatMapSelections(args, (editor, selection) => {
+        var document = editor.document;
+        var selectStart = document.offsetAt(selection.start);
+        var selectEnd = document.offsetAt(selection.end);
+        return document.getText().substring(selectStart, selectEnd);
+      });
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.currentLineText', () => {
-      return activeTextEditorVariable( editor => {
-        return editor.document.lineAt(editor.selection.start).text;
+    vscode.commands.registerCommand('extension.commandvariable.currentLineText', args => {
+      return concatMapSelections(args, (editor, selection) => {
+        return editor.document.lineAt(selection.start).text;
       });
     })
   );

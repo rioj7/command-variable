@@ -47,12 +47,13 @@ function activate(context) {
     });
   };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
-  var path2Posix = p => p.replace(nonPosixPathRegEx, '/$1/');
+  var lowerCaseDriveLetter = p => p.replace(nonPosixPathRegEx, match => match.toLowerCase() );
+  var path2Posix = p => lowerCaseDriveLetter(p).replace(nonPosixPathRegEx, '/$1/');
   var relative_FileOrDirname_Posix = (get_dirname) => {
     return activeWorkspaceFolder( (workspaceFolder, editor) => {
-      const rootPath = workspaceFolder.uri.path;
-      let documentPath = editor.document.uri.path;
-      if (get_dirname) { documentPath = path.dirname(editor.document.uri.path); }
+      const rootPath = lowerCaseDriveLetter(workspaceFolder.uri.path);
+      let documentPath = lowerCaseDriveLetter(editor.document.uri.path);
+      if (get_dirname) { documentPath = path.dirname(documentPath); }
       if (documentPath.indexOf(rootPath) !== 0) { return fileNotInFolderError(); } // should never happen here
       return documentPath.substring(rootPath.length + 1);
     });

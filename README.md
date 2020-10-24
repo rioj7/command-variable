@@ -36,6 +36,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
+* `extension.commandvariable.transform` : transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
 
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
@@ -309,6 +310,56 @@ You can change the separator by specifying an argument object for the command wi
       "type": "command",
       "command": "extension.commandvariable.selectedText",
       "args": { "separator": "@--@" }
+    }
+  ]
+}
+```
+
+## Transform
+
+Sometimes you want to modify a variable before you use it. Change the filename of the file in the editor to construct a different filename.
+
+The transform you can apply to fields in snippets is not supported in the variables in the task and launch json files.
+
+With the command `extension.commandvariable.transform` you can find-replace with Regular Expression a selection of variables.
+
+The command can be used with the `${input:}` variable an dhas the following arguments:
+
+* `text` : the string where you want to apply a find-replace. It can contain a selection of other variables (see next section)
+* `find` : the Regular Expression to search in `text`. Can contain capture groups.
+* `replace` : the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
+* `flags` : the flags to be used in the Regular Expression, like `gims`, default (`""`)
+
+The varibles that can be used in the text are:
+
+* `${workspaceFolder}` : the path of the folder opened in VS Code
+* `${fileBasename}` : the current opened file's basename
+* `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
+
+VSC does not support variable substitution in the strings of the `inputs` fields, so currently only a selection of variables is replicated here.
+
+```
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo first part fileBaseNameNoExtension",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:firstPart}" ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "firstPart",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${fileBasenameNoExtension}",
+        "find": "(.*?)-.*",
+        "replace": "$1",
+      }
     }
   ]
 }

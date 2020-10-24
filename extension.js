@@ -46,6 +46,20 @@ function activate(context) {
       return basenameNUp(path.substring(0, lastSep), n);
     });
   };
+  var variableSubstitution = (text) => {
+    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+      var result = text.replace("${workspaceFolder}", workspaceFolder.uri.fsPath);
+      const path = editor.document.uri.path;
+      const lastSep = path.lastIndexOf('/');
+      if (lastSep === -1) { return "Unknown"; }
+      const fileBasename = path.substring(lastSep+1);
+      result = result.replace("${fileBasename}", fileBasename);
+      const lastDot = fileBasename.lastIndexOf('.');
+      const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;
+      result = result.replace("${fileBasenameNoExtension}", fileBasenameNoExtension);
+      return result;
+    });
+  };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
   var lowerCaseDriveLetter = p => p.replace(nonPosixPathRegEx, match => match.toLowerCase() );
   var path2Posix = p => lowerCaseDriveLetter(p).replace(nonPosixPathRegEx, '/$1/');
@@ -280,6 +294,19 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('extension.commandvariable.dateTimeInEditor', function (editor, edit, args) {
       edit.replace(editor.selection, dateTimeFormat(args));
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.transform', args => {
+      if (!args) { args = {}; }
+      let text    = getProperty(args, 'text', "");
+      let find    = getProperty(args, 'find', "Unknown");
+      let replace = getProperty(args, 'replace', "");
+      let flags   = getProperty(args, 'flags', "");
+      if (find) {
+        text = variableSubstitution(text).replace(new RegExp(find, flags), replace);
+      }
+      return text;
     })
   );
 };

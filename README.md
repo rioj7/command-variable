@@ -36,8 +36,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
-* `extension.commandvariable.transform` : transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
-
+* `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
 
@@ -360,6 +359,40 @@ VSC does not support variable substitution in the strings of the `inputs` fields
         "find": "(.*?)-.*",
         "replace": "$1",
       }
+    }
+  ]
+}
+```
+
+The `text` property can contain any text with variables.
+
+### Custom variables
+
+We can use this command to construct custom variables by setting the `text` argument and not defining a `find` argument. The `id` of the `inputs` record is the name of the variable.
+
+```
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Node",
+      "runtimeArgs": ["user", "${input:TEST_USER}"],
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Chrome",
+      "url": "http://localhost:3000?${input:TEST_USER}",
+    }
+  ],
+  "inputs": [
+    {
+      "id": "TEST_USER",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": { "text": "BobSmith" }
     }
   ]
 }

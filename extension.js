@@ -300,7 +300,7 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.transform', args => {
       if (!args) { args = {}; }
       let text    = getProperty(args, 'text', "");
-      let find    = getProperty(args, 'find', "Unknown");
+      let find    = getProperty(args, 'find');
       let replace = getProperty(args, 'replace', "");
       let flags   = getProperty(args, 'flags', "");
       if (find) {

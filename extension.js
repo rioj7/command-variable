@@ -47,17 +47,31 @@ function activate(context) {
     });
   };
   var variableSubstitution = (text) => {
-    return activeWorkspaceFolder( (workspaceFolder, editor) => {
-      var result = text.replace("${workspaceFolder}", workspaceFolder.uri.fsPath);
+    let stringSubstitution = (text, workspaceFolder, editor) => {
+      var var_workspaceFolder = workspaceFolder.uri.fsPath;
+      var result = text.replace("${workspaceFolder}", var_workspaceFolder);
+      var var_file = editor.document.uri.fsPath;
+      result = result.replace("${file}", var_file);
+      var var_relativeFile = var_file.replace(var_workspaceFolder, '');
+      if (var_relativeFile !== var_file) {
+        var_relativeFile = var_relativeFile.substring(1); // remove extra separator
+      }
+      result = result.replace("${relativeFile}", var_relativeFile);
       const path = editor.document.uri.path;
       const lastSep = path.lastIndexOf('/');
-      if (lastSep === -1) { return "Unknown"; }
+      if (lastSep === -1) { return result; }
       const fileBasename = path.substring(lastSep+1);
       result = result.replace("${fileBasename}", fileBasename);
       const lastDot = fileBasename.lastIndexOf('.');
       const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;
       result = result.replace("${fileBasenameNoExtension}", fileBasenameNoExtension);
       return result;
+    };
+    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+      if (Array.isArray(text)) {
+        return text.map( t => stringSubstitution(t, workspaceFolder, editor));
+      }
+      return stringSubstitution(text, workspaceFolder, editor);
     });
   };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
@@ -108,7 +122,7 @@ function activate(context) {
         const path = editor.document.uri.path;
         for (const key in _args) {
           if (_args.hasOwnProperty(key)) {
-            if (path.indexOf(key) !== -1) { return _args[key];}
+            if (path.indexOf(key) !== -1) { return variableSubstitution(_args[key]);}
           }
         }
         return "Unknown";

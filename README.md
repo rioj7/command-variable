@@ -93,6 +93,8 @@ If you have files with the same name use part of the full path to select the cor
 }
 ```
 
+The value strings may contain variables. See the [transform command](#transform) for the supported variables.
+
 ## File Content
 
 Sometimes you want to use the result of a shell script (batch file). Setting environment variables will not work because they modify only the child shell.
@@ -329,9 +331,11 @@ The command can be used with the `${input:}` variable an dhas the following argu
 * `replace` : the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
 * `flags` : the flags to be used in the Regular Expression, like `gims`, default (`""`)
 
-The varibles that can be used in the text are:
+The variables that can be used in the text are:
 
 * `${workspaceFolder}` : the path of the folder opened in VS Code
+* `${file}` : the current opened file (the file system path)
+* `${relativeFile}` : the current opened file relative to workspaceFolder
 * `${fileBasename}` : the current opened file's basename
 * `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
 

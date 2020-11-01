@@ -275,6 +275,9 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.dirSep', () => { return process.platform === 'win32' ? '\\' : '/'; })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.envListSep', () => { return process.platform === 'win32' ? ';' : ':'; })
+  );
   let pickRemember = { __not_yet: "I don't remember" };
   async function pickStringRemember(args) {
     const result = await vscode.window.showQuickPick(

@@ -38,6 +38,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
+* `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers)
+* `extension.commandvariable.UUIDInEditor` : generate a UUID v4 (from random numbers) to be used for keybindings
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
 
@@ -511,3 +513,7 @@ The result is:
 ```
 jueves__20200319T184634
 ```
+
+# Credits
+
+* uses [UUID node module by LiosK](https://www.npmjs.com/package/uuidjs)

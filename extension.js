@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 const path = require('path');
+let UUID = require('./uuid');
 
 function activate(context) {
   const getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
@@ -311,6 +312,15 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('extension.commandvariable.dateTimeInEditor', function (editor, edit, args) {
       edit.replace(editor.selection, dateTimeFormat(args));
+    })
+  );
+  let UUIDFormat = (args) => UUID.generate();
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.UUID', args => UUIDFormat(args))
+  );
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand('extension.commandvariable.UUIDInEditor', function (editor, edit, args) {
+      edit.replace(editor.selection, UUIDFormat(args));
     })
   );
   context.subscriptions.push(

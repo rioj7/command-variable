@@ -16,6 +16,7 @@ function activate(context) {
     }
     return decodeURIComponent(s)
   }
+  function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + startAt); }  // https://stackoverflow.com/a/10050831/9938317
   const activeTextEditorVariable = (action, args, noEditor) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { return errorMessage('No editor', noEditor); }
@@ -87,6 +88,17 @@ function activate(context) {
       return documentPath.substring(rootPath.length + 1);
     });
   };
+  var fileDirnameNUp = function (n, posix) {
+    return activeTextEditorVariable( editor => {
+      let fspath;
+      if (posix) { fspath = path2Posix(editor.document.uri.path); }
+      else { fspath = editor.document.uri.fsPath; }
+      for (let i = 0; i < n+1; ++i) { // 1 more to get filename out
+        fspath = path.dirname(fspath);
+      }
+      return fspath;
+    });
+  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeFilePosix', () => {
       return relative_FileOrDirname_Posix(false);
@@ -135,31 +147,15 @@ function activate(context) {
       return fileDirBasenameNUp(0);
     })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename1Up', () => {
-      return fileDirBasenameNUp(1);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename2Up', () => {
-      return fileDirBasenameNUp(2);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename3Up', () => {
-      return fileDirBasenameNUp(3);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename4Up', () => {
-      return fileDirBasenameNUp(4);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename5Up', () => {
-      return fileDirBasenameNUp(5);
-    })
-  );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirBasename${i}Up`,
+        () => fileDirBasenameNUp(i) )) );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirname${i}Up`,
+        () => fileDirnameNUp(i) )) );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirname${i}UpPosix`,
+        () => fileDirnameNUp(i, true) )) );
   const readFileContent = async (args) => {
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted
@@ -204,31 +200,9 @@ function activate(context) {
       });
     })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderBasename1Up', () => {
-      return workspaceFolderBasenameNUp(1);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderBasename2Up', () => {
-      return workspaceFolderBasenameNUp(2);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderBasename3Up', () => {
-      return workspaceFolderBasenameNUp(3);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderBasename4Up', () => {
-      return workspaceFolderBasenameNUp(4);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderBasename5Up', () => {
-      return workspaceFolderBasenameNUp(5);
-    })
-  );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folderBasename${i}Up`,
+        () => workspaceFolderBasenameNUp(i) )) );
   let concatMapSelections = function (args, map_func) {
     args = args || {};
     let separator = getProperty(args, 'separator', '\n');

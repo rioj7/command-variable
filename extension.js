@@ -165,16 +165,36 @@ function activate(context) {
       return utf8_to_str(contentUTF8);
     });
   };
+  function getExpressionFunction(expr) {
+    try {
+      return Function(`"use strict";return (function calcexpr(content) {
+        return ${expr};
+      })`)();
+    }
+    catch (ex) {
+      vscode.window.showErrorMessage("extension.commandvariable.file.content: Incomplete expression");
+    }
+  }
+  function contentValue(args, fileContent) {
+    let jsonExpr = args.json;
+    if (jsonExpr) {
+      let value = getExpressionFunction(jsonExpr)(JSON.parse(fileContent));
+      if (value === undefined) { return value; }
+      return String(value);
+    }
+    let key = args.key;
+    if (!key) { return fileContent; }
+    for (const kvLine of fileContent.split(/\r?\n/)) {
+      if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
+      let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
+      if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
+    }
+  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
       let fileContent = await readFileContent(args);
-      let key = args.key;
-      if (!key) { return fileContent; }
-      for (const kvLine of fileContent.split(/\r?\n/)) {
-        if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
-        let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
-        if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
-      }
+      let value = contentValue(args, fileContent);
+      if (value) { return value; }
       if (args.default) { return args.default; }
       return "Unknown";
     })

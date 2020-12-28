@@ -27,7 +27,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
-* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs).
+* `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs). Or the value of a JSON file property, see [example](#file-content-json-property).
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
@@ -199,6 +199,61 @@ Everything, after the starting whitespace, before the first separator is the key
 // a few key values
 PLUGIN=cool-pugin
 THEME=new-school
+```
+
+## File Content JSON Property
+
+If you have a JSON file and you want the value for a given property you can use the command `extension.commandvariable.file.content`. The argument `"json"` specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed JSON file. If the JavaScript expression fails and you have a `"default"` argument that string is returned else `"Unknown"` is returned.
+
+The JSON file can be an array and you can address the elements with: `content[3]`
+
+### Example
+
+You have a JSON configuration file in your workspace:
+
+**config.json**
+
+```json
+{
+  "log": "foobar.log",
+  "server1": {
+    "port": 5011
+  },
+  "server2": {
+    "port": 5023
+  }
+}
+```
+
+In your `task.json` you want to use the server1 port value.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Server1Port",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:configServer1Port}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "configServer1Port",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "${workspaceFolder}/config.json",
+        "json": "content.server1.port",
+        "default": "4321"
+      }
+    }
+  ]
+}
 ```
 
 ## Pick File

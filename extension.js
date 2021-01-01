@@ -88,15 +88,21 @@ function activate(context) {
       return documentPath.substring(rootPath.length + 1);
     });
   };
-  var fileDirnameNUp = function (n, posix) {
-    return activeTextEditorVariable( editor => {
-      let fspath;
-      if (posix) { fspath = path2Posix(editor.document.uri.path); }
-      else { fspath = editor.document.uri.fsPath; }
+  var fileDirnameNUp = function (n, posix, relative) {
+    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+      let filePath;
+      if (posix) { filePath = path2Posix(editor.document.uri.path); }
+      else { filePath = editor.document.uri.fsPath; }
       for (let i = 0; i < n+1; ++i) { // 1 more to get filename out
-        fspath = path.dirname(fspath);
+        filePath = path.dirname(filePath);
       }
-      return fspath;
+      if (relative) {
+        let rootPath;
+        if (posix) { rootPath = path2Posix(workspaceFolder.uri.path); }
+        else { rootPath = workspaceFolder.uri.fsPath; }
+        filePath = filePath.substring(rootPath.length + 1);
+      }
+      return filePath;
     });
   };
   context.subscriptions.push(
@@ -154,8 +160,14 @@ function activate(context) {
     i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirname${i}Up`,
         () => fileDirnameNUp(i) )) );
   context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.relativeFileDirname${i}Up`,
+        () => fileDirnameNUp(i, false, true) )) );
+  context.subscriptions.push( ...range(5, 1).map(
     i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirname${i}UpPosix`,
         () => fileDirnameNUp(i, true) )) );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.relativeFileDirname${i}UpPosix`,
+        () => fileDirnameNUp(i, true, true) )) );
   const readFileContent = async (args) => {
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted

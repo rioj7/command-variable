@@ -38,6 +38,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
 * `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs). Or the value of a JSON file property, see [example](#file-content-json-property).
+* `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
 * `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
@@ -221,7 +222,7 @@ The JSON file can be an array and you can address the elements with: `content[3]
 
 You have a JSON configuration file in your workspace:
 
-**config.json**
+**`config.json`**
 
 ```json
 {
@@ -235,7 +236,7 @@ You have a JSON configuration file in your workspace:
 }
 ```
 
-In your `task.json` you want to use the server1 port value.
+In your `tasks.json` you want to use the server1 port value.
 
 ```json
 {
@@ -263,6 +264,61 @@ In your `task.json` you want to use the server1 port value.
       }
     }
   ]
+}
+```
+
+## File Content in Editor
+
+If you want the (partial) result of an external program inserted in the editor you can use the command `extension.commandvariable.file.contentInEditor`. This command uses the same arguments as `extension.commandvariable.file.content`.
+
+Most likely you want to call the program first to write the output to a file that you read and extract the parts you want. For this you can use the extension [multi-command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command).
+
+1. Define a task that runs the external command
+1. Define a multi-command that calls the task and then `extension.commandvariable.file.contentInEditor`
+1. Define a key binding that calls the multi-command
+
+Add to **`.vscode/tasks.json`**
+
+```json
+    {
+      "label": "get Timestamp",
+      "type": "shell",
+      "command": "echo timestamp=2021-04-01 12:34 >${workspaceFolder}/timequery.txt",
+      "problemMatcher": []
+    }
+```
+
+Add to **`.vscode/settings.json`**
+
+```json
+  "multiCommand.commands": [
+    {
+      "command": "multiCommand.insertTimestamp",
+      "interval": 500,
+      "sequence": [
+        { "command": "workbench.action.tasks.runTask",
+          "args": "get Timestamp"
+        },
+        { "command": "extension.commandvariable.file.contentInEditor",
+          "args": {
+            "fileName": "${workspaceFolder}/timequery.txt",
+            "key": "timestamp",
+            "default": "Query failed"
+          }
+        }
+      ]
+    }
+  ]
+```
+
+Add to **`keybindings.json`**
+
+```json
+{
+    "key": "F1", // or any other key combo
+    "command": "extension.multiCommand.execute",
+    "args": { "command": "multiCommand.insertTimestamp" },
+    "when": "editorTextFocus"
 }
 ```
 

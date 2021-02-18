@@ -202,13 +202,23 @@ function activate(context) {
       if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
     }
   }
+  const fileContent = async (args) => {
+    let content = await readFileContent(args);
+    let value = contentValue(args, content);
+    if (value) { return value; }
+    if (args.default) { return args.default; }
+    return "Unknown";
+  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
-      let fileContent = await readFileContent(args);
-      let value = contentValue(args, fileContent);
-      if (value) { return value; }
-      if (args.default) { return args.default; }
-      return "Unknown";
+      return await fileContent(args);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.contentInEditor', async (args) => {
+      const editor = vscode.window.activeTextEditor;
+      const content = await fileContent(args);
+      editor.edit( editBuilder => { editBuilder.replace(editor.selection, content); });
     })
   );
   context.subscriptions.push(

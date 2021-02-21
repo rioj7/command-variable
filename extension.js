@@ -48,7 +48,23 @@ function activate(context) {
       return basenameNUp(path.substring(0, lastSep), n);
     });
   };
-  var variableSubstitution = (text) => {
+  var replaceVariableWithProperties = (text, varName, args, replaceFunc) => {
+    var fieldRegex = new RegExp(`\\$\\{${varName}(\\}|([^a-zA-Z{}]+)(.+?)\\2\\})`, 'g');
+    var replaceFuncNewArgs = (m,hasParams,sep,params) => {
+      var _args = {...args};
+      if (hasParams !== '}') {
+        params.split(sep).forEach(p => {
+          let eq = p.indexOf('=');
+          if (eq === -1) { return; }
+          _args[p.substring(0, eq).trim()] = p.substring(eq+1);
+        });
+      }
+      return replaceFunc(_args);
+    };
+    return text.replace(fieldRegex, replaceFuncNewArgs);
+  };
+  var variableSubstitution = (text, args) => {
+    args = args || {};
     let stringSubstitution = (text, workspaceFolder, editor) => {
       var var_workspaceFolder = workspaceFolder.uri.fsPath;
       var result = text.replace("${workspaceFolder}", var_workspaceFolder);
@@ -59,6 +75,7 @@ function activate(context) {
         var_relativeFile = var_relativeFile.substring(1); // remove extra separator
       }
       result = result.replace("${relativeFile}", var_relativeFile);
+      result = replaceVariableWithProperties(result, 'selectedText', args, _args => concatMapSelections(_args, getEditorSelection) );
       const path = editor.document.uri.path;
       const lastSep = path.lastIndexOf('/');
       if (lastSep === -1) { return result; }
@@ -141,7 +158,7 @@ function activate(context) {
         const path = editor.document.uri.path;
         for (const key in _args) {
           if (_args.hasOwnProperty(key)) {
-            if (path.indexOf(key) !== -1) { return variableSubstitution(_args[key]);}
+            if (path.indexOf(key) !== -1) { return variableSubstitution(_args[key], _args);}
           }
         }
         return "Unknown";
@@ -245,23 +262,37 @@ function activate(context) {
   context.subscriptions.push( ...range(5, 1).map(
     i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folderBasename${i}Up`,
         () => workspaceFolderBasenameNUp(i) )) );
+  function getExpressionFunctionFilterSelection(expr) {
+    try {
+      return Function(`"use strict";return (function calcexpr(value, index, numSel) {
+        return ${expr};
+      })`)();
+    }
+    catch (ex) {
+      vscode.window.showErrorMessage("extension.commandvariable.selectedText: Incomplete expression");
+    }
+  }
   let concatMapSelections = function (args, map_func) {
     args = args || {};
     let separator = getProperty(args, 'separator', '\n');
+    let selectionFilter = getExpressionFunctionFilterSelection(getProperty(args, 'filterSelection', 'true'));
     return activeTextEditorVariable( editor => {
+      let numSel = editor.selections.length;
       return editor.selections.sort((a, b) => { return a.start.compareTo(b.start); })
           .map( s => map_func(editor, s) )
+          .filter ( (value, index) => selectionFilter(value, index, numSel))
           .join(separator);
     });
   };
+  const getEditorSelection = (editor, selection) => {
+    var document = editor.document;
+    var selectStart = document.offsetAt(selection.start);
+    var selectEnd = document.offsetAt(selection.end);
+    return document.getText().substring(selectStart, selectEnd);
+  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.selectedText', args => {
-      return concatMapSelections(args, (editor, selection) => {
-        var document = editor.document;
-        var selectStart = document.offsetAt(selection.start);
-        var selectEnd = document.offsetAt(selection.end);
-        return document.getText().substring(selectStart, selectEnd);
-      });
+      return concatMapSelections(args, getEditorSelection);
     })
   );
   context.subscriptions.push(
@@ -346,8 +377,9 @@ function activate(context) {
       let find    = getProperty(args, 'find');
       let replace = getProperty(args, 'replace', "");
       let flags   = getProperty(args, 'flags', "");
+      text = variableSubstitution(text, args);
       if (find) {
-        text = variableSubstitution(text).replace(new RegExp(find, flags), replace);
+        text = text.replace(new RegExp(find, flags), replace);
       }
       return text;
     })

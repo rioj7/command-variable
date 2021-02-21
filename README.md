@@ -30,7 +30,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.relativeFileDirname4UpPosix` : The same result as `${extension.commandvariable.file.relativeFileDirname4Up}` but in Posix form.
 * `extension.commandvariable.file.relativeFileDirname5UpPosix` : The same result as `${extension.commandvariable.file.relativeFileDirname5Up}` but in Posix form.
 * `extension.commandvariable.file.relativeFilePosix` : The same result as `${relativeFile}` but in Posix form.
-* `extension.commandvariable.file.fileAsKey` : Use part of the file path as a key in a map lookup. Can be used in `lauch.json` to select arguments based on filename.
+* `extension.commandvariable.file.fileAsKey` : Use part of the file path as a key in a map lookup. Can be used in `lauch.json` to select arguments based on filename, see [example](#fileaskey).
 * `extension.commandvariable.file.fileDirBasename` : The basename of the `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename1Up` : The directory name 1 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename2Up` : The directory name 2 Up of `${fileDirname}`
@@ -117,7 +117,7 @@ If you have files with the same name use part of the full path to select the cor
 }
 ```
 
-The value strings may contain variables. See the [transform command](#transform) for the supported variables.
+The value strings may contain variables. See the [transform command](#transform) for the supported variables. If you use the variable `${selectedText}` you have to embed the properties `separator` and `filterSelection` in the variable, example `${selectedText##separator=@@##filterSelection=index%3===1##}`. Now these properties are no longer possible keys and you have individual properties for each possible variable `${selectedText}`. See the [transform command](#transform) for the syntax.
 
 ## File Content
 
@@ -458,12 +458,19 @@ The transform you can apply to fields in snippets is not supported in the variab
 
 With the command `extension.commandvariable.transform` you can find-replace with Regular Expression a selection of variables.
 
-The command can be used with the `${input:}` variable an dhas the following arguments:
+The command can be used with the `${input:}` variable and has the following arguments:
 
 * `text` : the string where you want to apply a find-replace. It can contain a selection of other variables (see next section)
 * `find` : the Regular Expression to search in `text`. Can contain capture groups.
 * `replace` : the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
 * `flags` : the flags to be used in the Regular Expression, like `gims`, default (`""`)
+* `separator` : the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
+* `filterSelection` : a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:
+    * `index` : the 0-base sequence number of the selection
+    * `value` : the text of the selection
+    * `numSel` : number of selections (or cursors)
+
+    The `index` is 0-based to make (modulo) calculations easier. The first `index` is 0.
 
 The variables that can be used in the text are:
 
@@ -472,6 +479,7 @@ The variables that can be used in the text are:
 * `${relativeFile}` : the current opened file relative to workspaceFolder
 * `${fileBasename}` : the current opened file's basename
 * `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
+* `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
 
 VSC does not support variable substitution in the strings of the `inputs` fields, so currently only a selection of variables is replicated here.
 
@@ -534,6 +542,56 @@ We can use this command to construct custom variables by setting the `text` argu
     }
   ]
 }
+```
+
+### selectedText Variable
+
+If you only have 1 selection you don't need the properties `separator` and `filterSelection`.
+
+You can define the properties `separator` and `filterSelection` in the `args` property of the command.
+
+```
+      "args": {
+        "text": "${selectedText}",
+        "separator": "@-@",
+        "filterSelection": "index%2===1",
+      }
+```
+
+And you can define/overrule the properties by embedding them in the variable:
+
+<code>${selectedText <em>separator</em> <em>properties</em> <em>separator</em>}</code>
+
+All _`separator`_'s used in a variable need to be the same.
+
+The _`separator`_ is a string of 1 or more characters that are not part of the a to z alfabet or `{}`, in regular expression `[^a-zA-Z{}]+`. Choose a character string that is not used in the values of the _`properties`_ part. If you need to use more than 1 character do not use all the same character, it can lead to non conformant properties description that is still parsed. The reason is that JavaScript does not have non-backtrack greedy quantifiers. Currently the variable is matched with 1 regular expression. This makes everything easy to implement.
+
+The _`properties`_ are the properties you want separated with the _`separator`_ string. Each property is defined as:
+
+<code><em>propertyName</em>=<em>value</em></code>
+
+Everyting between `=` and the next _`separator`_ is the _`value`_
+
+The above example can be written as
+
+```
+      "args": {
+        "text": "${selectedText#separator=@-@#filterSelection=index%2===1#}"
+      }
+```
+
+A few examples of `filterSelection` expressions
+
+* every other **odd** selection : `"filterSelection": "index%2===1"`
+* every selection containing `foo` or `bar` : `"filterSelection": "value.match(/foo|bar/)"`
+* the before last selection : `"filterSelection": "index===numSel-2"`
+
+You can use multiple `${selectedText}` variables that have different properties:
+
+```
+      "args": {
+        "text": "${selectedText#filterSelection=index===3#} ${selectedText#filterSelection=index===1#}"
+      }
 ```
 
 ## dateTime

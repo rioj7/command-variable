@@ -185,14 +185,30 @@ function activate(context) {
   context.subscriptions.push( ...range(5, 1).map(
     i => vscode.commands.registerCommand(`extension.commandvariable.file.relativeFileDirname${i}UpPosix`,
         () => fileDirnameNUp(i, true, true) )) );
+  function checkSpecificWorkspaceFolder(fileName, action, noSpecific) {
+    const regex = /\${workspaceFolder:(\w+)}/;
+    let match = regex.exec(fileName);
+    if (match) {
+      let folder = vscode.workspace.workspaceFolders.find(f => f.name === match[1]);
+      if (folder) {
+        return action(fileName.replace(match[0], folder.uri.fsPath));
+      }
+    }
+    return noSpecific(fileName);
+  }
   const readFileContent = async (args) => {
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted
-    return activeWorkspaceFolder( async (workspaceFolder, editor) => {
-      args.fileName = args.fileName.replace("${workspaceFolder}", workspaceFolder.uri.fsPath);
-      let contentUTF8 = await vscode.workspace.fs.readFile(vscode.Uri.file(args.fileName));
+    const readContent = async (fileName) => {
+      let contentUTF8 = await vscode.workspace.fs.readFile(vscode.Uri.file(fileName));
       return utf8_to_str(contentUTF8);
-    });
+    };
+    return checkSpecificWorkspaceFolder(args.fileName,
+      (fileName) => readContent(fileName),
+      (fileName) => activeWorkspaceFolder( async (workspaceFolder, editor) => {
+        fileName = fileName.replace("${workspaceFolder}", workspaceFolder.uri.fsPath);
+        return readContent(fileName);
+      }));
   };
   function getExpressionFunction(expr) {
     try {

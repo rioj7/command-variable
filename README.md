@@ -129,7 +129,7 @@ The content of the file is assumed to be encoded with UTF-8.
 
 VSC does not substitute [variables](https://code.visualstudio.com/docs/editor/variables-reference) in `"inputs"` part of `tasks.json`. 
 
-The extension supports the variable `${workspaceFolder}` in the filename specifcation. 
+The extension supports the variable `${workspaceFolder}` and `${workspaceFolder:specific}` in the filename specifcation. 
 
 ```json
 {

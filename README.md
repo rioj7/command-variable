@@ -40,8 +40,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs). Or the value of a JSON file property, see [example](#file-content-json-property).
 * `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
-* `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form.
-* `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`
+* `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
+* `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
 * `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename3Up` : The directory name 3 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folderBasename4Up` : The directory name 4 Up of the workspace root directory.
@@ -56,7 +56,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
 * `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
-* `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale)
+* `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
 * `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers)
@@ -117,7 +117,7 @@ If you have files with the same name use part of the full path to select the cor
 }
 ```
 
-The value strings may contain variables. See the [transform command](#transform) for the supported variables. If you use the variable `${selectedText}` you have to embed the properties `separator` and `filterSelection` in the variable, example `${selectedText##separator=@@##filterSelection=index%3===1##}`. Now these properties are no longer possible keys and you have individual properties for each possible variable `${selectedText}`. See the [transform command](#transform) for the syntax.
+The value strings may contain [variables](#variables). If you use the variable `${selectedText}` you have to embed the properties `separator` and `filterSelection` in the variable, example `${selectedText##separator=@@##filterSelection=index%3===1##}`.
 
 ## File Content
 
@@ -127,9 +127,7 @@ If you store the content in a file you can retrieve this with the `extension.com
 
 The content of the file is assumed to be encoded with UTF-8.
 
-VSC does not substitute [variables](https://code.visualstudio.com/docs/editor/variables-reference) in `"inputs"` part of `tasks.json`. 
-
-The extension supports the variable `${workspaceFolder}` in the filename specifcation. 
+The `fileName` argument supports [variables](#variables), like `${workspaceFolder}` and <code>${workspaceFolder:<em>name</em>}</code>.
 
 ```json
 {
@@ -456,61 +454,21 @@ Sometimes you want to modify a variable before you use it. Change the filename o
 
 The transform you can apply to fields in snippets is not supported in the variables in the task and launch json files.
 
-With the command `extension.commandvariable.transform` you can find-replace with Regular Expression a selection of variables.
+With the command `extension.commandvariable.transform` you can find-replace with Regular Expression a selection of variables combined with static text.
 
 The command can be used with the `${input:}` variable and has the following arguments:
 
-* `text` : the string where you want to apply a find-replace. It can contain a selection of other variables (see next section)
-* `find` : the Regular Expression to search in `text`. Can contain capture groups.
-* `replace` : the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
-* `flags` : the flags to be used in the Regular Expression, like `gims`, default (`""`)
-* `separator` : the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
-* `filterSelection` : a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:
+* `text` : the string where you want to apply a find-replace. It can contain a selection of [variables](#variables) and literal text.
+* `find` : (Optional) the Regular Expression to search in `text`. Can contain capture groups. If no `find` argument there is no `find-replace` operation.
+* `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
+* `flags` : (Optional) the flags to be used in the Regular Expression, like `gims`, default (`""`)
+* `separator` : (Optional) the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
+* `filterSelection` : (Optional) a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:
     * `index` : the 0-base sequence number of the selection
     * `value` : the text of the selection
     * `numSel` : number of selections (or cursors)
 
     The `index` is 0-based to make (modulo) calculations easier. The first `index` is 0.
-
-The variables that can be used in the text are:
-
-* `${workspaceFolder}` : the path of the folder opened in VS Code
-* `${file}` : the current opened file (the file system path)
-* `${relativeFile}` : the current opened file relative to workspaceFolder
-* `${fileBasename}` : the current opened file's basename
-* `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
-* `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
-
-VSC does not support variable substitution in the strings of the `inputs` fields, so currently only a selection of variables is replicated here.
-
-```
-{
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "echo first part fileBaseNameNoExtension",
-      "type": "shell",
-      "command": "echo",
-      "args": [ "${input:firstPart}" ],
-      "problemMatcher": []
-    }
-  ],
-  "inputs": [
-    {
-      "id": "firstPart",
-      "type": "command",
-      "command": "extension.commandvariable.transform",
-      "args": {
-        "text": "${fileBasenameNoExtension}",
-        "find": "(.*?)-.*",
-        "replace": "$1",
-      }
-    }
-  ]
-}
-```
-
-The `text` property can contain any text with variables.
 
 ### Custom variables
 
@@ -544,11 +502,86 @@ We can use this command to construct custom variables by setting the `text` argu
 }
 ```
 
+## Variables
+
+Many strings of commands support variables. The variables that can be used are:
+
+VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here.
+
+* `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
+* `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
+* <code>${workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
+* `${file}` : the current opened file (the file system path)
+* `${relativeFile}` : the current opened file relative to workspaceFolder
+* `${fileBasename}` : the current opened file's basename
+* `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
+* `${fileExtname}` : the current opened file's extension
+
+The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
+
+```
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo first part fileBaseNameNoExtension",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:firstPart}" ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "firstPart",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${fileBasenameNoExtension}",
+        "find": "(.*?)-.*",
+        "replace": "$1",
+      }
+    }
+  ]
+}
+```
+
+### workspaceFolder Variable
+
+The variable `${workspaceFolder}` is only valid in certain cases:
+
+| File Open | Workspace | `${workspaceFolder}` |
+| ---- | ---------  | --- |
+| No   | No         | `"Unknown"` and Error: `"No Folder"` |
+| No   | Folder     | Path of the open folder |
+| No   | Multi Root | `"Unknown"` and Error: `"Use workspace name"` |
+| Yes  | No         | `"Unknown"` and Error: `"No Folder"` |
+| Yes  | Folder     | Path of the workspace containing current file |
+| Yes  | Multi Root | Path of the workspace containing current file |
+
+An example:
+
+```
+${workspaceFolder:server}
+```
+
+The variable <code>${workspaceFolder:<em>name</em>}</code> is only invalid when there is no folder open.
+
+In most cases the _name_ is the basename of the workspace folder path (last directory name).
+
+If you have 2 workspaces with the same (folder base)name you can't target the second one by name only. You have to use more parts of the directory path to make the name unique. Use the `/` as path separator on all platforms. The _name_ is tested to be at the end of the workspace folder path (using `/` as separator).
+
+An example:
+
+```
+${workspaceFolder:/websiteA/server}
+```
+
 ### selectedText Variable
 
 If you only have 1 selection you don't need the properties `separator` and `filterSelection`.
 
-You can define the properties `separator` and `filterSelection` in the `args` property of the command.
+For the [transform](#transform) command you can define the properties `separator` and `filterSelection` in the `args` property of the command.
 
 ```
       "args": {
@@ -592,6 +625,40 @@ You can use multiple `${selectedText}` variables that have different properties:
       "args": {
         "text": "${selectedText#filterSelection=index===3#} ${selectedText#filterSelection=index===1#}"
       }
+```
+
+## Workspace name in `argument`
+
+The commands <code>extension.commandvariable.workspace.folderBasename<em>N</em>Up</code> allow to get the information from a different workspace by specifying the name or last parts of the file path of the workspace directory. This can also be done when there is no editor active.
+
+You supply the name in the arguments of the command. You have to use an `${input}` variable.
+
+```
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "label": "echo server name",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:server1Up}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "server1Up",
+      "type": "command",
+      "command": "extension.commandvariable.workspace.folderBasename1Up",
+      "args": { "name": "server" }
+    }
+  ]
+}
+```
+
+If you have 2 workspaces with the same (folder base)name you can't target the second one by name only. You have to use more parts of the directory path to make the name unique. Use the `/` as path separator on all platforms. The `name` argument is tested to be at the end of the workspace folder path (using `/` as separator). An example of an `args` property is:
+
+```
+"args": { "name": "/websiteA/server" }
 ```
 
 ## dateTime
@@ -702,6 +769,14 @@ The result is:
 ```
 jueves__20200319T184634
 ```
+
+# Release Notes
+
+### v1.14.0
+* In Multi Root Workspace you need to name the workspace in certain cases. In the variable or arguments.
+* `${workspaceFolder}` and <code>${workspaceFolder:<em>name</em>}</code> now also work if no file currently open.
+* everywhere a variable is allowed now all variables are allowed. (not all are usefull everywhere)
+* process `${selectedText}` first so selected text could contain variable descriptions (maybe useful to somebody).
 
 # Credits
 

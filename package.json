@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "engines": {"vscode": "^1.37.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks","date","multi-root ready"],
@@ -88,5 +88,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/rioj7/command-variable.git"
+  },
+  "devDependencies": {
+    "@types/assert": "^1.5.4",
+    "@types/mocha": "^8.2.1",
+    "glob": "^7.1.6",
+    "mocha": "^8.3.0",
+    "simple-mock": "^0.8.0"
   }
 }

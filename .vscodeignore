@@ -1,2 +1,4 @@
 .vscode/**
 .gitignore
+test/**
+node_modules/**

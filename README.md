@@ -339,6 +339,29 @@ You can set the following arguments to this command:
 
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
+* `addAsk` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Ask ***`) that will open an Input Box where you enter the path to be returned. (default: `false`)
+* `display` : How do you want to see the files displayed (default: `"fullPath"`)
+    * `"fullpath"` : show the file full path, if path is big it can be clipped by the selection box
+    * `"fileName"` : show the file name followed by the directory path of the file, the Fuzzy Search is now only on the file name and file extension.
+* `fromWorkspace` : [ <code>"<em>name</em>"</code> | `true` | `false` ] - limit the `include` pattern relative to a workspace (default: `false`)
+    * if <code>"<em>name</em>"</code>: find the workspace with that name
+    * If `true`: show a Pick List of Workspaces to choose from
+* `fromFolder` : (Optional) Object with the properties:
+    * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.
+
+    Show a Pick list of folders specified in the property `predefined` and 2 additional entries
+
+    * `*** Ask ***` : open an Input Box where you enter the path of the folder
+    * `*** Workspace ***` : show a Pick List of Workspaces
+
+    ```
+    "fromFolder": {
+      "predefined": [
+        "C:\\temp\\log",
+        "D:\\Data\\GPR\\2021"
+      ]
+    }
+    ```
 
 ```json
 {
@@ -772,6 +795,14 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.16.0
+* `pickFile` : can be limited to a Workspace folder or any other folder
+* `pickFile` : change how the file paths are displayed
+* `pickFile` : can ask for a path via additional entry
+
+### v1.15.0
+* `pickFile` : can return an emty string via additional entry
 
 ### v1.14.0
 * In Multi Root Workspace you need to name the workspace in certain cases. In the variable or arguments.

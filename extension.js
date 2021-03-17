@@ -4,14 +4,41 @@ const fs = require('fs');
 let UUID = require('./uuid');
 
 class FilePickItem {
-  fromURI(uri) {
+  fromURI(uri, display) {
     this.label = uri.fsPath;
+    if (display === 'fileName') {
+      this.description = ' $(folder) ' + path.dirname(this.label);
+      this.label = path.basename(this.label);
+    }
     this.value = uri.fsPath;
     return this;
   }
   empty() {
     this.label = '*** Empty ***';
     this.value = '';
+    return this;
+  }
+  ask() {
+    this.label = '*** Ask ***';
+    this.askValue = true;
+    return this;
+  }
+}
+
+class FolderPickItem {
+  fromString(path) {
+    this.label = path;
+    this.value = path;
+    return this;
+  }
+  ask() {
+    this.label = '*** Ask ***';
+    this.askValue = true;
+    return this;
+  }
+  workspace() {
+    this.label = '*** Workspace ***';
+    this.askWorkspace = true;
     return this;
   }
 }
@@ -298,26 +325,69 @@ function activate(context) {
       editor.edit( editBuilder => { editBuilder.replace(editor.selection, content); });
     })
   );
-  /** @param {vscode.Uri[]} uriList @param {boolean} addEmpty */
-  function constructFilePickList(uriList, addEmpty) {
-    let pickList = uriList.map(u => new FilePickItem().fromURI(u));
+  /** @param {vscode.Uri[]} uriList @param {Object} args */
+  function constructFilePickList(uriList, args) {
+    let addEmpty    = getProperty(args, 'addEmpty', false);
+    let addAsk      = getProperty(args, 'addAsk', false);
+    let display     = getProperty(args, 'display', "fullPath");
+
+    let pickList = uriList.map(u => new FilePickItem().fromURI(u, display));
+    if (addAsk) { pickList.unshift(new FilePickItem().ask()); }
     if (addEmpty) { pickList.unshift(new FilePickItem().empty()); }
     return pickList;
   }
+  /** @param {string[]} predef */
+  function constructFolderPickList(predef) {
+    let pickList = predef.map(p => new FolderPickItem().fromString(p));
+    pickList.push(new FolderPickItem().ask());
+    pickList.push(new FolderPickItem().workspace());
+    return pickList;
+  }
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.pickFile', args => {
+    vscode.commands.registerCommand('extension.commandvariable.file.pickFile', async args => {
       args = args || {};
       let globInclude = getProperty(args, 'include', '**/*');
       let globExclude = getProperty(args, 'exclude', 'undefined');
       let maxResults  = getProperty(args, 'maxResults', undefined);
-      let addEmpty    = getProperty(args, 'addEmpty', false);
+      let fromFolder  = getProperty(args, 'fromFolder');
+      let fromWorkspace = getProperty(args, 'fromWorkspace', false);
       if (globExclude === 'undefined') globExclude = undefined;
       if (globExclude === 'null') globExclude = null;
+      let ignoreFocusOut = {ignoreFocusOut:true};
 
-      return vscode.workspace.findFiles(globInclude, globExclude, maxResults).then( uriList => {
-        return vscode.window.showQuickPick(constructFilePickList(uriList, addEmpty))
-          .then( picked => { return picked?.value; });
-      });
+      if (fromFolder) {
+        let predefined = getProperty(fromFolder, 'predefined', []);
+        let picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+        if (!picked) { return undefined; }
+        let folderPath = picked.value;
+        if (picked.askValue) {
+          folderPath = await vscode.window.showInputBox(ignoreFocusOut);
+          if (!folderPath) { return undefined; }
+        }
+        if (picked.askWorkspace) {
+          fromWorkspace = true;
+        } else {
+          globInclude = new vscode.RelativePattern(vscode.Uri.file(folderPath), globInclude);
+        }
+      }
+      if (fromWorkspace) {
+        let workspace = undefined;
+        if (isString(fromWorkspace)) {
+          workspace = getNamedWorkspaceFolder(fromWorkspace);
+        } else {
+          workspace = await vscode.window.showWorkspaceFolderPick(ignoreFocusOut);
+        }
+        if (!workspace) { return undefined; }
+        globInclude = new vscode.RelativePattern(workspace, globInclude);
+      }
+
+      return vscode.workspace.findFiles(globInclude, globExclude, maxResults)
+        .then( uriList => vscode.window.showQuickPick(constructFilePickList(uriList, args), {placeHolder: "Select a file"}))
+        .then( picked => {
+          if (!picked) { return undefined; }
+          if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
+          return picked?.value;
+        });
     })
   );
   context.subscriptions.push(

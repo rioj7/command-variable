@@ -3,6 +3,19 @@ const path = require('path');
 const fs = require('fs');
 let UUID = require('./uuid');
 
+class FilePickItem {
+  fromURI(uri) {
+    this.label = uri.fsPath;
+    this.value = uri.fsPath;
+    return this;
+  }
+  empty() {
+    this.label = '*** Empty ***';
+    this.value = '';
+    return this;
+  }
+}
+
 function activate(context) {
   const getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
   const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
@@ -285,17 +298,25 @@ function activate(context) {
       editor.edit( editBuilder => { editBuilder.replace(editor.selection, content); });
     })
   );
+  /** @param {vscode.Uri[]} uriList @param {boolean} addEmpty */
+  function constructFilePickList(uriList, addEmpty) {
+    let pickList = uriList.map(u => new FilePickItem().fromURI(u));
+    if (addEmpty) { pickList.unshift(new FilePickItem().empty()); }
+    return pickList;
+  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.pickFile', args => {
       args = args || {};
       let globInclude = getProperty(args, 'include', '**/*');
       let globExclude = getProperty(args, 'exclude', 'undefined');
       let maxResults  = getProperty(args, 'maxResults', undefined);
+      let addEmpty    = getProperty(args, 'addEmpty', false);
       if (globExclude === 'undefined') globExclude = undefined;
       if (globExclude === 'null') globExclude = null;
 
       return vscode.workspace.findFiles(globInclude, globExclude, maxResults).then( uriList => {
-        return vscode.window.showQuickPick(uriList.map(u => u.fsPath));
+        return vscode.window.showQuickPick(constructFilePickList(uriList, addEmpty))
+          .then( picked => { return picked?.value; });
       });
     })
   );

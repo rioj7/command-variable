@@ -338,6 +338,7 @@ You can set the following arguments to this command:
     **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
 
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
+* `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
 
 ```json
 {

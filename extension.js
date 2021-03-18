@@ -58,8 +58,9 @@ function activate(context) {
     return decodeURIComponent(s);
   }
   function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + startAt); }  // https://stackoverflow.com/a/10050831/9938317
+  function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
   var getNamedWorkspaceFolder = (name, workspaceFolder, editor) => {
-    const folders = vscode.workspace.workspaceFolders ?? [];
+    const folders = dblQuest(vscode.workspace.workspaceFolders, []);
     if (!name) {
       if (editor) { return workspaceFolder; }
       if (folders.length === 1) { return workspaceFolder; }
@@ -111,7 +112,7 @@ function activate(context) {
   var workspaceFolderBasenameNUp = function (n, args) {
     return activeWorkspaceFolderEditorOptional( workspaceFolder => {
       return basenameNUp(workspaceFolder.uri.path, n);
-    }, undefined, args?.name);
+    }, undefined, args !== undefined ? args.name : undefined);
   };
   var fileDirBasenameNUp = function (n) {
     return activeTextEditorVariable( editor => {
@@ -137,7 +138,7 @@ function activate(context) {
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
   var variableSubstitution = (text, args) => {
-    args = args ?? {};
+    args = dblQuest(args, {});
     let stringSubstitution = (text) => {
       const editor = vscode.window.activeTextEditor;
       var result = text;
@@ -306,7 +307,7 @@ function activate(context) {
     }
   }
   const fileContent = async (args) => {
-    args = args ?? {};
+    args = dblQuest(args, {});
     let content = await readFileContent(args);
     let value = contentValue(args, content);
     if (value) { return value; }
@@ -386,7 +387,7 @@ function activate(context) {
         .then( picked => {
           if (!picked) { return undefined; }
           if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
-          return picked?.value;
+          return picked.value;
         });
     })
   );
@@ -394,7 +395,7 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', (args) => {
       return activeWorkspaceFolderEditorOptional( workspaceFolder => {
         return path2Posix(workspaceFolder.uri.path);
-      }, undefined, args?.name);
+      }, undefined, args !== undefined ? args.name : undefined);
     })
   );
   context.subscriptions.push( ...range(5, 1).map(
@@ -482,7 +483,7 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.rememberPick', (args) => { return getProperty(pickRemember, getProperty(args, 'key', '__unknown'), pickRemember['__not_yet']); })
   );
   let dateTimeFormat = (args) => {
-    args = args ?? {};
+    args = dblQuest(args, {});
     let locale = getProperty(args, 'locale', undefined);
     let options = getProperty(args, 'options', undefined);
     let template = getProperty(args, 'template', undefined);

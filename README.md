@@ -59,7 +59,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
-* `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers)
+* `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
 * `extension.commandvariable.UUIDInEditor` : generate a UUID v4 (from random numbers) to be used for keybindings
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
@@ -660,7 +660,7 @@ You supply the name in the arguments of the command. You have to use an `${input
 ```
 {
   "version": "0.2.0",
-  "configurations": [
+  "tasks": [
     {
       "label": "echo server name",
       "type": "shell",
@@ -683,6 +683,69 @@ If you have 2 workspaces with the same (folder base)name you can't target the se
 
 ```
 "args": { "name": "/websiteA/server" }
+```
+
+## UUID
+
+The commands `extension.commandvariable.UUID` and `extension.commandvariable.UUIDInEditor` generate a v4 UUID.
+
+It has the following arguments:
+
+* `output` : can change the output format (default: `hexString`):
+
+    * `hexString` : `a0e0f130-8c21-11df-92d9-95795a3bcd40`
+    * `hexNoDelim` : `a0e0f1308c2111df92d995795a3bcd40`
+    * `bitString` : `101000001110000 ... 1100110101000000`
+    * `urn` : `urn:uuid:a0e0f130-8c21-11df-92d9-95795a3bcd40`
+
+* `use` : which UUID to use (default: `new`):
+    * `new` : generate a new UUID
+    * `previous`, `prev` : use the previous generated UUID
+
+In this example the 3 printed UUIDs are all different
+
+```
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo UUIDs",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${command:extension.commandvariable.UUID}",
+        "${input:uuid-hexnodelim}",
+        "${input:uuid-urn}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "uuid",
+      "type": "command",
+      "command": "extension.commandvariable.UUID"
+    },
+    {
+      "id": "uuid-hexnodelim",
+      "type": "command",
+      "command": "extension.commandvariable.UUID",
+      "args": { "output": "hexNoDelim" }
+    },
+    {
+      "id": "uuid-urn",
+      "type": "command",
+      "command": "extension.commandvariable.UUID",
+      "args": { "output": "urn" }
+    },
+    {
+      "id": "uuid-bits",
+      "type": "command",
+      "command": "extension.commandvariable.UUID",
+      "args": { "output": "bitString" }
+    }
+  ]
+}
 ```
 
 ## dateTime
@@ -795,6 +858,12 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.16.2
+* update uuid.js to v4.2.8 and allow different output formats
+
+### v1.16.1
+* VSCode Server (Remote SSH) does not support `??` and `?.`
 
 ### v1.16.0
 * `pickFile` : can be limited to a Workspace folder or any other folder

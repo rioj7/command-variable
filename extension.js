@@ -501,7 +501,19 @@ function activate(context) {
       edit.replace(editor.selection, dateTimeFormat(args));
     })
   );
-  let UUIDFormat = (args) => UUID.generate();
+  let uuidv4 = undefined;
+  let UUIDFormat = args => {
+    args = dblQuest(args, {});
+    if (getProperty(args, 'use', 'new') === 'new') { uuidv4 = UUID.genV4(); }
+    if (!uuidv4) { return 'Unknown'; }
+    switch (getProperty(args, 'output', 'hexString')) {
+      case 'hexString': return uuidv4.hexString;
+      case 'hexNoDelim': return uuidv4.hexNoDelim;
+      case 'bitString': return uuidv4.bitString;
+      case 'urn': return uuidv4.urn;
+    }
+    return 'Unknown';
+  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.UUID', args => UUIDFormat(args))
   );

@@ -239,17 +239,26 @@ function activate(context) {
       return path2Posix(documentDirName);
     })
   );
+  const getFileAsKeyPath = async (args) => {
+    let cmdVariable = getProperty(args, '@useCommand');
+    if (cmdVariable) {
+      let cmdMatch = cmdVariable.match(/^\$\{command:(.*)\}$/);
+      if (!cmdMatch) { return undefined; }
+      let path = await vscode.commands.executeCommand(cmdMatch[1]);
+      return path.replaceAll('\\', '/');
+    }
+    return activeTextEditorVariable( editor => editor.document.uri.path );
+  };
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', (args) => {
-      return activeTextEditorVariable( (editor, _args) => {
-        const path = editor.document.uri.path;
-        for (const key in _args) {
-          if (_args.hasOwnProperty(key)) {
-            if (path.indexOf(key) !== -1) { return variableSubstitution(_args[key], _args);}
-          }
+    vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', async (args) => {
+      let path = await getFileAsKeyPath(args);
+      let deflt = getProperty(args, '@default', 'Unknown');
+      for (const key in args) {
+        if (args.hasOwnProperty(key) && (!key.startsWith('@')) && path) {
+          if (path.indexOf(key) !== -1) { return variableSubstitution(args[key], args);}
         }
-        return "Unknown";
-      }, args);
+      }
+      return deflt;
     })
   );
   context.subscriptions.push(

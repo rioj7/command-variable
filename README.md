@@ -85,11 +85,21 @@ You can use a Tasks to [see the value of a variable substitution](https://code.v
 
 ## FileAsKey
 
-The command `extension.commandvariable.file.fileAsKey` makes it possible to select a string based on the current active file.
+The command `extension.commandvariable.file.fileAsKey` makes it possible to select a string based on part of a file path. The file path can be taken from the current active editor or by executing a command.
 
 The keys of the `args` object are searched for in the path of the active file (directory separator is `/`).
 
 If you have files with the same name use part of the full path to select the correct one like `"/dir1/main.py"` and `"/dir2/main.py"`.
+
+The `args` property can contain a few special keys:
+
+* `@useCommand` : the value is a [command variable](https://code.visualstudio.com/docs/editor/variables-reference#_command-variables) that describes the command to execute to get the file path to use.<br/>Example for [CMake build projects](https://code.visualstudio.com/docs/cpp/CMake-linux): `"@useCommand": "${command:cmake.launchTargetPath}"`
+* `@default` : the string to return when none of the keys is found in the file path (default: `Unknown`)
+
+The value strings may contain [variables](#variables). If you use the variable `${selectedText}` you have to embed the properties `separator` and `filterSelection` in the variable, example `${selectedText##separator=@@##filterSelection=index%3===1##}`.
+
+### Example
+
 ```json
 {
   "version": "2.0.0",
@@ -116,8 +126,6 @@ If you have files with the same name use part of the full path to select the cor
   ]
 }
 ```
-
-The value strings may contain [variables](#variables). If you use the variable `${selectedText}` you have to embed the properties `separator` and `filterSelection` in the variable, example `${selectedText##separator=@@##filterSelection=index%3===1##}`.
 
 ## File Content
 
@@ -858,6 +866,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.17.0
+* `fileAsKey` : get file path from command (`@useCommand`)
+* `fileAsKey` : set default value if no key matches (`@default`)
 
 ### v1.16.2
 * update uuid.js to v4.2.8 and allow different output formats

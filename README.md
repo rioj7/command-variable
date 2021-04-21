@@ -907,8 +907,8 @@ jueves__20200319T184634
 
 # Release Notes
 
-### v1.18.1
-* `fileAsKey` : debug log (`@debug`)
+### v1.18.2
+* `fileAsKey` : debug log (`@debug`), `string.replaceAll()` is not supported on VSC remote
 
 ### v1.18.0
 * `pickStringRemember` can now also work with <code>[<em>label</em>,<em>value</em>]</code> tuples

@@ -249,7 +249,7 @@ function activate(context) {
       if (debug) { console.log(`commandvariable.file.fileAsKey: execute command: ${cmdMatch[1]}`); }
       let path = await vscode.commands.executeCommand(cmdMatch[1]);
       if (debug) { console.log(`commandvariable.file.fileAsKey: execute command result: ${path}`); }
-      return path.replaceAll('\\', '/');
+      return path.replace(/\\/g, '/');
     }
     return activeTextEditorVariable( editor => editor.document.uri.path );
   };

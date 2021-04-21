@@ -48,6 +48,7 @@ function activate(context) {
   const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
   const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
   const isString = obj => typeof obj === 'string';
+  const isArray = obj => Array.isArray(obj);
   function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8-to-str-tiny
     lim = lim == null ? src.length : lim;
     for (var i = off || 0, s = ''; i < lim; i++) {
@@ -476,11 +477,20 @@ function activate(context) {
   );
   let pickRemember = { __not_yet: "I don't remember" };
   async function pickStringRemember(args) {
-    const result = await vscode.window.showQuickPick(
-      getProperty(args, 'options', ['item1', 'item2']), {
-      placeHolder: getProperty(args, 'description', 'Choose:')
-    });
+    let qpItems = [];
+    for (const option of getProperty(args, 'options', ['item1', 'item2'])) {
+      let qpItem = undefined;
+      if (isString(option)) {
+        qpItem = {value:option, label:option};
+      }
+      if (isArray(option) && (option.length === 2)) {
+        qpItem = {value:option[1], label:option[0], description:option[1]};
+      }
+      if (qpItem) { qpItems.push(qpItem); }
+    }
+    let result = await vscode.window.showQuickPick(qpItems, { placeHolder: getProperty(args, 'description', 'Choose:') });
     if (result !== undefined) {
+      result = result.value;
       pickRemember[getProperty(args, 'key', '__unknown')] = result;
     }
     return result !== undefined ? result : getProperty(args, 'default', 'Escaped');

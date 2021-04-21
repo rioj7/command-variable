@@ -54,7 +54,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
-* `extension.commandvariable.pickStringRemember` : the same as [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key
+* `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember-and-rememberpick).
 * `extension.commandvariable.rememberPick` : retreive a remembered pick by key
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
@@ -401,9 +401,14 @@ You can set the following arguments to this command:
 
 ## pickStringRemember and rememberPick
 
-`pickStringRemember` has the same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). And both commands have configuration attribute **`key`**. The **`key`** is used to store and retrieve a particular pick.
+`extension.commandvariable.pickStringRemember` has the same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.pickStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular pick.
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
+
+The `"options"` argument for `extension.commandvariable.pickStringRemember` is an array that can contain the following elements:
+
+* `string` : The label in the pickList and the value returned are this string.
+* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple and the value returned and the description in the pickList are the second element.
 
 ```json
 {
@@ -444,6 +449,41 @@ The configuration attributes need to be passed to the command in the `args` attr
       "type": "command",
       "command": "extension.commandvariable.rememberPick",
       "args": { "key": "path" }
+    }
+  ]
+}
+```
+
+An example of choosing a port number in a launch configuration:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Service1",
+      "type": "python",
+      "request": "attach",
+      "connect": {
+        "host": "127.0.0.1",
+        "port": "${input:envType}"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "envType",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which env do you want to debug?",
+        "options": [
+          ["development", "5000"],
+          ["staging", "5100"],
+          ["live", "5200"]
+        ],
+        "default": "5000"
+      }
     }
   ]
 }
@@ -866,6 +906,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.18.0
+* `pickStringRemember` can now also work with <code>[<em>label</em>,<em>value</em>]</code> tuples
 
 ### v1.17.0
 * `fileAsKey` : get file path from command (`@useCommand`)

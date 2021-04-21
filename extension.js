@@ -240,25 +240,39 @@ function activate(context) {
       return path2Posix(documentDirName);
     })
   );
-  const getFileAsKeyPath = async (args) => {
+  const getFileAsKeyPath = async (args, debug) => {
     let cmdVariable = getProperty(args, '@useCommand');
     if (cmdVariable) {
+      if (debug) { console.log(`commandvariable.file.fileAsKey: use command variable: ${cmdVariable}`); }
       let cmdMatch = cmdVariable.match(/^\$\{command:(.*)\}$/);
       if (!cmdMatch) { return undefined; }
+      if (debug) { console.log(`commandvariable.file.fileAsKey: execute command: ${cmdMatch[1]}`); }
       let path = await vscode.commands.executeCommand(cmdMatch[1]);
+      if (debug) { console.log(`commandvariable.file.fileAsKey: execute command result: ${path}`); }
       return path.replaceAll('\\', '/');
     }
     return activeTextEditorVariable( editor => editor.document.uri.path );
   };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', async (args) => {
-      let path = await getFileAsKeyPath(args);
+      let debug = getProperty(args, '@debug', false);
+      if (debug) { console.log("commandvariable.file.fileAsKey: debug logs enabled"); }
+      let path = await getFileAsKeyPath(args, debug);
+      if (debug) { console.log(`commandvariable.file.fileAsKey: path used: ${path}`); }
       let deflt = getProperty(args, '@default', 'Unknown');
+      if (debug) { console.log(`commandvariable.file.fileAsKey: default value: ${deflt}`); }
       for (const key in args) {
         if (args.hasOwnProperty(key) && (!key.startsWith('@')) && path) {
-          if (path.indexOf(key) !== -1) { return variableSubstitution(args[key], args);}
+          if (debug) { console.log(`commandvariable.file.fileAsKey: try key: ${key}`); }
+          if (path.indexOf(key) !== -1) {
+            if (debug) { console.log(`commandvariable.file.fileAsKey: before variable substitution: ${args[key]}`); }
+            let subst = variableSubstitution(args[key], args);
+            if (debug) { console.log(`commandvariable.file.fileAsKey: after variable substitution: ${subst}`); }
+            return subst;
+          }
         }
       }
+      if (debug) { console.log("commandvariable.file.fileAsKey: return default"); }
       return deflt;
     })
   );

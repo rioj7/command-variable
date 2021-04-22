@@ -296,13 +296,17 @@ function activate(context) {
   context.subscriptions.push( ...range(5, 1).map(
     i => vscode.commands.registerCommand(`extension.commandvariable.file.relativeFileDirname${i}UpPosix`,
         () => fileDirnameNUp(i, true, true) )) );
-  const readFileContent = async (args) => {
+  const readFileContent = async (args, debug) => {
+    if (debug) { console.log(`commandvariable.file.content: readFileContent: from: ${args.fileName}`); }
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted by VSC
     args.fileName = variableSubstitution(args.fileName);
+    if (debug) { console.log(`commandvariable.file.content: readFileContent: after variable substitution: ${args.fileName}`); }
     let uri = vscode.Uri.file(args.fileName);
+    if (debug) { console.log(`commandvariable.file.content: readFileContent: test if file exists: ${uri.fsPath}`); }
     if(!fs.existsSync(uri.fsPath)) { return "Unknown"; }
     let contentUTF8 = await vscode.workspace.fs.readFile(uri);
+    if (debug) { console.log(`commandvariable.file.content: readFileContent: read file before utf8 conversion`); }
     return utf8_to_str(contentUTF8);
   };
   function getExpressionFunction(expr) {
@@ -332,8 +336,12 @@ function activate(context) {
   }
   const fileContent = async (args) => {
     args = dblQuest(args, {});
-    let content = await readFileContent(args);
+    let debug = getProperty(args, 'debug');
+    if (debug) { console.log("commandvariable.file.content: debug logs enabled"); }
+    let content = await readFileContent(args, debug);
+    if (debug) { console.log(`commandvariable.file.content: content: ${content}`); }
     let value = contentValue(args, content);
+    if (debug) { console.log(`commandvariable.file.content: content to value: ${value}`); }
     if (value) { return value; }
     if (args.default) { return args.default; }
     return "Unknown";

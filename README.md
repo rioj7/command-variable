@@ -61,11 +61,14 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
 * `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
 * `extension.commandvariable.UUIDInEditor` : generate a UUID v4 (from random numbers) to be used for keybindings
+* `extension.commandvariable.inTerminal` : type the string result of a command in the terminal (optional with Carriage Return), see [example](#interminal).
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
 
 ## Usage
+
 An example `launch.json` :
+
 ```json
 {
   "version": "0.2.0",
@@ -81,7 +84,7 @@ An example `launch.json` :
 }
 ```
 
-You can use a Tasks to [see the value of a variable substitution](https://code.visualstudio.com/docs/editor/variables-reference#_how-can-i-know-a-variables-actual-value).
+You can use a Task to [see the value of a variable substitution](https://code.visualstudio.com/docs/editor/variables-reference#_how-can-i-know-a-variables-actual-value).
 
 ## FileAsKey
 
@@ -520,6 +523,29 @@ You can change the separator by specifying an argument object for the command wi
 }
 ```
 
+## inTerminal
+
+The command `extension.commandvariable.inTerminal` types the string result of a command in the terminal and optional types a Carriage Return.
+
+The command `extension.commandvariable.inTerminal` has an argument that is an object with the following properties:
+
+* `command` : the command to execute
+* `args` : (optional) the argument (string, array or object) for the `command`
+* `addCR` : (optional) boolean: end the text from the `command` with a Carriage Return (`\u000D`) (default: `false`)
+
+If you want to use the value of a standard variable in the terminal you have to use the command `extension.commandvariable.transform` in the `extension.commandvariable.inTerminal` arguments. An example:
+
+```json
+  {
+    "key": "ctrl+i f5",  // or any other combo
+    "command": "extension.commandvariable.inTerminal",
+    "args": {
+      "command": "extension.commandvariable.transform",
+      "args": { "text": "${relativeFile}" }
+    }
+  }
+```
+
 ## Transform
 
 Sometimes you want to modify a variable before you use it. Change the filename of the file in the editor to construct a different filename.
@@ -576,9 +602,9 @@ We can use this command to construct custom variables by setting the `text` argu
 
 ## Variables
 
-Many strings of commands support variables. The variables that can be used are:
+Many strings of commands support variables.
 
-VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here.
+VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here:
 
 * `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
 * `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
@@ -588,6 +614,8 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileBasename}` : the current opened file's basename
 * `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
 * `${fileExtname}` : the current opened file's extension
+* `${fileDirname}` : the current opened file's dirname
+* `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -906,6 +934,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.19.0
+* `inTerminal` : type result of command in the terminal
 
 ### v1.18.2
 * `fileAsKey` : debug log (`@debug`), `string.replaceAll()` is not supported on VSC remote

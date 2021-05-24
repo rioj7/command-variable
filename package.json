@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.18.3",
+  "version": "1.19.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks","date","multi-root ready"],
@@ -66,7 +66,8 @@
     "onCommand:extension.commandvariable.dateTimeInEditor",
     "onCommand:extension.commandvariable.transform",
     "onCommand:extension.commandvariable.UUID",
-    "onCommand:extension.commandvariable.UUIDInEditor"
+    "onCommand:extension.commandvariable.UUIDInEditor",
+    "onCommand:extension.commandvariable.inTerminal"
   ],
   "contributes": {
     "commands": [

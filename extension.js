@@ -158,22 +158,25 @@ function activate(context) {
       });
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
-      result = result.replace("${file}", fileFSPath);
-      result = result.replace(/\$\{relativeFile\}/, m => {
-        return activeWorkspaceFolder( workspaceFolder => {
-          return fileFSPath.substring(workspaceFolder.uri.fsPath.length + 1); // remove extra separator;
-        });
+      result = result.replace(/\$\{file\}/g, fileFSPath);
+      let relativeFile = activeWorkspaceFolder( workspaceFolder => {
+        return fileFSPath.substring(workspaceFolder.uri.fsPath.length + 1); // remove extra separator;
       });
+      result = result.replace(/\$\{relativeFile\}/g, relativeFile);
       const path = editor.document.uri.path;
       const lastSep = path.lastIndexOf('/');
       if (lastSep === -1) { return result; }
       const fileBasename = path.substring(lastSep+1);
-      result = result.replace("${fileBasename}", fileBasename);
+      result = result.replace(/\$\{fileBasename\}/g, fileBasename);
       const lastDot = fileBasename.lastIndexOf('.');
       const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;
-      result = result.replace("${fileBasenameNoExtension}", fileBasenameNoExtension);
+      result = result.replace(/\$\{fileBasenameNoExtension\}/g, fileBasenameNoExtension);
       const fileExtname = lastDot >= 0 ? fileBasename.substring(lastDot) : '';
-      result = result.replace("${fileExtname}", fileExtname);
+      result = result.replace(/\$\{fileExtname\}/g, fileExtname);
+      let fileDirname = fileFSPath.substring(0, fileFSPath.length-(fileBasename.length+1));
+      result = result.replace(/\$\{fileDirname\}/g, fileDirname);
+      let relativeFileDirname = relativeFile.substring(0, relativeFile.length-(fileBasename.length+1));
+      result = result.replace(/\$\{relativeFileDirname\}/g, relativeFileDirname);
       return result;
     };
     if (Array.isArray(text)) {
@@ -575,6 +578,20 @@ function activate(context) {
         text = text.replace(new RegExp(find, flags), replace);
       }
       return text;
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.inTerminal', async args => {
+      if (!args) { args = {}; }
+      let command = getProperty(args, 'command');
+      if (!command) { return; }
+      let cmdArgs = getProperty(args, 'args');
+      let result = await vscode.commands.executeCommand(command, cmdArgs);
+      if (!isString(result)) { return; }
+      await vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { "text": result });
+      if (getProperty(args, 'addCR', false)) {
+        await vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { "text": "\u000D" });
+      }
     })
   );
 };

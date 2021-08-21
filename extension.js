@@ -138,23 +138,39 @@ function activate(context) {
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
-  var variableSubstitution = (text, args) => {
+  var variableSubstitution = async (text, args) => {
     args = dblQuest(args, {});
-    let stringSubstitution = (text) => {
+    let stringSubstitution = async (text) => {
       const editor = vscode.window.activeTextEditor;
       var result = text;
       if (editor) {
         result = replaceVariableWithProperties(result, 'selectedText', args, _args => concatMapSelections(_args, getEditorSelection) );
       }
-      result = result.replace(/\$\{workspaceFolder\}/, m => {
+      result = result.replace(/\$\{workspaceFolder\}/g, m => {
         return activeWorkspaceFolderEditorOptional( workspaceFolder => {
           return workspaceFolder.uri.fsPath;
         });
       });
-      result = result.replace(/\$\{workspaceFolder:(.*?)\}/, (m, p1) => {
+      result = result.replace(/\$\{workspaceFolder:(.+?)\}/g, (m, p1) => {
         let wsf = getNamedWorkspaceFolder(p1);
         if (!wsf) { return 'Unknown'; }
         return wsf.uri.fsPath;
+      });
+      let pickStringArgs = [];
+      result = result.replace(/\$\{pickStringRemember:(.+?)\}/g, (m, p1) => {
+        let psArgs = getProperty(getProperty(args, 'pickStringRemember', {}), p1);
+        if (!psArgs) { return 'Unknown'; }
+        pickStringArgs.push(psArgs);
+        return m;
+      });
+      for (let i = 0; i < pickStringArgs.length; i++) {
+        pickStringArgs[i] = await pickStringRemember(pickStringArgs[i]);
+      }
+      result = result.replace(/\$\{pickStringRemember:(.+?)\}/g, (m, p1) => {
+        return pickStringArgs.shift();
+      });
+      result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
+        return pickRememberKey(p1);
       });
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
@@ -180,10 +196,14 @@ function activate(context) {
       return result;
     };
     if (Array.isArray(text)) {
-      return text.map( t => stringSubstitution(t));
+      let result = [];
+      for (let i = 0; i < text.length; i++) {
+        result.push(await stringSubstitution(text[i]));
+      }
+      return result;
     }
-    return stringSubstitution(text);
-};
+    return await stringSubstitution(text);
+  };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
   var lowerCaseDriveLetter = p => p.replace(nonPosixPathRegEx, match => match.toLowerCase() );
   var path2Posix = p => lowerCaseDriveLetter(p).replace(nonPosixPathRegEx, '/$1/');
@@ -269,7 +289,7 @@ function activate(context) {
           if (debug) { console.log(`commandvariable.file.fileAsKey: try key: ${key}`); }
           if (path.indexOf(key) !== -1) {
             if (debug) { console.log(`commandvariable.file.fileAsKey: before variable substitution: ${args[key]}`); }
-            let subst = variableSubstitution(args[key], args);
+            let subst = await variableSubstitution(args[key], args);
             if (debug) { console.log(`commandvariable.file.fileAsKey: after variable substitution: ${subst}`); }
             return subst;
           }
@@ -303,7 +323,7 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.file.content: readFileContent: from: ${args.fileName}`); }
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted by VSC
-    args.fileName = variableSubstitution(args.fileName);
+    args.fileName = await variableSubstitution(args.fileName);
     if (debug) { console.log(`commandvariable.file.content: readFileContent: after variable substitution: ${args.fileName}`); }
     let uri = vscode.Uri.file(args.fileName);
     if (debug) { console.log(`commandvariable.file.content: readFileContent: test if file exists: ${uri.fsPath}`); }
@@ -520,11 +540,12 @@ function activate(context) {
     }
     return result !== undefined ? result : getProperty(args, 'default', 'Escaped');
   }
+  function pickRememberKey(key) { return getProperty(pickRemember, key, pickRemember['__not_yet']); }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', (args) => { return pickStringRemember(args); })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.rememberPick', (args) => { return getProperty(pickRemember, getProperty(args, 'key', '__unknown'), pickRemember['__not_yet']); })
+    vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => { return pickRememberKey(getProperty(args, 'key', '__unknown')); })
   );
   let dateTimeFormat = (args) => {
     args = dblQuest(args, {});
@@ -567,13 +588,13 @@ function activate(context) {
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.transform', args => {
+    vscode.commands.registerCommand('extension.commandvariable.transform', async (args) => {
       if (!args) { args = {}; }
       let text    = getProperty(args, 'text', "");
       let find    = getProperty(args, 'find');
       let replace = getProperty(args, 'replace', "");
       let flags   = getProperty(args, 'flags', "");
-      text = variableSubstitution(text, args);
+      text = await variableSubstitution(text, args);
       if (find) {
         text = text.replace(new RegExp(find, flags), replace);
       }

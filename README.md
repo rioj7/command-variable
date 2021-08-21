@@ -616,6 +616,8 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
+* <code>${pickStringRemember:<em>name</em>}</code> : use the [pickStringRemember](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
+* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches the `key` argument of the `pickStringRemember` command
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -725,6 +727,47 @@ You can use multiple `${selectedText}` variables that have different properties:
       "args": {
         "text": "${selectedText#filterSelection=index===3#} ${selectedText#filterSelection=index===1#}"
       }
+```
+
+### pickStringRemember Variable
+
+If you want to add an entry you pick from a list use the variable: <code>${pickStringRemember:<em>name</em>}</code>
+
+_`name`_ is the property name of the `pickStringRemember` property of the `args` object of the command that has a string with this variable.
+
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickStringRemember` has to be part of the arguments of the command.
+
+See the command [`extension.commandvariable.pickStringRemember`](#pickstringremember-and-rememberpick) for the arguments you can use.
+
+An example shows faster how it is to be used compared to a lot of text.
+
+```
+"inputs": [
+  {
+    "id": "appSelect",
+    "type": "command",
+    "command": "extension.commandvariable.transform",
+    "args": {
+      "text": "We are using ${pickStringRemember:appName} on port ${pickStringRemember:portNum}",
+      "pickStringRemember": {
+        "appName": {
+            "description": "What APP are you running?",
+            "options": [ "client", "server", "stresstest", "pentest", "unittest" ],
+            "default": "server"
+        },
+        "portNum": {
+          "description": "What protocol?",
+          "options": [
+            ["http", "80"],
+            ["http over proxy", "8080"],
+            ["ftp", "21"]
+          ],
+          "default": "80"
+        }
+      }
+    }
+  }
+]
 ```
 
 ## Workspace name in `argument`
@@ -934,6 +977,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.20.0
+* `pickStringRemember` can be used in a variable: <code>${pickStringRemember:<em>name</em>}</code>
+* `rememberPick` can be used in a variable: <code>${rememberPick:<em>key</em>}</code>
 
 ### v1.19.0
 * `inTerminal` : type result of command in the terminal

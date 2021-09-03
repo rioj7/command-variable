@@ -169,6 +169,21 @@ function activate(context) {
       result = result.replace(/\$\{pickStringRemember:(.+?)\}/g, (m, p1) => {
         return pickStringArgs.shift();
       });
+
+      let promptStringArgs = [];
+      result = result.replace(/\$\{promptStringRemember:(.+?)\}/g, (m, p1) => {
+        let psArgs = getProperty(getProperty(args, 'promptStringRemember', {}), p1);
+        if (!psArgs) { return 'Unknown'; }
+        promptStringArgs.push(psArgs);
+        return m;
+      });
+      for (let i = 0; i < promptStringArgs.length; i++) {
+        promptStringArgs[i] = await promptStringRemember(promptStringArgs[i]);
+      }
+      result = result.replace(/\$\{promptStringRemember:(.+?)\}/g, (m, p1) => {
+        return promptStringArgs.shift();
+      });
+
       result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
         return pickRememberKey(p1);
       });
@@ -534,15 +549,27 @@ function activate(context) {
       if (qpItem) { qpItems.push(qpItem); }
     }
     let result = await vscode.window.showQuickPick(qpItems, { placeHolder: getProperty(args, 'description', 'Choose:') });
+    return storeStringRemember(args, result);
+  }
+  function storeStringRemember(args, result) {
     if (result !== undefined) {
-      result = result.value;
+      if (!isString(result)) {
+        result = result.value;
+      }
       pickRemember[getProperty(args, 'key', '__unknown')] = result;
     }
     return result !== undefined ? result : getProperty(args, 'default', 'Escaped');
   }
+  async function promptStringRemember(args) {
+    let result = await vscode.window.showInputBox({ prompt: getProperty(args, 'description', 'Enter:'), password: getProperty(args, 'password', false) });
+    return storeStringRemember(args, result);
+  }
   function pickRememberKey(key) { return getProperty(pickRemember, key, pickRemember['__not_yet']); }
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', (args) => { return pickStringRemember(args); })
+    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(args); })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(args); })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => { return pickRememberKey(getProperty(args, 'key', '__unknown')); })

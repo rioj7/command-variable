@@ -55,7 +55,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
 * `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember-and-rememberpick).
-* `extension.commandvariable.rememberPick` : retreive a remembered pick by key
+* `extension.commandvariable.promptStringRemember` : like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember-and-rememberpick).
+* `extension.commandvariable.rememberPick` : retreive a remembered pick or prompt by key
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
@@ -408,6 +409,8 @@ You can set the following arguments to this command:
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
 
+The command `extension.commandvariable.rememberPick` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
+
 The `"options"` argument for `extension.commandvariable.pickStringRemember` is an array that can contain the following elements:
 
 * `string` : The label in the pickList and the value returned are this string.
@@ -487,6 +490,57 @@ An example of choosing a port number in a launch configuration:
         ],
         "default": "5000"
       }
+    }
+  ]
+}
+```
+
+## promptStringRemember and rememberPick
+
+`extension.commandvariable.promptStringRemember` has the same configuration attributes as the [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.promptStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular entered string.
+
+The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one prompt to remember or every prompt can use the same **`key`** name.
+
+The command `extension.commandvariable.rememberPick` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Task 1",
+      "type": "shell",
+      "command": "dostuff1",
+      "args": ["-p", "${input:promptPath}"]
+    },
+    {
+      "label": "Task 2",
+      "type": "shell",
+      "command": "dostuff2",
+      "args": ["-p", "${input:rememberPath}"]
+    },
+    {
+      "label": "Do Task 1 and 2",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Task 1", "Task 2"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "promptPath",
+      "type": "command",
+      "command": "extension.commandvariable.promptStringRemember",
+      "args": {
+        "key": "path",
+        "description": "Enter a path"
+      }
+    },
+    {
+      "id": "rememberPath",
+      "type": "command",
+      "command": "extension.commandvariable.rememberPick",
+      "args": { "key": "path" }
     }
   ]
 }
@@ -616,8 +670,9 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
-* <code>${pickStringRemember:<em>name</em>}</code> : use the [pickStringRemember](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
-* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches the `key` argument of the `pickStringRemember` command
+* <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
+* <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember-and-rememberpick) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
+* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches the `key` argument of the `pickStringRemember` or `promptStringRemember` variable
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -733,7 +788,7 @@ You can use multiple `${selectedText}` variables that have different properties:
 
 If you want to add an entry you pick from a list use the variable: <code>${pickStringRemember:<em>name</em>}</code>
 
-_`name`_ is the property name of the `pickStringRemember` property of the `args` object of the command that has a string with this variable.
+_`name`_ is the property name of the `pickStringRemember` property of the `args` object of the command.
 
 Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickStringRemember` has to be part of the arguments of the command.
 
@@ -769,6 +824,17 @@ An example shows faster how it is to be used compared to a lot of text.
   }
 ]
 ```
+
+### promptStringRemember Variable
+
+The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable)
+If you want to add an entry you type on the keyboard use the variable: <code>${promptStringRemember:<em>name</em>}</code>
+
+_`name`_ is the property name of the `promptStringRemember` property of the `args` object of the command.
+
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `promptStringRemember` has to be part of the arguments of the command.
+
+See the command [`extension.commandvariable.promptStringRemember`](#promptstringremember-and-rememberpick) for the arguments you can use.
 
 ## Workspace name in `argument`
 
@@ -977,6 +1043,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.21.0
+* `promptStringRemember` command and variable
 
 ### v1.20.0
 * `pickStringRemember` can be used in a variable: <code>${pickStringRemember:<em>name</em>}</code>

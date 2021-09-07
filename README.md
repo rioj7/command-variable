@@ -414,7 +414,7 @@ The command `extension.commandvariable.rememberPick` can be used in the same tas
 The `"options"` argument for `extension.commandvariable.pickStringRemember` is an array that can contain the following elements:
 
 * `string` : The label in the pickList and the value returned are this string.
-* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple and the value returned and the description in the pickList are the second element.
+* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple and the value returned and the description in the pickList are the second element.<br/>The value can be an object with multiple _key_-_value_ pairs. Every _key_-_value_ is stored in the `rememberPick` storage. The `pickStringRemember` returns the value from the `rememberPick` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
 
 ```json
 {
@@ -490,6 +490,61 @@ An example of choosing a port number in a launch configuration:
         ],
         "default": "5000"
       }
+    }
+  ]
+}
+```
+
+An example task that picks multiple values:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Do some project",
+      "type": "process",
+      "command": "echo",
+      "args": [
+        "${input:selectProject.path}",
+        "${input:selectProject.name}",
+        "${input:selectProject.link}",
+        "${input:selectProject.anyOther}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectProject.path",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "key": "path",
+        "options": [
+          ["project1", {"path":"p1","name":"n1","link":"lnk1","anyOther":"any1"}],
+          ["project2", {"path":"p2","name":"n2","link":"lnk2","anyOther":"any2"}]
+         ],
+        "description": "Pick a project"
+      }
+    },
+    {
+      "id": "selectProject.name",
+      "type": "command",
+      "command": "extension.commandvariable.rememberPick",
+      "args": { "key": "name" }
+    },
+    {
+      "id": "selectProject.link",
+      "type": "command",
+      "command": "extension.commandvariable.rememberPick",
+      "args": { "key": "link" }
+    },
+    {
+      "id": "selectProject.anyOther",
+      "type": "command",
+      "command": "extension.commandvariable.rememberPick",
+      "args": { "key": "anyOther" }
     }
   ]
 }
@@ -1043,6 +1098,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.22.0
+* `pickStringRemember` can store multiple values with 1 pick
 
 ### v1.21.0
 * `promptStringRemember` command and variable

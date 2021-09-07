@@ -49,6 +49,7 @@ function activate(context) {
   const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
   const isString = obj => typeof obj === 'string';
   const isArray = obj => Array.isArray(obj);
+  const isObject = obj => (typeof obj === 'object') && !isArray(obj);
   function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8-to-str-tiny
     lim = lim == null ? src.length : lim;
     for (var i = off || 0, s = ''; i < lim; i++) {
@@ -535,6 +536,19 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.envListSep', () => { return process.platform === 'win32' ? ';' : ':'; })
   );
+  function toString(obj) {
+    if (isString(obj)) { return obj; }
+    if (isObject(obj)) {
+      let elements = [];
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          elements.push(`${key}="${obj[key]}"`);
+        }
+      }
+      return elements.join(', ');
+    }
+    return obj.toString();
+  }
   let pickRemember = { __not_yet: "I don't remember" };
   async function pickStringRemember(args) {
     let qpItems = [];
@@ -544,7 +558,7 @@ function activate(context) {
         qpItem = {value:option, label:option};
       }
       if (isArray(option) && (option.length === 2)) {
-        qpItem = {value:option[1], label:option[0], description:option[1]};
+        qpItem = {value:option[1], label:option[0], description:toString(option[1])};
       }
       if (qpItem) { qpItems.push(qpItem); }
     }
@@ -553,10 +567,19 @@ function activate(context) {
   }
   function storeStringRemember(args, result) {
     if (result !== undefined) {
+      let argkey = getProperty(args, 'key', '__unknown');
       if (!isString(result)) {
         result = result.value;
+        if (isObject(result)) {
+          for (const vkey in result) {
+            if (result.hasOwnProperty(vkey)) {
+              pickRemember[vkey] = result[vkey];
+            }
+          }
+          return pickRememberKey(argkey);
+        }
       }
-      pickRemember[getProperty(args, 'key', '__unknown')] = result;
+      pickRemember[argkey] = result;
     }
     return result !== undefined ? result : getProperty(args, 'default', 'Escaped');
   }

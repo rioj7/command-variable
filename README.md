@@ -349,6 +349,7 @@ You can set the following arguments to this command:
 
     **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
 
+* `description` : (Optional) A text shown in the pick list box. (default: `"Select a file"`)
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
 * `addAsk` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Ask ***`) that will open an Input Box where you enter the path to be returned. (default: `false`)
@@ -728,6 +729,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
 * <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember-and-rememberpick) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
 * <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches the `key` argument of the `pickStringRemember` or `promptStringRemember` variable
+* <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -845,7 +847,7 @@ If you want to add an entry you pick from a list use the variable: <code>${pickS
 
 _`name`_ is the property name of the `pickStringRemember` property of the `args` object of the command.
 
-Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickStringRemember` has to be part of the arguments of the command.
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickStringRemember` have to be part of the arguments of the command.
 
 See the command [`extension.commandvariable.pickStringRemember`](#pickstringremember-and-rememberpick) for the arguments you can use.
 
@@ -882,14 +884,59 @@ An example shows faster how it is to be used compared to a lot of text.
 
 ### promptStringRemember Variable
 
-The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable)
+The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
 If you want to add an entry you type on the keyboard use the variable: <code>${promptStringRemember:<em>name</em>}</code>
 
 _`name`_ is the property name of the `promptStringRemember` property of the `args` object of the command.
 
-Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `promptStringRemember` has to be part of the arguments of the command.
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `promptStringRemember` have to be part of the arguments of the command.
 
 See the command [`extension.commandvariable.promptStringRemember`](#promptstringremember-and-rememberpick) for the arguments you can use.
+
+### pickFile Variable
+
+The `pickFile` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
+If you want a file path use the variable: <code>${pickFile:<em>name</em>}</code>
+
+_`name`_ is the property name of the `pickFile` property of the `args` object of the command.
+
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickFile` have to be part of the arguments of the command.
+
+See the command [`extension.commandvariable.pickFile`](#pick-file) for the arguments you can use.
+
+An example: you have a number of key-value files and you want to select which environment to use 
+
+```
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo theme name",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:themeName}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "themeName",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "${pickFile:environ}",
+        "key": "THEME",
+        "pickFile": {
+          "environ": {
+            "description": "Which environment?",
+            "include": "**/*environ*",
+            "display": "fileName"
+          }
+        }
+      }
+    }
+  ]
+}
+```
 
 ## Workspace name in `argument`
 
@@ -1098,6 +1145,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.23.0
+* `pickFile` can be used in a variable: <code>${pickFile:<em>name</em>}</code>
+* `pickFile` has property `description`
 
 ### v1.22.0
 * `pickStringRemember` can store multiple values with 1 pick

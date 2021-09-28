@@ -139,6 +139,23 @@ function activate(context) {
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
+  var pickVariable = async (text, args, func) => {
+    let pickArgs = [];
+    let varRE = new RegExp(`\\$\\{${func.name}:(.+?)\\}`, 'g');
+    text = text.replace(varRE, (m, p1) => {
+      let nameArgs = getProperty(getProperty(args, func.name, {}), p1);
+      if (!nameArgs) { return 'Unknown'; }
+      pickArgs.push(nameArgs);
+      return m;
+    });
+    for (let i = 0; i < pickArgs.length; i++) {
+      pickArgs[i] = await func(pickArgs[i]);
+    }
+    text = text.replace(varRE, (m, p1) => {
+      return pickArgs.shift();
+    });
+    return text;
+  };
   var variableSubstitution = async (text, args) => {
     args = dblQuest(args, {});
     let stringSubstitution = async (text) => {
@@ -157,37 +174,15 @@ function activate(context) {
         if (!wsf) { return 'Unknown'; }
         return wsf.uri.fsPath;
       });
-      let pickStringArgs = [];
-      result = result.replace(/\$\{pickStringRemember:(.+?)\}/g, (m, p1) => {
-        let psArgs = getProperty(getProperty(args, 'pickStringRemember', {}), p1);
-        if (!psArgs) { return 'Unknown'; }
-        pickStringArgs.push(psArgs);
-        return m;
-      });
-      for (let i = 0; i < pickStringArgs.length; i++) {
-        pickStringArgs[i] = await pickStringRemember(pickStringArgs[i]);
-      }
-      result = result.replace(/\$\{pickStringRemember:(.+?)\}/g, (m, p1) => {
-        return pickStringArgs.shift();
-      });
 
-      let promptStringArgs = [];
-      result = result.replace(/\$\{promptStringRemember:(.+?)\}/g, (m, p1) => {
-        let psArgs = getProperty(getProperty(args, 'promptStringRemember', {}), p1);
-        if (!psArgs) { return 'Unknown'; }
-        promptStringArgs.push(psArgs);
-        return m;
-      });
-      for (let i = 0; i < promptStringArgs.length; i++) {
-        promptStringArgs[i] = await promptStringRemember(promptStringArgs[i]);
-      }
-      result = result.replace(/\$\{promptStringRemember:(.+?)\}/g, (m, p1) => {
-        return promptStringArgs.shift();
-      });
-
+      result = await pickVariable(result, args, pickStringRemember);
+      result = await pickVariable(result, args, promptStringRemember);
       result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
         return pickRememberKey(p1);
       });
+
+      result = await pickVariable(result, args, pickFile);
+
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
       result = result.replace(/\$\{file\}/g, fileFSPath);
@@ -339,7 +334,7 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.file.content: readFileContent: from: ${args.fileName}`); }
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted by VSC
-    args.fileName = await variableSubstitution(args.fileName);
+    args.fileName = await variableSubstitution(args.fileName, args);
     if (debug) { console.log(`commandvariable.file.content: readFileContent: after variable substitution: ${args.fileName}`); }
     let uri = vscode.Uri.file(args.fileName);
     if (debug) { console.log(`commandvariable.file.content: readFileContent: test if file exists: ${uri.fsPath}`); }
@@ -415,53 +410,53 @@ function activate(context) {
     pickList.push(new FolderPickItem().workspace());
     return pickList;
   }
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.pickFile', async args => {
-      args = args || {};
-      let globInclude = getProperty(args, 'include', '**/*');
-      let globExclude = getProperty(args, 'exclude', 'undefined');
-      let maxResults  = getProperty(args, 'maxResults', undefined);
-      let fromFolder  = getProperty(args, 'fromFolder');
-      let fromWorkspace = getProperty(args, 'fromWorkspace', false);
-      if (globExclude === 'undefined') globExclude = undefined;
-      if (globExclude === 'null') globExclude = null;
-      let ignoreFocusOut = {ignoreFocusOut:true};
+  async function pickFile(args) {
+    args = args || {};
+    let globInclude = getProperty(args, 'include', '**/*');
+    let globExclude = getProperty(args, 'exclude', 'undefined');
+    let maxResults  = getProperty(args, 'maxResults', undefined);
+    let fromFolder  = getProperty(args, 'fromFolder');
+    let fromWorkspace = getProperty(args, 'fromWorkspace', false);
+    let placeHolder = getProperty(args, 'description', 'Select a file');
+    if (globExclude === 'undefined') globExclude = undefined;
+    if (globExclude === 'null') globExclude = null;
+    let ignoreFocusOut = {ignoreFocusOut:true};
 
-      if (fromFolder) {
-        let predefined = getProperty(fromFolder, 'predefined', []);
-        let picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+    if (fromFolder) {
+      let predefined = getProperty(fromFolder, 'predefined', []);
+      let picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+      if (!picked) { return undefined; }
+      let folderPath = picked.value;
+      if (picked.askValue) {
+        folderPath = await vscode.window.showInputBox(ignoreFocusOut);
+        if (!folderPath) { return undefined; }
+      }
+      if (picked.askWorkspace) {
+        fromWorkspace = true;
+      } else {
+        globInclude = new vscode.RelativePattern(vscode.Uri.file(folderPath), globInclude);
+      }
+    }
+    if (fromWorkspace) {
+      let workspace = undefined;
+      if (isString(fromWorkspace)) {
+        workspace = getNamedWorkspaceFolder(fromWorkspace);
+      } else {
+        workspace = await vscode.window.showWorkspaceFolderPick(ignoreFocusOut);
+      }
+      if (!workspace) { return undefined; }
+      globInclude = new vscode.RelativePattern(workspace, globInclude);
+    }
+
+    return vscode.workspace.findFiles(globInclude, globExclude, maxResults)
+      .then( uriList => vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder}))
+      .then( picked => {
         if (!picked) { return undefined; }
-        let folderPath = picked.value;
-        if (picked.askValue) {
-          folderPath = await vscode.window.showInputBox(ignoreFocusOut);
-          if (!folderPath) { return undefined; }
-        }
-        if (picked.askWorkspace) {
-          fromWorkspace = true;
-        } else {
-          globInclude = new vscode.RelativePattern(vscode.Uri.file(folderPath), globInclude);
-        }
-      }
-      if (fromWorkspace) {
-        let workspace = undefined;
-        if (isString(fromWorkspace)) {
-          workspace = getNamedWorkspaceFolder(fromWorkspace);
-        } else {
-          workspace = await vscode.window.showWorkspaceFolderPick(ignoreFocusOut);
-        }
-        if (!workspace) { return undefined; }
-        globInclude = new vscode.RelativePattern(workspace, globInclude);
-      }
-
-      return vscode.workspace.findFiles(globInclude, globExclude, maxResults)
-        .then( uriList => vscode.window.showQuickPick(constructFilePickList(uriList, args), {placeHolder: "Select a file"}))
-        .then( picked => {
-          if (!picked) { return undefined; }
-          if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
-          return picked.value;
-        });
-    })
-  );
+        if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
+        return picked.value;
+      });
+  }
+  context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', (args) => {
       return activeWorkspaceFolderEditorOptional( workspaceFolder => {

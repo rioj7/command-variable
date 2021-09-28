@@ -4,10 +4,10 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.22.0",
+  "version": "1.23.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
-  "keywords": ["command","variable","launch","tasks","date","multi-root ready"],
+  "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file"],
   "icon": "images/icon.png",
   "galleryBanner": {"color": "#000080", "theme": "dark"},
   "activationEvents": [

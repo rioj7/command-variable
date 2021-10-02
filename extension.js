@@ -418,6 +418,7 @@ function activate(context) {
     let fromFolder  = getProperty(args, 'fromFolder');
     let fromWorkspace = getProperty(args, 'fromWorkspace', false);
     let placeHolder = getProperty(args, 'description', 'Select a file');
+    let keyRemember = getProperty(args, 'keyRemember', 'pickFile');
     if (globExclude === 'undefined') globExclude = undefined;
     if (globExclude === 'null') globExclude = null;
     let ignoreFocusOut = {ignoreFocusOut:true};
@@ -454,6 +455,10 @@ function activate(context) {
         if (!picked) { return undefined; }
         if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
         return picked.value;
+      })
+      .then( value => {
+        if (!value) { return undefined; }
+        return storeStringRemember({key: keyRemember}, value);
       });
   }
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));

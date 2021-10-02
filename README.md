@@ -139,7 +139,7 @@ If you store the content in a file you can retrieve this with the `extension.com
 
 The content of the file is assumed to be encoded with UTF-8.
 
-The `fileName` argument supports [variables](#variables), like `${workspaceFolder}` and <code>${workspaceFolder:<em>name</em>}</code>.
+The `fileName` argument supports [variables](#variables), like `${workspaceFolder}`, <code>${workspaceFolder:<em>name</em>}</code>, <code>${pickFile:<em>name</em>}</code> and <code>${rememberPick:<em>key</em>}</code>.
 
 ```json
 {
@@ -277,6 +277,84 @@ In your `tasks.json` you want to use the server1 port value.
 }
 ```
 
+## File Content Multiple Key-Values/Properties
+
+If the file contains multiple key-values or properties you want in your task or launch you can remember the picked file and use the same path in another `extension.commandvariable.file.content` use.
+
+You have the follwing configuration files in your workspace:
+
+**`server1-config.json`**
+
+```json
+{
+  "log": "foobar1.log",
+  "server": {
+    "port": 5011,
+    "publicCryptKey": "01234abcd"
+  }
+}
+```
+
+**`server2-config.json`**
+
+```json
+{
+  "log": "foobar2.log",
+  "server": {
+    "port": 5023,
+    "publicCryptKey": "9876zyxw"
+  }
+}
+```
+
+Use it in your `tasks.json`:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo ServerPortAndCryptKey",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:configServerPort}",
+        "${input:configServerCryptKey}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "configServerPort",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "${pickFile:config}",
+        "json": "content.server.port",
+        "default": "4321",
+        "pickFile": {
+          "config": {
+            "include": "**/*.json",
+            "exclude": ".vscode/*.json",
+            "keyRemember": "configFile"
+          }
+        }
+      }
+    },
+    {
+      "id": "configServerCryptKey",
+      "type": "command",
+      "command": "extension.commandvariable.file.content",
+      "args": {
+        "fileName": "${rememberPick:configFile}",
+        "json": "content.server.publicCryptKey"
+      }
+    }
+  ]
+}
+```
+
 ## File Content in Editor
 
 If you want the (partial) result of an external program inserted in the editor you can use the command `extension.commandvariable.file.contentInEditor`. This command uses the same arguments as `extension.commandvariable.file.content`.
@@ -349,6 +427,7 @@ You can set the following arguments to this command:
 
     **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
 
+* `keyRemember` : (Optional) If you want to remember the filepath to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"pickFile"`)
 * `description` : (Optional) A text shown in the pick list box. (default: `"Select a file"`)
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
@@ -1145,6 +1224,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.24.0
+* `pickFile` can remember the picked file by key (`"keyRemember"`)
 
 ### v1.23.0
 * `pickFile` can be used in a variable: <code>${pickFile:<em>name</em>}</code>

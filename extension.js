@@ -139,20 +139,20 @@ function activate(context) {
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
-  var pickVariable = async (text, args, func) => {
-    let pickArgs = [];
+  var asyncVariable = async (text, args, func) => {
+    let asyncArgs = [];
     let varRE = new RegExp(`\\$\\{${func.name}:(.+?)\\}`, 'g');
     text = text.replace(varRE, (m, p1) => {
       let nameArgs = getProperty(getProperty(args, func.name, {}), p1);
       if (!nameArgs) { return 'Unknown'; }
-      pickArgs.push(nameArgs);
+      asyncArgs.push(nameArgs);
       return m;
     });
-    for (let i = 0; i < pickArgs.length; i++) {
-      pickArgs[i] = await func(pickArgs[i]);
+    for (let i = 0; i < asyncArgs.length; i++) {
+      asyncArgs[i] = await func(asyncArgs[i]);
     }
     text = text.replace(varRE, (m, p1) => {
-      return pickArgs.shift();
+      return asyncArgs.shift();
     });
     return text;
   };
@@ -175,13 +175,13 @@ function activate(context) {
         return wsf.uri.fsPath;
       });
 
-      result = await pickVariable(result, args, pickStringRemember);
-      result = await pickVariable(result, args, promptStringRemember);
+      result = await asyncVariable(result, args, pickStringRemember);
+      result = await asyncVariable(result, args, promptStringRemember);
+      result = await asyncVariable(result, args, pickFile);
+      result = await asyncVariable(result, args, fileContent);
       result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
         return pickRememberKey(p1);
       });
-
-      result = await pickVariable(result, args, pickFile);
 
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
@@ -353,16 +353,16 @@ function activate(context) {
       vscode.window.showErrorMessage("extension.commandvariable.file.content: Incomplete expression");
     }
   }
-  function contentValue(args, fileContent) {
+  function contentValue(args, content) {
     let jsonExpr = args.json;
     if (jsonExpr) {
-      let value = getExpressionFunction(jsonExpr)(JSON.parse(fileContent));
+      let value = getExpressionFunction(jsonExpr)(JSON.parse(content));
       if (value === undefined) { return value; }
       return String(value);
     }
     let key = args.key;
-    if (!key) { return fileContent; }
-    for (const kvLine of fileContent.split(/\r?\n/)) {
+    if (!key) { return content; }
+    for (const kvLine of content.split(/\r?\n/)) {
       if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
       let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
       if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
@@ -376,9 +376,14 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.file.content: content: ${content}`); }
     let value = contentValue(args, content);
     if (debug) { console.log(`commandvariable.file.content: content to value: ${value}`); }
-    if (value) { return value; }
-    if (args.default) { return args.default; }
-    return "Unknown";
+    let result = "Unknown";
+    if (value) { result = value; }
+    else {
+      if (args.default) { result = args.default; }
+    }
+    let keyRemember = getProperty(args, 'keyRemember', 'fileContent');
+    storeStringRemember({key: keyRemember}, result);
+    return result;
   };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {

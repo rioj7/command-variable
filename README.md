@@ -170,7 +170,16 @@ The `fileName` argument supports [variables](#variables), like `${workspaceFolde
 
 ## File Content Key Value pairs
 
-If you have a file that contains key-value pairs and you want the value for a given key you can use the command `extension.commandvariable.file.content`. The argument `"key"` specifies for which key you want the value. If the key is not found and you have a `"default"` argument that string is returned else `"Unknown"` is returned.
+If you have a file that contains key-value pairs and you want the value for a given key you can use the command `extension.commandvariable.file.content`.
+
+The supported arguments:
+
+* `fileName` : specifies the file to read, see [File Content](#file-content).
+* `key` : specifies for which key you want the value.
+* `default` : (Optional) If the key is not found and you have defined `default` that string is returned else `"Unknown"` is returned.
+* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"fileContent"`)
+
+Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
 
 ### Key-Value files
 
@@ -224,9 +233,18 @@ THEME=new-school
 
 ## File Content JSON Property
 
-If you have a JSON file and you want the value for a given property you can use the command `extension.commandvariable.file.content`. The argument `"json"` specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed JSON file. If the JavaScript expression fails and you have a `"default"` argument that string is returned else `"Unknown"` is returned.
+If you have a JSON file and you want the value for a given property you can use the command `extension.commandvariable.file.content`.
+
+The supported arguments:
+
+* `fileName` : specifies the file to read, see [File Content](#file-content).
+* `json` : specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed JSON file.
+* `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
+* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"fileContent"`)
 
 The JSON file can be an array and you can address the elements with: `content[3]`
+
+Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
 
 ### Example
 
@@ -270,7 +288,8 @@ In your `tasks.json` you want to use the server1 port value.
       "args": {
         "fileName": "${workspaceFolder}/config.json",
         "json": "content.server1.port",
-        "default": "4321"
+        "default": "4321",
+        "keyRemember": "ServerPort"
       }
     }
   ]
@@ -319,7 +338,8 @@ Use it in your `tasks.json`:
       "command": "echo",
       "args": [
         "${input:configServerPort}",
-        "${input:configServerCryptKey}"
+        "${input:configServerCryptKey}",
+        "${input:serverURL}"
       ],
       "problemMatcher": []
     }
@@ -333,6 +353,7 @@ Use it in your `tasks.json`:
         "fileName": "${pickFile:config}",
         "json": "content.server.port",
         "default": "4321",
+        "keyRemember": "ServerPort",
         "pickFile": {
           "config": {
             "include": "**/*.json",
@@ -350,6 +371,12 @@ Use it in your `tasks.json`:
         "fileName": "${rememberPick:configFile}",
         "json": "content.server.publicCryptKey"
       }
+    },
+    {
+      "id": "serverURL",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": { "text": "https://mydomain.org:${rememberPick:ServerPort}/" }
     }
   ]
 }
@@ -807,8 +834,11 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
 * <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
 * <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember-and-rememberpick) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
-* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches the `key` argument of the `pickStringRemember` or `promptStringRemember` variable
+* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches 
+    * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
+    * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
 * <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
+* <code>${fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 

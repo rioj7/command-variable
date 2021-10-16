@@ -54,9 +54,10 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
-* `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember-and-rememberpick).
-* `extension.commandvariable.promptStringRemember` : like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember-and-rememberpick).
-* `extension.commandvariable.rememberPick` : retreive a remembered pick or prompt by key
+* `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember-and-remember).
+* `extension.commandvariable.promptStringRemember` : like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember-and-remember).
+* `extension.commandvariable.remember` : retreive a remembered pickString, promptString, pickFile or fileContent by key
+* `extension.commandvariable.rememberPick` : **deprecated** - identical to `extension.commandvariable.remember`, it is not only picks that are remembered
 * `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
@@ -139,7 +140,7 @@ If you store the content in a file you can retrieve this with the `extension.com
 
 The content of the file is assumed to be encoded with UTF-8.
 
-The `fileName` argument supports [variables](#variables), like `${workspaceFolder}`, <code>${workspaceFolder:<em>name</em>}</code>, <code>${pickFile:<em>name</em>}</code> and <code>${rememberPick:<em>key</em>}</code>.
+The `fileName` argument supports [variables](#variables), like `${workspaceFolder}`, <code>${workspaceFolder:<em>name</em>}</code>, <code>${pickFile:<em>name</em>}</code> and <code>${remember:<em>key</em>}</code>.
 
 ```json
 {
@@ -177,7 +178,7 @@ The supported arguments:
 * `fileName` : specifies the file to read, see [File Content](#file-content).
 * `key` : specifies for which key you want the value.
 * `default` : (Optional) If the key is not found and you have defined `default` that string is returned else `"Unknown"` is returned.
-* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"fileContent"`)
+* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.remember` or the variable <code>${remember:<em>key</em>}</code>. (default: `"fileContent"`)
 
 Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
 
@@ -240,7 +241,7 @@ The supported arguments:
 * `fileName` : specifies the file to read, see [File Content](#file-content).
 * `json` : specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed JSON file.
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
-* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"fileContent"`)
+* `keyRemember` : (Optional) If you want to remember the value to use with the command `extension.commandvariable.remember` or the variable <code>${remember:<em>key</em>}</code>. (default: `"fileContent"`)
 
 The JSON file can be an array and you can address the elements with: `content[3]`
 
@@ -368,7 +369,7 @@ Use it in your `tasks.json`:
       "type": "command",
       "command": "extension.commandvariable.file.content",
       "args": {
-        "fileName": "${rememberPick:configFile}",
+        "fileName": "${remember:configFile}",
         "json": "content.server.publicCryptKey"
       }
     },
@@ -376,7 +377,7 @@ Use it in your `tasks.json`:
       "id": "serverURL",
       "type": "command",
       "command": "extension.commandvariable.transform",
-      "args": { "text": "https://mydomain.org:${rememberPick:ServerPort}/" }
+      "args": { "text": "https://mydomain.org:${remember:ServerPort}/" }
     }
   ]
 }
@@ -454,7 +455,7 @@ You can set the following arguments to this command:
 
     **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
 
-* `keyRemember` : (Optional) If you want to remember the filepath to use with the command `extension.commandvariable.rememberPick` or the variable <code>${rememberPick:<em>key</em>}</code>. (default: `"pickFile"`)
+* `keyRemember` : (Optional) If you want to remember the filepath to use with the command `extension.commandvariable.remember` or the variable <code>${remember:<em>key</em>}</code>. (default: `"pickFile"`)
 * `description` : (Optional) A text shown in the pick list box. (default: `"Select a file"`)
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
@@ -510,18 +511,18 @@ You can set the following arguments to this command:
 }
 ```
 
-## pickStringRemember and rememberPick
+## pickStringRemember and remember
 
 `extension.commandvariable.pickStringRemember` has the same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.pickStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular pick.
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
 
-The command `extension.commandvariable.rememberPick` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
+The command `extension.commandvariable.remember` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
 
 The `"options"` argument for `extension.commandvariable.pickStringRemember` is an array that can contain the following elements:
 
 * `string` : The label in the pickList and the value returned are this string.
-* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple and the value returned and the description in the pickList are the second element.<br/>The value can be an object with multiple _key_-_value_ pairs. Every _key_-_value_ is stored in the `rememberPick` storage. The `pickStringRemember` returns the value from the `rememberPick` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
+* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple and the value returned and the description in the pickList are the second element.<br/>The value can be an object with multiple _key_-_value_ pairs. Every _key_-_value_ is stored in the `remember` storage. The `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
 
 ```json
 {
@@ -560,7 +561,7 @@ The `"options"` argument for `extension.commandvariable.pickStringRemember` is a
     {
       "id": "rememberPath",
       "type": "command",
-      "command": "extension.commandvariable.rememberPick",
+      "command": "extension.commandvariable.remember",
       "args": { "key": "path" }
     }
   ]
@@ -638,32 +639,32 @@ An example task that picks multiple values:
     {
       "id": "selectProject.name",
       "type": "command",
-      "command": "extension.commandvariable.rememberPick",
+      "command": "extension.commandvariable.remember",
       "args": { "key": "name" }
     },
     {
       "id": "selectProject.link",
       "type": "command",
-      "command": "extension.commandvariable.rememberPick",
+      "command": "extension.commandvariable.remember",
       "args": { "key": "link" }
     },
     {
       "id": "selectProject.anyOther",
       "type": "command",
-      "command": "extension.commandvariable.rememberPick",
+      "command": "extension.commandvariable.remember",
       "args": { "key": "anyOther" }
     }
   ]
 }
 ```
 
-## promptStringRemember and rememberPick
+## promptStringRemember and remember
 
 `extension.commandvariable.promptStringRemember` has the same configuration attributes as the [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.promptStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular entered string.
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one prompt to remember or every prompt can use the same **`key`** name.
 
-The command `extension.commandvariable.rememberPick` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
+The command `extension.commandvariable.remember` can be used in the same task/launch config or in a different one. The value of the key is remembered for this session.
 
 ```json
 {
@@ -701,7 +702,7 @@ The command `extension.commandvariable.rememberPick` can be used in the same tas
     {
       "id": "rememberPath",
       "type": "command",
-      "command": "extension.commandvariable.rememberPick",
+      "command": "extension.commandvariable.remember",
       "args": { "key": "path" }
     }
   ]
@@ -832,9 +833,9 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
-* <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember-and-rememberpick) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
-* <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember-and-rememberpick) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
-* <code>${rememberPick:<em>key</em>}</code> : use the [rememberPick](#pickstringremember-and-rememberpick) command as a variable, _`key`_ matches 
+* <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember-and-remember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
+* <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember-and-remember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
+* <code>${remember:<em>key</em>}</code> : use the [remember](#pickstringremember-and-remember) command as a variable, _`key`_ matches 
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
 * <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
@@ -958,7 +959,7 @@ _`name`_ is the property name of the `pickStringRemember` property of the `args`
 
 Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `pickStringRemember` have to be part of the arguments of the command.
 
-See the command [`extension.commandvariable.pickStringRemember`](#pickstringremember-and-rememberpick) for the arguments you can use.
+See the command [`extension.commandvariable.pickStringRemember`](#pickstringremember-and-remember) for the arguments you can use.
 
 An example shows faster how it is to be used compared to a lot of text.
 
@@ -1000,7 +1001,7 @@ _`name`_ is the property name of the `promptStringRemember` property of the `arg
 
 Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `promptStringRemember` have to be part of the arguments of the command.
 
-See the command [`extension.commandvariable.promptStringRemember`](#promptstringremember-and-rememberpick) for the arguments you can use.
+See the command [`extension.commandvariable.promptStringRemember`](#promptstringremember-and-remember) for the arguments you can use.
 
 ### pickFile Variable
 
@@ -1254,6 +1255,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.25.0
+* variable <code>${fileContent:<em>name</em>}</code> (also for key-value and json property)
+* command `remember` replaces `rememberPick`
 
 ### v1.24.0
 * `pickFile` can remember the picked file by key (`"keyRemember"`)

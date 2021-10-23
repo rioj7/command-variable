@@ -353,15 +353,17 @@ function activate(context) {
       vscode.window.showErrorMessage("extension.commandvariable.file.content: Incomplete expression");
     }
   }
-  function contentValue(args, content) {
+  async function contentValue(args, content) {
     let jsonExpr = args.json;
     if (jsonExpr) {
+      jsonExpr = await variableSubstitution(jsonExpr, args);
       let value = getExpressionFunction(jsonExpr)(JSON.parse(content));
       if (value === undefined) { return value; }
       return String(value);
     }
     let key = args.key;
     if (!key) { return content; }
+    key = await variableSubstitution(key, args);
     for (const kvLine of content.split(/\r?\n/)) {
       if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
       let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
@@ -374,7 +376,7 @@ function activate(context) {
     if (debug) { console.log("commandvariable.file.content: debug logs enabled"); }
     let content = await readFileContent(args, debug);
     if (debug) { console.log(`commandvariable.file.content: content: ${content}`); }
-    let value = contentValue(args, content);
+    let value = await contentValue(args, content);
     if (debug) { console.log(`commandvariable.file.content: content to value: ${value}`); }
     let result = "Unknown";
     if (value) { result = value; }
@@ -554,7 +556,7 @@ function activate(context) {
     }
     return obj.toString();
   }
-  let rememberStore = { __not_yet: "I don't remember" };
+  let rememberStore = { __not_yet: "I don't remember", empty: "" };
   async function pickStringRemember(args) {
     let qpItems = [];
     for (const option of getProperty(args, 'options', ['item1', 'item2'])) {
@@ -599,7 +601,11 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(args); })
   );
-  function rememberCommand(args) { return getRememberKey(getProperty(args, 'key', '__unknown')); }
+  function rememberCommand(args) {
+    args = dblQuest(args, {});
+    args.key = getProperty(args, 'key', 'empty');
+    return storeStringRemember(args, { value: getProperty(args, 'store', {}) });
+  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(args) )
   );

@@ -12,6 +12,17 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}"
       ]
+    },
+    {
+      "type": "pwa-extensionHost",
+      "request": "launch",
+      "name": "Run Web Extension in VS Code",
+      "debugWebWorkerHost": true,
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionDevelopmentKind=web"
+      ]
     }
   ]
 }

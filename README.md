@@ -3,7 +3,9 @@ Visual Studio Code provides [variable substitution](https://code.visualstudio.co
 
 One of the variables allows the [result of a command](https://code.visualstudio.com/docs/editor/variables-reference#_command-variables) to be used with the following syntax: **`${command:commandID}`**
 
-This extension provides a number of commands that give a result based on the current file or the workspace path
+Not all commands are supported yet in the web extension version. Supported commands are marked with : (**Web**)
+
+This extension provides a number of commands that give a result based on the current file or the workspace path or that produce a result based on arguments
 
 * `extension.commandvariable.file.relativeDirDots` : The directory of the current file relative to the workspace root directory with dots as separator. Can be used to specify a Python module.
 * `extension.commandvariable.file.filePosix` : The same result as `${file}` but in Posix form. Directory separator '`/`', and drive designation as '`/z/project/`'
@@ -58,8 +60,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.promptStringRemember` : like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember).
 * `extension.commandvariable.remember` : retreive a [remembered](#remember) pickString, promptString, pickFile or fileContent by key and/or store _key_-_value_ pair(s).
 * `extension.commandvariable.rememberPick` : **deprecated** - identical to `extension.commandvariable.remember`, it is not only picks that are remembered
-* `extension.commandvariable.dateTime` : language-sensitive format of current date and time (using a Locale), see [example](#datetime)
-* `extension.commandvariable.dateTimeInEditor` : language-sensitive format of current date and time (using a Locale) to be used for keybindings
+* `extension.commandvariable.dateTime` : (**Web**) language-sensitive format of current date and time (using a Locale), see [example](#datetime)
+* `extension.commandvariable.dateTimeInEditor` : (**Web**) language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
 * `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
 * `extension.commandvariable.UUIDInEditor` : generate a UUID v4 (from random numbers) to be used for keybindings
@@ -1323,6 +1325,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.27.0
+* web extension supports `date` commands (issue [#25](https://github.com/rioj7/command-variable/issues/25))
 
 ### v1.26.0
 * `file.content` properties `key` and `json` can contain variables

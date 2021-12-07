@@ -33,27 +33,27 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.relativeFileDirname5UpPosix` : The same result as `${extension.commandvariable.file.relativeFileDirname5Up}` but in Posix form.
 * `extension.commandvariable.file.relativeFilePosix` : The same result as `${relativeFile}` but in Posix form.
 * `extension.commandvariable.file.fileAsKey` : Use part of the file path as a key in a map lookup. Can be used in `lauch.json` to select arguments based on filename, see [example](#fileaskey).
-* `extension.commandvariable.file.fileDirBasename` : The basename of the `${fileDirname}`
-* `extension.commandvariable.file.fileDirBasename1Up` : The directory name 1 Up of `${fileDirname}`
-* `extension.commandvariable.file.fileDirBasename2Up` : The directory name 2 Up of `${fileDirname}`
-* `extension.commandvariable.file.fileDirBasename3Up` : The directory name 3 Up of `${fileDirname}`
-* `extension.commandvariable.file.fileDirBasename4Up` : The directory name 4 Up of `${fileDirname}`
-* `extension.commandvariable.file.fileDirBasename5Up` : The directory name 5 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename` : (**Web**) The basename of the `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename1Up` : (**Web**) The directory name 1 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename2Up` : (**Web**) The directory name 2 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename3Up` : (**Web**) The directory name 3 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename4Up` : (**Web**) The directory name 4 Up of `${fileDirname}`
+* `extension.commandvariable.file.fileDirBasename5Up` : (**Web**) The directory name 5 Up of `${fileDirname}`
 * `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs). Or the value of a JSON file property, see [example](#file-content-json-property).
 * `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
-* `extension.commandvariable.workspace.folderBasename1Up` : The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
-* `extension.commandvariable.workspace.folderBasename2Up` : The directory name 2 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename3Up` : The directory name 3 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename4Up` : The directory name 4 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename5Up` : The directory name 5 Up of the workspace root directory.
-* `extension.commandvariable.selectedText` : The selected text in the active editor, empty string if nothing selected. Supports [multicursor](#multicursor-and-text).
-* `extension.commandvariable.selectionStartLineNumber` : Line number of the selection start
-* `extension.commandvariable.selectionStartColumnNumber` : Column number of the selection start
-* `extension.commandvariable.selectionEndLineNumber` : Line number of the selection end
-* `extension.commandvariable.selectionEndColumnNumber` : Column number of the selection end
-* `extension.commandvariable.currentLineText` : The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
+* `extension.commandvariable.workspace.folderBasename1Up` : (**Web**) The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
+* `extension.commandvariable.workspace.folderBasename2Up` : (**Web**) The directory name 2 Up of the workspace root directory.
+* `extension.commandvariable.workspace.folderBasename3Up` : (**Web**) The directory name 3 Up of the workspace root directory.
+* `extension.commandvariable.workspace.folderBasename4Up` : (**Web**) The directory name 4 Up of the workspace root directory.
+* `extension.commandvariable.workspace.folderBasename5Up` : (**Web**) The directory name 5 Up of the workspace root directory.
+* `extension.commandvariable.selectedText` : (**Web**) The selected text in the active editor, empty string if nothing selected. Supports [multicursor](#multicursor-and-text).
+* `extension.commandvariable.selectionStartLineNumber` : (**Web**) Line number of the selection start
+* `extension.commandvariable.selectionStartColumnNumber` : (**Web**) Column number of the selection start
+* `extension.commandvariable.selectionEndLineNumber` : (**Web**) Line number of the selection end
+* `extension.commandvariable.selectionEndColumnNumber` : (**Web**) Column number of the selection end
+* `extension.commandvariable.currentLineText` : (**Web**) The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
 * `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember).
@@ -63,8 +63,8 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.dateTime` : (**Web**) language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : (**Web**) language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
-* `extension.commandvariable.UUID` : generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
-* `extension.commandvariable.UUIDInEditor` : generate a UUID v4 (from random numbers) to be used for keybindings
+* `extension.commandvariable.UUID` : (**Web**) generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
+* `extension.commandvariable.UUIDInEditor` : (**Web**) generate a UUID v4 (from random numbers) to be used for keybindings
 * `extension.commandvariable.inTerminal` : type the string result of a command in the terminal (optional with Carriage Return), see [example](#interminal).
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
@@ -1325,6 +1325,9 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.28.0
+* web extension supports more commands
 
 ### v1.27.0
 * web extension supports `date` commands (issue [#25](https://github.com/rioj7/command-variable/issues/25))

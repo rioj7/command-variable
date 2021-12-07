@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "engines": {"vscode": "^1.55.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file","key","value","uuid"],
@@ -84,7 +84,7 @@
     ]
   },
   "main": "./extension.js",
-  "browser": "./extension-web.js",
+  "browser": "./out/extension-common.js",
   "homepage": "https://github.com/rioj7/command-variable",
   "bugs": {
     "url": "https://github.com/rioj7/command-variable/issues"
@@ -93,11 +93,18 @@
     "type": "git",
     "url": "https://github.com/rioj7/command-variable.git"
   },
+  "scripts": {
+    "build": "rollup -c --environment BUILD:production",
+    "dev": "rollup -c --environment BUILD:development"
+  },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
     "@types/assert": "^1.5.4",
     "@types/mocha": "^8.2.1",
     "glob": "^7.1.6",
-    "mocha": "^8.3.0",
+    "mocha": "^9.1.3",
+    "rollup": "^2.48.0",
     "simple-mock": "^0.8.0"
   }
 }

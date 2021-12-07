@@ -1,7 +1,8 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
-let UUID = require('./uuid');
+const common = require('./out/extension-common');
+const utils = require('./utils');
 
 class FilePickItem {
   fromURI(uri, display) {
@@ -44,86 +45,17 @@ class FolderPickItem {
 }
 
 function activate(context) {
-  const getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
-  const errorMessage = (msg, noObject) => { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";};
-  const fileNotInFolderError = (noObject) => errorMessage('File not in Multi-root Workspace', noObject);
-  const isString = obj => typeof obj === 'string';
-  const isArray = obj => Array.isArray(obj);
-  const isObject = obj => (typeof obj === 'object') && !isArray(obj);
-  function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8-to-str-tiny
-    lim = lim == null ? src.length : lim;
-    for (var i = off || 0, s = ''; i < lim; i++) {
-      var h = src[i].toString(16);
-      if (h.length < 2) h = '0' + h;
-      s += '%' + h;
-    }
-    return decodeURIComponent(s);
-  }
-  function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + startAt); }  // https://stackoverflow.com/a/10050831/9938317
-  function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
-  var getNamedWorkspaceFolder = (name, workspaceFolder, editor) => {
-    const folders = dblQuest(vscode.workspace.workspaceFolders, []);
-    if (!name) {
-      if (editor) { return workspaceFolder; }
-      if (folders.length === 1) { return workspaceFolder; }
-      errorMessage('Use the name of the Workspace Folder in the variable or argument');
-      return undefined;
-    }
-    let filterPred = w => w.name === name;
-    if (name.indexOf('/') >= 0) { filterPred = w => w.uri.path.endsWith(name); }
-    let wsfLst = folders.filter(filterPred);
-    if (wsfLst.length === 0) {
-      errorMessage(`Workspace not found with name: ${name}`);
-      return undefined;
-    }
-    return wsfLst[0];
-  };
-  const activeTextEditorVariable = (action, args, noEditor, editorOptional) => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editorOptional) {
-      if (!editor) { return errorMessage('No editor', noEditor); }
-    }
-    return action(editor, args);
-  };
-  const activeWorkspaceFolder = (action, noWorkSpace, editorOptional) => {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders) { return errorMessage('No folder open', noWorkSpace); }
-    return activeTextEditorVariable( editor => {
-      let folder = undefined;
-      if (editor) {
-        folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-      } else {
-        folder = folders[0];  // choose first folder in the list
-      }
-      return folder ? action(folder, editor) : fileNotInFolderError(noWorkSpace);
-    }, undefined, undefined, editorOptional);
-  };
-  const activeWorkspaceFolderEditorOptional = (action, noWorkSpace, workspaceName) => {
-    const editorOptional = true;
-    return activeWorkspaceFolder( (workspaceFolder, editor) => {
-      workspaceFolder = getNamedWorkspaceFolder(workspaceName, workspaceFolder, editor);
-      if (!workspaceFolder) { return 'Unknown'; }
-      return action(workspaceFolder, editor);
-    }, noWorkSpace, editorOptional);
-  };
-  var basenameNUp = function (dirUriPath, n) {
-    const rootParts = dirUriPath.split('/');
-    if (n > rootParts.length-2) { vscode.window.showErrorMessage('Not enough parent directories'); return "Unknown"; }
-    return rootParts[rootParts.length - (n+1)];
-  };
-  var workspaceFolderBasenameNUp = function (n, args) {
-    return activeWorkspaceFolderEditorOptional( workspaceFolder => {
-      return basenameNUp(workspaceFolder.uri.path, n);
-    }, undefined, args !== undefined ? args.name : undefined);
-  };
-  var fileDirBasenameNUp = function (n) {
-    return activeTextEditorVariable( editor => {
-      const path = editor.document.uri.path;
-      const lastSep = path.lastIndexOf('/');
-      if (lastSep === -1) { return "Unknown"; }
-      return basenameNUp(path.substring(0, lastSep), n);
-    });
-  };
+  const getProperty = utils.getProperty;
+  const fileNotInFolderError = utils.fileNotInFolderError;
+  const isString = utils.isString;
+  const utf8_to_str = utils.utf8_to_str;
+  const range = utils.range;
+  const dblQuest = utils.dblQuest;
+  const storeStringRemember = common.storeStringRemember;
+  const getRememberKey = common.getRememberKey;
+
+  common.activate(context);
+
   var replaceVariableWithProperties = (text, varName, args, replaceFunc) => {
     var fieldRegex = new RegExp(`\\$\\{${varName}(\\}|([^a-zA-Z{}]+)(.+?)\\2\\})`, 'g');
     var replaceFuncNewArgs = (m,hasParams,sep,params) => {
@@ -162,21 +94,21 @@ function activate(context) {
       const editor = vscode.window.activeTextEditor;
       var result = text;
       if (editor) {
-        result = replaceVariableWithProperties(result, 'selectedText', args, _args => concatMapSelections(_args, getEditorSelection) );
+        result = replaceVariableWithProperties(result, 'selectedText', args, _args => common.concatMapSelections(_args, common.getEditorSelection) );
       }
       result = result.replace(/\$\{workspaceFolder\}/g, m => {
-        return activeWorkspaceFolderEditorOptional( workspaceFolder => {
+        return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
           return workspaceFolder.uri.fsPath;
         });
       });
       result = result.replace(/\$\{workspaceFolder:(.+?)\}/g, (m, p1) => {
-        let wsf = getNamedWorkspaceFolder(p1);
+        let wsf = common.getNamedWorkspaceFolder(p1);
         if (!wsf) { return 'Unknown'; }
         return wsf.uri.fsPath;
       });
 
-      result = await asyncVariable(result, args, pickStringRemember);
-      result = await asyncVariable(result, args, promptStringRemember);
+      result = await asyncVariable(result, args, common.pickStringRemember);
+      result = await asyncVariable(result, args, common.promptStringRemember);
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);
       result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
@@ -186,7 +118,7 @@ function activate(context) {
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
       result = result.replace(/\$\{file\}/g, fileFSPath);
-      let relativeFile = activeWorkspaceFolder( workspaceFolder => {
+      let relativeFile = common.activeWorkspaceFolder( workspaceFolder => {
         return fileFSPath.substring(workspaceFolder.uri.fsPath.length + 1); // remove extra separator;
       });
       result = result.replace(/\$\{relativeFile\}/g, relativeFile);
@@ -219,7 +151,7 @@ function activate(context) {
   var lowerCaseDriveLetter = p => p.replace(nonPosixPathRegEx, match => match.toLowerCase() );
   var path2Posix = p => lowerCaseDriveLetter(p).replace(nonPosixPathRegEx, '/$1/');
   var relative_FileOrDirname_Posix = (get_dirname) => {
-    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+    return common.activeWorkspaceFolder( (workspaceFolder, editor) => {
       const rootPath = lowerCaseDriveLetter(workspaceFolder.uri.path);
       let documentPath = lowerCaseDriveLetter(editor.document.uri.path);
       if (get_dirname) { documentPath = path.dirname(documentPath); }
@@ -228,7 +160,7 @@ function activate(context) {
     });
   };
   var fileDirnameNUp = function (n, posix, relative) {
-    return activeWorkspaceFolder( (workspaceFolder, editor) => {
+    return common.activeWorkspaceFolder( (workspaceFolder, editor) => {
       let filePath;
       if (posix) { filePath = path2Posix(editor.document.uri.path); }
       else { filePath = editor.document.uri.fsPath; }
@@ -285,7 +217,7 @@ function activate(context) {
       if (debug) { console.log(`commandvariable.file.fileAsKey: execute command result: ${path}`); }
       return path.replace(/\\/g, '/');
     }
-    return activeTextEditorVariable( editor => editor.document.uri.path );
+    return common.activeTextEditorVariable( editor => editor.document.uri.path );
   };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.fileAsKey', async (args) => {
@@ -310,14 +242,6 @@ function activate(context) {
       return deflt;
     })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename', () => {
-      return fileDirBasenameNUp(0);
-    })
-  );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirBasename${i}Up`,
-        () => fileDirBasenameNUp(i) )) );
   context.subscriptions.push( ...range(5, 1).map(
     i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirname${i}Up`,
         () => fileDirnameNUp(i) )) );
@@ -448,7 +372,7 @@ function activate(context) {
     if (fromWorkspace) {
       let workspace = undefined;
       if (isString(fromWorkspace)) {
-        workspace = getNamedWorkspaceFolder(fromWorkspace);
+        workspace = common.getNamedWorkspaceFolder(fromWorkspace);
       } else {
         workspace = await vscode.window.showWorkspaceFolderPick(ignoreFocusOut);
       }
@@ -471,187 +395,16 @@ function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', (args) => {
-      return activeWorkspaceFolderEditorOptional( workspaceFolder => {
+      return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
         return path2Posix(workspaceFolder.uri.path);
       }, undefined, args !== undefined ? args.name : undefined);
     })
-  );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folderBasename${i}Up`,
-        (args) => workspaceFolderBasenameNUp(i, args) )) );
-  function getExpressionFunctionFilterSelection(expr) {
-    try {
-      return Function(`"use strict";return (function calcexpr(value, index, numSel) {
-        return ${expr};
-      })`)();
-    }
-    catch (ex) {
-      vscode.window.showErrorMessage("extension.commandvariable.selectedText: Incomplete expression");
-    }
-  }
-  let concatMapSelections = function (args, map_func) {
-    args = args || {};
-    let separator = getProperty(args, 'separator', '\n');
-    let selectionFilter = getExpressionFunctionFilterSelection(getProperty(args, 'filterSelection', 'true'));
-    return activeTextEditorVariable( editor => {
-      let numSel = editor.selections.length;
-      return editor.selections.sort((a, b) => { return a.start.compareTo(b.start); })
-          .map( s => map_func(editor, s) )
-          .filter ( (value, index) => selectionFilter(value, index, numSel))
-          .join(separator);
-    });
-  };
-  const getEditorSelection = (editor, selection) => {
-    var document = editor.document;
-    var selectStart = document.offsetAt(selection.start);
-    var selectEnd = document.offsetAt(selection.end);
-    return document.getText().substring(selectStart, selectEnd);
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectedText', args => {
-      return concatMapSelections(args, getEditorSelection);
-    })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.currentLineText', args => {
-      return concatMapSelections(args, (editor, selection) => {
-        return editor.document.lineAt(selection.start).text;
-      });
-    })
-  );
-  var positionLineColumn = function (kind, lineChar) {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { vscode.window.showErrorMessage('No editor'); return '1'; }
-    var position = (kind==='start') ? editor.selection.start : editor.selection.end;
-    return (( lineChar==='line' ? position.line : position.character ) + 1 ).toString();
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectionStartLineNumber', () => { return positionLineColumn('start', 'line'); })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectionStartColumnNumber', () => { return positionLineColumn('start', 'column'); })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectionEndLineNumber', () => { return positionLineColumn('end', 'line'); })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.selectionEndColumnNumber', () => { return positionLineColumn('end', 'column'); })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.dirSep', () => { return process.platform === 'win32' ? '\\' : '/'; })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.envListSep', () => { return process.platform === 'win32' ? ';' : ':'; })
-  );
-  function toString(obj) {
-    if (isString(obj)) { return obj; }
-    if (isObject(obj)) {
-      let elements = [];
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          elements.push(`${key}="${obj[key]}"`);
-        }
-      }
-      return elements.join(', ');
-    }
-    return obj.toString();
-  }
-  let rememberStore = { __not_yet: "I don't remember", empty: "" };
-  async function pickStringRemember(args) {
-    let qpItems = [];
-    for (const option of getProperty(args, 'options', ['item1', 'item2'])) {
-      let qpItem = undefined;
-      if (isString(option)) {
-        qpItem = {value:option, label:option};
-      }
-      if (isArray(option) && (option.length === 2)) {
-        qpItem = {value:option[1], label:option[0], description:toString(option[1])};
-      }
-      if (qpItem) { qpItems.push(qpItem); }
-    }
-    let result = await vscode.window.showQuickPick(qpItems, { placeHolder: getProperty(args, 'description', 'Choose:') });
-    return storeStringRemember(args, result);
-  }
-  function storeStringRemember(args, result) {
-    if (result !== undefined) {
-      let argkey = getProperty(args, 'key', '__unknown');
-      if (!isString(result)) {
-        result = result.value;
-        if (isObject(result)) {
-          for (const vkey in result) {
-            if (result.hasOwnProperty(vkey)) {
-              rememberStore[vkey] = result[vkey];
-            }
-          }
-          return getRememberKey(argkey);
-        }
-      }
-      rememberStore[argkey] = result;
-    }
-    return result !== undefined ? result : getProperty(args, 'default', 'Escaped');
-  }
-  async function promptStringRemember(args) {
-    let result = await vscode.window.showInputBox({ prompt: getProperty(args, 'description', 'Enter:'), password: getProperty(args, 'password', false) });
-    return storeStringRemember(args, result);
-  }
-  function getRememberKey(key) { return getProperty(rememberStore, key, rememberStore['__not_yet']); }
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(args); })
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(args); })
-  );
-  function rememberCommand(args) {
-    args = dblQuest(args, {});
-    args.key = getProperty(args, 'key', 'empty');
-    return storeStringRemember(args, { value: getProperty(args, 'store', {}) });
-  }
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(args) )
-  );
-  context.subscriptions.push(
-    // TODO Deprecated 2021-10
-    vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => rememberCommand(args) )
-  );
-  let dateTimeFormat = (args) => {
-    args = dblQuest(args, {});
-    let locale = getProperty(args, 'locale', undefined);
-    let options = getProperty(args, 'options', undefined);
-    let template = getProperty(args, 'template', undefined);
-    let parts = new Intl.DateTimeFormat(locale, options).formatToParts(new Date());
-    if (!template) { return parts.map(({type, value}) => value).join(''); }
-    let dateTimeFormatParts = {};
-    parts.forEach(({type, value}) => { dateTimeFormatParts[type] = value; });
-    return template.replace(/\${(\w+)}/g, (match, p1) => { return getProperty(dateTimeFormatParts, p1, ''); });
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.dateTime', args => dateTimeFormat(args))
-  );
-  context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('extension.commandvariable.dateTimeInEditor', function (editor, edit, args) {
-      edit.replace(editor.selection, dateTimeFormat(args));
-    })
-  );
-  let uuidv4 = undefined;
-  let UUIDFormat = args => {
-    args = dblQuest(args, {});
-    if (getProperty(args, 'use', 'new') === 'new') { uuidv4 = UUID.genV4(); }
-    if (!uuidv4) { return 'Unknown'; }
-    switch (getProperty(args, 'output', 'hexString')) {
-      case 'hexString': return uuidv4.hexString;
-      case 'hexNoDelim': return uuidv4.hexNoDelim;
-      case 'bitString': return uuidv4.bitString;
-      case 'urn': return uuidv4.urn;
-    }
-    return 'Unknown';
-  };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.UUID', args => UUIDFormat(args))
-  );
-  context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('extension.commandvariable.UUIDInEditor', function (editor, edit, args) {
-      edit.replace(editor.selection, UUIDFormat(args));
-    })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.transform', async (args) => {

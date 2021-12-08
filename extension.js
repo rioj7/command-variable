@@ -159,6 +159,7 @@ function activate(context) {
       return documentPath.substring(rootPath.length + 1);
     });
   };
+  var dot_dir_separator = p => p.replace(/\//g, () => ".");
   var fileDirnameNUp = function (n, posix, relative) {
     return common.activeWorkspaceFolder( (workspaceFolder, editor) => {
       let filePath;
@@ -182,13 +183,30 @@ function activate(context) {
     })
   );
   context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.relativeFileDots', () => {
+      return dot_dir_separator(relative_FileOrDirname_Posix(false));
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.file.relativeFileDotsNoExtension', () => {
+      let relativeFile = relative_FileOrDirname_Posix(false);
+      let lastSeparator = relativeFile.lastIndexOf('/');
+      if (lastSeparator < 0) { lastSeparator = 0; }
+      let lastDot = relativeFile.lastIndexOf('.');
+      if (lastDot > lastSeparator+1) {  // file has an extension
+        relativeFile = relativeFile.substring(0, lastDot);
+      }
+      return dot_dir_separator(relativeFile);
+    })
+  );
+  context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeFileDirnamePosix', () => {
       return relative_FileOrDirname_Posix(true);
     })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeDirDots', () => {
-      return relative_FileOrDirname_Posix(true).replace(/\//g, () => ".");
+      return dot_dir_separator(relative_FileOrDirname_Posix(true));
     })
   );
   context.subscriptions.push(

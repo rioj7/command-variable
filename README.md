@@ -8,6 +8,8 @@ Not all commands are supported yet in the web extension version. Supported comma
 This extension provides a number of commands that give a result based on the current file or the workspace path or that produce a result based on arguments
 
 * `extension.commandvariable.file.relativeDirDots` : The directory of the current file relative to the workspace root directory with dots as separator. Can be used to specify a Python module.
+* `extension.commandvariable.file.relativeFileDots` : The same result as `${relativeFile}` but with dots as separator.
+* `extension.commandvariable.file.relativeFileDotsNoExtension` : The same result as `${relativeFile}` but with dots as separator and no file extension. Can be used to specify a Python module.
 * `extension.commandvariable.file.filePosix` : The same result as `${file}` but in Posix form. Directory separator '`/`', and drive designation as '`/z/project/`'
 * `extension.commandvariable.file.fileDirnamePosix` : The same result as `${fileDirname}` but in Posix form.
 * `extension.commandvariable.file.fileDirname1Up` : The directory path 1 Up of `${fileDirname}`
@@ -1325,6 +1327,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.29.0
+* `file.relativeFileDots`
+* `file.relativeFileDotsNoExtension`
 
 ### v1.28.0
 * web extension supports more commands

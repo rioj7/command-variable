@@ -84,7 +84,7 @@ An example `launch.json` :
       "type": "python",
       "request": "launch",
       "console": "integratedTerminal",
-      "module": "${command:extension.commandvariable.file.relativeDirDots}.${fileBasenameNoExtension}",
+      "module": "${command:extension.commandvariable.file.relativeFileDotsNoExtension}",
     }
   ]
 }

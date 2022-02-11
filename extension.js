@@ -111,6 +111,7 @@ function activate(context) {
       result = await asyncVariable(result, args, common.promptStringRemember);
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);
+      result = await asyncVariable(result, args, configExpression);
       result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
         return getRememberKey(p1);
       });
@@ -312,22 +313,25 @@ function activate(context) {
       if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
     }
   }
-  const fileContent = async (args) => {
+  const argsContentValue = async (args, getContentFunc, keyRememberDflt, debugCmd) => {
     args = dblQuest(args, {});
     let debug = getProperty(args, 'debug');
-    if (debug) { console.log("commandvariable.file.content: debug logs enabled"); }
-    let content = await readFileContent(args, debug);
-    if (debug) { console.log(`commandvariable.file.content: content: ${content}`); }
+    if (debug) { console.log(`commandvariable.${debugCmd}: debug logs enabled`); }
+    let content = await getContentFunc(args, debug);
+    if (debug) { console.log(`commandvariable.${debugCmd}: content: ${content}`); }
     let value = await contentValue(args, content);
-    if (debug) { console.log(`commandvariable.file.content: content to value: ${value}`); }
+    if (debug) { console.log(`commandvariable.${debugCmd}: content to value: ${value}`); }
     let result = "Unknown";
     if (value) { result = value; }
     else {
       if (args.default) { result = args.default; }
     }
-    let keyRemember = getProperty(args, 'keyRemember', 'fileContent');
+    let keyRemember = getProperty(args, 'keyRemember', keyRememberDflt);
     storeStringRemember({key: keyRemember}, result);
     return result;
+  };
+  const fileContent = async (args) => {
+    return await argsContentValue(args, readFileContent, 'fileContent', 'file.content');
   };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.content', async (args) => {
@@ -339,6 +343,26 @@ function activate(context) {
       const editor = vscode.window.activeTextEditor;
       const content = await fileContent(args);
       editor.edit( editBuilder => { editBuilder.replace(editor.selection, content); });
+    })
+  );
+  const getConfigVariable = async (args, debug) => {
+    if (debug) { console.log(`commandvariable.config.expression: getConfigVariable: from: ${args.configVariable}`); }
+    if (!isString(args.configVariable)) return "Unknown";
+    // variables are not substituted by VSC
+    args.configVariable = await variableSubstitution(args.configVariable, args);
+    if (debug) { console.log(`commandvariable.config.expression: getConfigVariable: after variable substitution: ${args.configVariable}`); }
+    let configSplit = args.configVariable.split('.');
+    configSplit = [configSplit[0], configSplit.slice(1).join('.')]
+    return JSON.stringify(vscode.workspace.getConfiguration(configSplit[0], null).get(configSplit[1]));
+  };
+  const configExpression = async (args) => {
+    args = dblQuest(args, {});
+    args.json = args.expression; // we use the 'json' property in the 'contentValue' function
+    return await argsContentValue(args, getConfigVariable, 'configExpression', 'config.expression');
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.config.expression', async (args) => {
+      return await configExpression(args);
     })
   );
   /** @param {vscode.Uri[]} uriList @param {Object} args */

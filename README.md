@@ -42,6 +42,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.file.fileDirBasename4Up` : (**Web**) The directory name 4 Up of `${fileDirname}`
 * `extension.commandvariable.file.fileDirBasename5Up` : (**Web**) The directory name 5 Up of `${fileDirname}`
 * `extension.commandvariable.file.content` : The content of the given file name. Use "inputs", see [example](#file-content). Or the value of a Key-Value pair, see [example](#file-content-key-value-pairs). Or the value of a JSON file property, see [example](#file-content-json-property).
+^ `extension.commandvariable.config.expression` : Apply a JavaScript expression to the content of a configuration variable in `settings.json`. Use it to extract an array element or property from an object, see [example](#config-expression).
 * `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
 * `extension.commandvariable.workspace.workspaceFolderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
@@ -444,6 +445,116 @@ Add to **`keybindings.json`**
     "command": "extension.multiCommand.execute",
     "args": { "command": "multiCommand.insertTimestamp" },
     "when": "editorTextFocus"
+}
+```
+
+## Config Expression
+
+If you have an array or object as configuration variable content (`settings.json`) and you want a particular element of the array or the value for a given object property you can use the command `extension.commandvariable.config.expression`.
+
+The supported arguments:
+
+* `configVariable` : specifies the settings variable to read. Supports [variables](#variables).
+* `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>${pickStringRemember:<em>name</em>}</code>
+* `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
+* `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
+
+If the `configVariable` is an array you can address the elements with: `content[3]`
+
+If the `configVariable` is an object you can address a property with: `content.inputDir`
+
+Any expression is allowed that does not have a function call. All arithmetic operators, comparison operators, ...
+
+Can be used as [variable](#variables) <code>${configExpression:<em>name</em>}</code>
+
+### Example
+
+You have the following variable in `settings.json`:
+
+```json
+{
+  "someExt.servers": {
+    "log": "foobar.log",
+    "server1": {
+      "port": 5011
+    },
+    "server2": {
+      "port": 5023
+    }
+  }
+}
+```
+
+In your `tasks.json` you want to use the server1 port value.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Server1Port",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:configServer1Port}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "configServer1Port",
+      "type": "command",
+      "command": "extension.commandvariable.config.expression",
+      "args": {
+        "configVariable": "someExt.servers",
+        "expression": "content.server1.port",
+        "default": "4321",
+        "keyRemember": "ServerPort"
+      }
+    }
+  ]
+}
+```
+
+If you want to select the server from a pick list you can change the `inputs` part:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Server1Port",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:configServerPort}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "configServerPort",
+      "type": "command",
+      "command": "extension.commandvariable.config.expression",
+      "args": {
+        "configVariable": "someExt.servers",
+        "expression": "content.server${pickStringRemember:serverNr}.port",
+        "pickStringRemember": {
+          "serverNr": {
+            "description": "Which server to use?",
+            "options": [
+              ["development", "1"],
+              ["live", "2"]
+            ]
+          }
+        },
+        "default": "4321",
+        "keyRemember": "ServerPort"
+      }
+    }
+  ]
 }
 ```
 
@@ -912,6 +1023,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
 * <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
 * <code>${fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
+* <code>${configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1327,6 +1439,10 @@ jueves__20200319T184634
 ```
 
 # Release Notes
+
+### v1.30.0
+* `config.expression`
+* variable <code>${configExpression:<em>name</em>}</code>
 
 ### v1.29.0
 * `file.relativeFileDots`

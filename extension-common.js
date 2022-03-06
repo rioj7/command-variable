@@ -130,6 +130,10 @@ function getEditorSelection(editor, selection) {
   var selectEnd = document.offsetAt(selection.end);
   return document.getText().substring(selectStart, selectEnd);
 };
+function notEnoughParentDirectories() {
+  vscode.window.showErrorMessage('Not enough parent directories');
+  return "Unknown";
+}
 
 function activate(context) {
   const getProperty = utils.getProperty;
@@ -138,7 +142,7 @@ function activate(context) {
 
   var basenameNUp = function (dirUriPath, n) {
     const rootParts = dirUriPath.split('/');
-    if (n > rootParts.length-2) { vscode.window.showErrorMessage('Not enough parent directories'); return "Unknown"; }
+    if (n > rootParts.length-2) { return notEnoughParentDirectories(); }
     return rootParts[rootParts.length - (n+1)];
   };
   var workspaceFolderBasenameNUp = function (n, args) {
@@ -269,5 +273,6 @@ module.exports = {
   pickStringRemember,
   promptStringRemember,
   concatMapSelections,
-  getEditorSelection
+  getEditorSelection,
+  notEnoughParentDirectories
 }

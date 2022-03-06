@@ -178,6 +178,19 @@ function activate(context) {
       return filePath;
     });
   };
+  var workspaceFolderNUp = function (n, posix, args) {
+    return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
+      let filePath;
+      if (posix) { filePath = path2Posix(workspaceFolder.uri.path); }
+      else { filePath = workspaceFolder.uri.fsPath; }
+      for (let i = 0; i < n; ++i) {
+        let newFilePath = path.dirname(filePath);
+        if (newFilePath === filePath) { return common.notEnoughParentDirectories(); }
+        filePath = newFilePath;
+      }
+      return filePath;
+    }, undefined, args !== undefined ? args.name : undefined);
+  };
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.file.relativeFilePosix', () => {
       return relative_FileOrDirname_Posix(false);
@@ -436,12 +449,18 @@ function activate(context) {
   }
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', (args) => {
-      return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
-        return path2Posix(workspaceFolder.uri.path);
-      }, undefined, args !== undefined ? args.name : undefined);
-    })
+    // TODO Deprecated 2022-03
+    vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', args => { return workspaceFolderNUp(0, true, args); })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.workspace.folderPosix', args => { return workspaceFolderNUp(0, true, args); })
+  );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${i}Up`,
+        args => workspaceFolderNUp(i, false, args) )) );
+  context.subscriptions.push( ...range(5, 1).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${i}UpPosix`,
+        args => workspaceFolderNUp(i, true, args) )) );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.dirSep', () => { return process.platform === 'win32' ? '\\' : '/'; })
   );

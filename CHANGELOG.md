@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.32.0] 2022-03-06
+### Added
+- variable `${command}`
+
 ## [1.31.0] 2022-03-06
 ### Added
 - `workspace.folderPosix`

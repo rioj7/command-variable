@@ -1035,6 +1035,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
 * <code>${fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
 * <code>${configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
+* <code>${command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#command-variable)
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1282,6 +1283,82 @@ If you have 2 workspaces with the same (folder base)name you can't target the se
 
 ```
 "args": { "name": "/websiteA/server" }
+```
+
+## Command Variable
+
+If you want to transform result of a command you use the <code>${command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
+
+`name` can be a commandID or a named argument object property (like `pickStringRemember`)
+
+### CommandID
+
+If the command does not use arguments you place the commandID directly in the variable.
+
+```
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo relative file no ext with dots - first dir removed",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:relativeNoExtDotsBaseOff}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "relativeNoExtDotsBaseOff",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${command:extension.commandvariable.file.relativeFileDotsNoExtension}",
+        "find": "^[^.]+\\."
+      }
+    }
+  ]
+}
+```
+
+### Named Arguments
+
+If the command uses arguments you have to put these in the arguments of the parent command in the property `command`. (Just like with the [<code>${pickStringRemember:<em>name</em>}</code> variable](#pickstringremember-variable))
+
+The named arguments have the following properties:
+
+* `command` : the commandID to execute
+* `args` : the arguments for this commandID
+
+```
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo top 2 workspace folder names",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:workspaceTop2Folders}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "workspaceTop2Folders",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${command:folderPosix}",
+        "find": "^.*/([^/]+/[^/]+)$",
+        "replace": "$1",
+        "command": {
+          "folderPosix": {
+            "command": "extension.commandvariable.workspace.folderPosix",
+            "args": { "name": "server" }
+          }
+        }
+      }
+    }
+  ]
+}
 ```
 
 ## UUID

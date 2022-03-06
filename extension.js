@@ -71,11 +71,18 @@ function activate(context) {
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
+  async function command(args) {
+    let command = getProperty(args, 'command');
+    if (!command) { return 'Unknown'; }
+    return vscode.commands.executeCommand(command, getProperty(args, 'args'))
+  }
   var asyncVariable = async (text, args, func) => {
     let asyncArgs = [];
     let varRE = new RegExp(`\\$\\{${func.name}:(.+?)\\}`, 'g');
     text = text.replace(varRE, (m, p1) => {
-      let nameArgs = getProperty(getProperty(args, func.name, {}), p1);
+      let deflt = undefined;
+      if (func.name === 'command') { deflt = { command: p1 }; }
+      let nameArgs = getProperty(getProperty(args, func.name, {}), p1, deflt);
       if (!nameArgs) { return 'Unknown'; }
       asyncArgs.push(nameArgs);
       return m;
@@ -112,6 +119,7 @@ function activate(context) {
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);
       result = await asyncVariable(result, args, configExpression);
+      result = await asyncVariable(result, args, command);
       result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
         return getRememberKey(p1);
       });

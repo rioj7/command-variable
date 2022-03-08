@@ -187,6 +187,7 @@ function activate(context) {
     });
   };
   var workspaceFolderNUp = function (n, posix, args) {
+    args = common.checkIfArgsIsLaunchConfig(args);
     return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
       let filePath;
       if (posix) { filePath = path2Posix(workspaceFolder.uri.path); }
@@ -253,6 +254,7 @@ function activate(context) {
       let cmdMatch = cmdVariable.match(/^\$\{command:(.*)\}$/);
       if (!cmdMatch) { return undefined; }
       if (debug) { console.log(`commandvariable.file.fileAsKey: execute command: ${cmdMatch[1]}`); }
+      /** @type string */
       let path = await vscode.commands.executeCommand(cmdMatch[1]);
       if (debug) { console.log(`commandvariable.file.fileAsKey: execute command result: ${path}`); }
       return path.replace(/\\/g, '/');

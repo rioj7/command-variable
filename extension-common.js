@@ -134,6 +134,12 @@ function notEnoughParentDirectories() {
   vscode.window.showErrorMessage('Not enough parent directories');
   return "Unknown";
 }
+function checkIfArgsIsLaunchConfig(args) {
+  // when using a ${command} variable in the launch config strings, the complete launch config is passed as the first argument of the command
+  // https://github.com/microsoft/vscode/issues/144648
+  if (args === undefined || args.request) { return undefined; }
+  return args;
+}
 
 function activate(context) {
   const getProperty = utils.getProperty;
@@ -146,6 +152,7 @@ function activate(context) {
     return rootParts[rootParts.length - (n+1)];
   };
   var workspaceFolderBasenameNUp = function (n, args) {
+    args = checkIfArgsIsLaunchConfig(args);
     return activeWorkspaceFolderEditorOptional( workspaceFolder => {
       return basenameNUp(workspaceFolder.uri.path, n);
     }, undefined, args !== undefined ? args.name : undefined);
@@ -171,11 +178,13 @@ function activate(context) {
         (args) => workspaceFolderBasenameNUp(i, args) )) );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.selectedText', args => {
+      args = checkIfArgsIsLaunchConfig(args);
       return concatMapSelections(args, getEditorSelection);
     })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.currentLineText', args => {
+      args = checkIfArgsIsLaunchConfig(args);
       return concatMapSelections(args, (editor, selection) => {
         return editor.document.lineAt(selection.start).text;
       });
@@ -200,10 +209,10 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.selectionEndColumnNumber', () => { return positionLineColumn('end', 'column'); })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(args); })
+    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(checkIfArgsIsLaunchConfig(args)); })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(args); })
+    vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(checkIfArgsIsLaunchConfig(args)); })
   );
   function rememberCommand(args) {
     args = utils.dblQuest(args, {});
@@ -211,11 +220,11 @@ function activate(context) {
     return storeStringRemember(args, { value: utils.getProperty(args, 'store', {}) });
   }
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(args) )
+    vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(checkIfArgsIsLaunchConfig(args)) )
   );
   context.subscriptions.push(
     // TODO Deprecated 2021-10
-    vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => rememberCommand(args) )
+    vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => rememberCommand(checkIfArgsIsLaunchConfig(args)) )
   );
   let dateTimeFormat = (args) => {
     args = dblQuest(args, {});
@@ -229,11 +238,11 @@ function activate(context) {
     return template.replace(/\${(\w+)}/g, (match, p1) => { return getProperty(dateTimeFormatParts, p1, ''); });
   };
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.dateTime', args => dateTimeFormat(args))
+    vscode.commands.registerCommand('extension.commandvariable.dateTime', args => dateTimeFormat(checkIfArgsIsLaunchConfig(args)))
   );
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('extension.commandvariable.dateTimeInEditor', function (editor, edit, args) {
-      edit.replace(editor.selection, dateTimeFormat(args));
+      edit.replace(editor.selection, dateTimeFormat(checkIfArgsIsLaunchConfig(args)));
     })
   );
   let uuidv4 = undefined;
@@ -250,11 +259,11 @@ function activate(context) {
     return 'Unknown';
   };
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.UUID', args => UUIDFormat(args))
+    vscode.commands.registerCommand('extension.commandvariable.UUID', args => UUIDFormat(checkIfArgsIsLaunchConfig(args)))
   );
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('extension.commandvariable.UUIDInEditor', function (editor, edit, args) {
-      edit.replace(editor.selection, UUIDFormat(args));
+      edit.replace(editor.selection, UUIDFormat(checkIfArgsIsLaunchConfig(args)));
     })
   );
 };
@@ -274,5 +283,6 @@ module.exports = {
   promptStringRemember,
   concatMapSelections,
   getEditorSelection,
-  notEnoughParentDirectories
+  notEnoughParentDirectories,
+  checkIfArgsIsLaunchConfig
 }

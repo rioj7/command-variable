@@ -3,9 +3,13 @@
 ## [Unreleased]
 ### Added
 
+## [1.32.1] 2022-03-08
+### Fixed
+- if VSC `${command}` variable is used in launch config string the launch config is passed as argument, add workaround/check
+
 ## [1.32.0] 2022-03-06
 ### Added
-- variable `${command}`
+- variable `${command}` in argument strings
 
 ## [1.31.0] 2022-03-06
 ### Added

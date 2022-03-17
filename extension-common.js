@@ -266,6 +266,9 @@ function activate(context) {
       edit.replace(editor.selection, UUIDFormat(checkIfArgsIsLaunchConfig(args)));
     })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.setClipboard', args => vscode.env.clipboard.writeText(args.text).then(v=>v, v=>null) )
+  );
 };
 
 function deactivate() {}

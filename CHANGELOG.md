@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.33.0] 2022-03-17
+### Added
+- `extension.commandvariable.setClipboard` set the content of the clipboard
+
 ## [1.32.1] 2022-03-08
 ### Fixed
 - if VSC `${command}` variable is used in launch config string the launch config is passed as argument, add workaround/check

@@ -4,10 +4,10 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.32.1",
+  "version": "1.33.0",
   "engines": {"vscode": "^1.55.0"},
   "categories": ["Other"],
-  "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file","key","value","uuid"],
+  "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file","key","value","uuid","clipboard"],
   "icon": "images/icon.png",
   "galleryBanner": {"color": "#000080", "theme": "dark"},
   "activationEvents": [
@@ -83,7 +83,8 @@
     "onCommand:extension.commandvariable.UUID",
     "onCommand:extension.commandvariable.UUIDInEditor",
     "onCommand:extension.commandvariable.inTerminal",
-    "onCommand:extension.commandvariable.config.expression"
+    "onCommand:extension.commandvariable.config.expression",
+    "onCommand:extension.commandvariable.setClipboard"
   ],
   "contributes": {
     "commands": [

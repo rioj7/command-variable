@@ -80,6 +80,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.UUID` : (**Web**) generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
 * `extension.commandvariable.UUIDInEditor` : (**Web**) generate a UUID v4 (from random numbers) to be used for keybindings
 * `extension.commandvariable.inTerminal` : type the string result of a command in the terminal (optional with Carriage Return), see [example](#interminal).
+* `extension.commandvariable.setClipboard` : (**Web**) set the content of the clipboard, see [example](#setclipboard).
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
 
@@ -954,6 +955,18 @@ If you want to use the value of a standard variable in the terminal you have to 
       "command": "extension.commandvariable.transform",
       "args": { "text": "${relativeFile}" }
     }
+  }
+```
+
+## setClipboard
+
+The command `extension.commandvariable.setClipboard` sets the content of the clipboard with the string property `text` of the `args` object.
+
+```json
+  {
+    "key": "ctrl+i f6",  // or any other combo
+    "command": "extension.commandvariable.setClipboard",
+    "args": { "text": "This is the new clipboard content" }
   }
 ```
 

@@ -1,9 +1,43 @@
 # Command Variable
+
 Visual Studio Code provides [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) to be used in `launch.json` and `tasks.json`.
 
 One of the variables allows the [result of a command](https://code.visualstudio.com/docs/editor/variables-reference#_command-variables) to be used with the following syntax: **`${command:commandID}`**
 
 Not all commands are supported yet in the web extension version. Supported commands are marked with : (**Web**)
+
+## Table of contents
+
+* [Commands](#commands)
+* [Usage](#usage)
+* [FileAsKey](#fileaskey)
+* [File Content](#file-content)
+* [File Content Key Value pairs](#file-content-key-value-pairs)
+* [File Content JSON Property](#file-content-json-property)
+* [File Content Multiple Key-Values/Properties](#file-content-multiple-key-valuesproperties)
+* [File Content in Editor](#file-content-in-editor)
+* [Config Expression](#config-expression)
+* [Pick File](#pick-file)
+* [remember](#remember)
+* [pickStringRemember](#pickstringremember)
+* [promptStringRemember](#promptstringremember)
+* [Multicursor and text](#multicursor-and-text)
+* [inTerminal](#interminal)
+* [setClipboard](#setclipboard)
+* [Transform](#transform)
+* [Variables](#variables)
+  * [`${workspaceFolder}`](#workspacefolder-variable)
+  * [`${selectedText}`](#selectedtext-variable)
+  * [`${pickStringRemember}`](#pickstringremember-variable)
+  * [`${promptStringRemember}`](#promptstringremember-variable)
+  * [`${pickFile}`](#pickfile-variable)
+  * [`${command}`](#command-variable)
+* [Workspace name in `argument`](#workspace-name-in-argument)
+* [UUID](#uuid)
+* [dateTime](#datetime)
+* [Credits](#credits)
+
+## Commands
 
 This extension provides a number of commands that give a result based on the current file or the workspace path or that produce a result based on arguments
 
@@ -1257,48 +1291,7 @@ An example: you have a number of key-value files and you want to select which en
 }
 ```
 
-## Workspace name in `argument`
-
-The commands
-
-* `extension.commandvariable.workspace.folderPosix`
-* <code>extension.commandvariable.workspace.folder<em>N</em>Up</code>
-* <code>extension.commandvariable.workspace.folder<em>N</em>UpPosix</code>
-* <code>extension.commandvariable.workspace.folderBasename<em>N</em>Up</code>
-
-allow to get the information from a different workspace by specifying the name or last parts of the file path of the workspace directory. This can also be done when there is no editor active.
-
-You supply the name in the arguments of the command. You have to use an `${input}` variable.
-
-```
-{
-  "version": "0.2.0",
-  "tasks": [
-    {
-      "label": "echo server name",
-      "type": "shell",
-      "command": "echo",
-      "args": [ "${input:server1Up}" ]
-    }
-  ],
-  "inputs": [
-    {
-      "id": "server1Up",
-      "type": "command",
-      "command": "extension.commandvariable.workspace.folderBasename1Up",
-      "args": { "name": "server" }
-    }
-  ]
-}
-```
-
-If you have 2 workspaces with the same (folder base)name you can't target the second one by name only. You have to use more parts of the directory path to make the name unique. Use the `/` as path separator on all platforms. The `name` argument is tested to be at the end of the workspace folder path (using `/` as separator). An example of an `args` property is:
-
-```
-"args": { "name": "/websiteA/server" }
-```
-
-## Command Variable
+### command Variable
 
 If you want to transform result of a command you use the <code>${command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
 
@@ -1372,6 +1365,47 @@ The named arguments have the following properties:
     }
   ]
 }
+```
+
+## Workspace name in `argument`
+
+The commands
+
+* `extension.commandvariable.workspace.folderPosix`
+* <code>extension.commandvariable.workspace.folder<em>N</em>Up</code>
+* <code>extension.commandvariable.workspace.folder<em>N</em>UpPosix</code>
+* <code>extension.commandvariable.workspace.folderBasename<em>N</em>Up</code>
+
+allow to get the information from a different workspace by specifying the name or last parts of the file path of the workspace directory. This can also be done when there is no editor active.
+
+You supply the name in the arguments of the command. You have to use an `${input}` variable.
+
+```
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo server name",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:server1Up}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "server1Up",
+      "type": "command",
+      "command": "extension.commandvariable.workspace.folderBasename1Up",
+      "args": { "name": "server" }
+    }
+  ]
+}
+```
+
+If you have 2 workspaces with the same (folder base)name you can't target the second one by name only. You have to use more parts of the directory path to make the name unique. Use the `/` as path separator on all platforms. The `name` argument is tested to be at the end of the workspace folder path (using `/` as separator). An example of an `args` property is:
+
+```
+"args": { "name": "/websiteA/server" }
 ```
 
 ## UUID

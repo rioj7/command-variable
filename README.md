@@ -742,16 +742,29 @@ The example is a bit contrived but it shows how you can store _key_-_value_ pair
 
 ## pickStringRemember
 
-`extension.commandvariable.pickStringRemember` has the same configuration attributes as the [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.pickStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular pick.
+The command `extension.commandvariable.pickStringRemember` look a lot like the [Input variable `pickString`](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables).
 
-The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one pick to remember or every pick can use the same **`key`** name.
+The configuration attributes need to be passed to the command in the `args` attribute.
 
-The value can later be retrieved with the [`remember`](#remember) command or variable.
+The command has the following configuration attributes:
 
-The `"options"` argument for `extension.commandvariable.pickStringRemember` is an array that can contain the following elements:
+* `description` : Shown some context for the input.
+* `default` : Value returned if the user does not make a choice.
+* `options` : An array that can contain the following elements:
+  * `string` : The label in the pickList and the value returned are this string.
+  * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.<br/>The value can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
+* `key` : (optional) Used to store and retrieve a particular pick.  
+  If you only have one pick to remember or every pick can use the same **`key`** name.  
+  The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
+* `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
+* `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
+  The object has the following attributes:
+  * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_ and _value_ for the option. (default: `^(.*)$` )
+  * `label`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
+  * `value`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
+  * `json`: (Optional) A string containing a capture group reference <code>$<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
 
-* `string` : The label in the pickList and the value returned are this string.
-* <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.<br/>The value can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. The `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
+### Examples
 
 ```json
 {
@@ -826,6 +839,44 @@ An example of choosing a port number in a launch configuration:
           ["live", "5200"]
         ],
         "default": "5000"
+      }
+    }
+  ]
+}
+```
+
+If you have additional options in a file:
+
+* the line is not a comment, does not start with a `#` character
+* the separator of _label_ and _value_ is a `=`
+* _value_ can be a JSON object
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    // see previous example
+  ],
+  "inputs": [
+    {
+      "id": "envType",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which env do you want to debug?",
+        "options": [
+          ["development", "5000"],
+          ["staging", "5100"],
+          ["live", "5200"]
+        ],
+        "default": "5000",
+        "fileName": "${workspaceFolder}/dynamic-env.txt",
+        "pattern": {
+          "regexp": "^\\s*(?!#)([^=]+?)\\s*=\\s*(?:(\\{.+\\})|(.+))$",
+          "label": "$1",
+          "json": "$2",
+          "value": "$3"
+        }
       }
     }
   ]

@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.34.0] 2022-04-07
+### Added
+- `commandvariable.pickStringRemember` read options from a file
+
 ## [1.33.0] 2022-03-17
 ### Added
 - `extension.commandvariable.setClipboard` set the content of the clipboard

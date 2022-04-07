@@ -2,6 +2,12 @@ const vscode = require('vscode');
 const UUID = require('./uuid');
 const utils = require('./utils');
 
+let gWebExtension = true;
+
+function setAsDesktopExtension() {
+  gWebExtension = false;
+}
+
 let rememberStore = { __not_yet: "I don't remember", empty: "" };
 
 function storeStringRemember(args, result) {
@@ -208,9 +214,11 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.selectionEndColumnNumber', () => { return positionLineColumn('end', 'column'); })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(checkIfArgsIsLaunchConfig(args)); })
-  );
+  if (gWebExtension) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(checkIfArgsIsLaunchConfig(args)); })
+    );
+  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(checkIfArgsIsLaunchConfig(args)); })
   );
@@ -287,5 +295,6 @@ module.exports = {
   concatMapSelections,
   getEditorSelection,
   notEnoughParentDirectories,
-  checkIfArgsIsLaunchConfig
+  checkIfArgsIsLaunchConfig,
+  setAsDesktopExtension
 }

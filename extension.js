@@ -54,6 +54,7 @@ function activate(context) {
   const storeStringRemember = common.storeStringRemember;
   const getRememberKey = common.getRememberKey;
 
+  common.setAsDesktopExtension();
   common.activate(context);
 
   var replaceVariableWithProperties = (text, varName, args, replaceFunc) => {
@@ -74,7 +75,7 @@ function activate(context) {
   async function command(args) {
     let command = getProperty(args, 'command');
     if (!command) { return 'Unknown'; }
-    return vscode.commands.executeCommand(command, getProperty(args, 'args'))
+    return vscode.commands.executeCommand(command, getProperty(args, 'args'));
   }
   var asyncVariable = async (text, args, func) => {
     let asyncArgs = [];
@@ -505,6 +506,40 @@ function activate(context) {
       }
     })
   );
+  // ***** An extended version for desktop
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', async args => {
+      args = common.checkIfArgsIsLaunchConfig(args);
+      if (!args) { args = {}; }
+      let fileName = getProperty(args, 'fileName');
+      if (fileName) {
+        let pattern = getProperty(args, 'pattern', {});
+        let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'));
+        let labelRepl = getProperty(pattern, 'label', '$1');
+        if (!labelRepl) { return 'Unknown'; }
+        let valueRepl = getProperty(pattern, 'value', labelRepl);
+        let jsonRepl = getProperty(pattern, 'json');
+        const getValue = line => {
+          if (jsonRepl) {
+            let capture = line.replace(regexp, jsonRepl);
+            if (capture) {
+              return JSON.parse(capture);
+            }
+          }
+          return line.replace(regexp, valueRepl);
+        };
+        let content = await readFileContent(args, getProperty(args, 'debug'));
+        let options = getProperty(args, 'options', []);
+        for (const line of content.split(/\r?\n/)) {
+          if (!line.match(regexp)) { continue; }
+          options.push( [line.replace(regexp, labelRepl), getValue(line)] );
+        }
+        args.options = options;
+      }
+      return common.pickStringRemember(args);
+    })
+  );
+  // ******************************************************************
 };
 
 function deactivate() {}

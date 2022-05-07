@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.34.2] 2022-05-07
+### Added
+- `${workspaceFolder}` also works if current editor is not part of a workspace
+
 ## [1.34.0] 2022-04-07
 ### Added
 - `commandvariable.pickStringRemember` read options from a file

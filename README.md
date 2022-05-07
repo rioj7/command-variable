@@ -1174,8 +1174,8 @@ The variable `${workspaceFolder}` is only valid in certain cases:
 | No   | Folder     | Path of the open folder |
 | No   | Multi Root | `"Unknown"` and Error: `"Use workspace name"` |
 | Yes  | No         | `"Unknown"` and Error: `"No Folder"` |
-| Yes  | Folder     | Path of the workspace containing current file |
-| Yes  | Multi Root | Path of the workspace containing current file |
+| Yes  | Folder     | Path of the open folder |
+| Yes  | Multi Root | Path of the workspace containing current file or first workspace in the list |
 
 An example:
 

@@ -62,7 +62,8 @@ function activeWorkspaceFolder(action, noWorkSpace, editorOptional) {
     let folder = undefined;
     if (editor) {
       folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-    } else {
+    }
+    if (!folder) {
       folder = folders[0];  // choose first folder in the list
     }
     return folder ? action(folder, editor) : utils.fileNotInFolderError(noWorkSpace);

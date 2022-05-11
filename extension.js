@@ -416,6 +416,7 @@ function activate(context) {
     let fromWorkspace = getProperty(args, 'fromWorkspace', false);
     let placeHolder = getProperty(args, 'description', 'Select a file');
     let keyRemember = getProperty(args, 'keyRemember', 'pickFile');
+    let showDirs = getProperty(args, 'showDirs', false);
     if (globExclude === 'undefined') globExclude = undefined;
     if (globExclude === 'null') globExclude = null;
     let ignoreFocusOut = {ignoreFocusOut:true};
@@ -447,7 +448,14 @@ function activate(context) {
     }
 
     return vscode.workspace.findFiles(globInclude, globExclude, maxResults)
-      .then( uriList => vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder}))
+      .then( uriList => {
+        if (showDirs) {
+          let unique = new Set();
+          uriList.forEach( uri => unique.add(path.dirname(uri.fsPath)) );
+          uriList = Array.from(unique).map( p => vscode.Uri.file(p) );
+        }
+        return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder});
+      })
       .then( picked => {
         if (!picked) { return undefined; }
         if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
@@ -536,7 +544,8 @@ function activate(context) {
         }
         args.options = options;
       }
-      return common.pickStringRemember(args);
+      let value = await common.pickStringRemember(args);
+      return variableSubstitution(value, args);
     })
   );
   // ******************************************************************

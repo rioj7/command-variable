@@ -648,6 +648,7 @@ You can set the following arguments to this command:
       ]
     }
     ```
+* `showDirs` : [ `true` | `false` ] If `true`: Show the directories that contain files that are found. The result of the pick is a directory path. (default: `false`)
 
 ```json
 {
@@ -752,7 +753,8 @@ The command has the following configuration attributes:
 * `default` : Value returned if the user does not make a choice.
 * `options` : An array that can contain the following elements:
   * `string` : The label in the pickList and the value returned are this string.
-  * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.<br/>The value can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
+  * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
+  The value can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
 * `key` : (optional) Used to store and retrieve a particular pick.  
   If you only have one pick to remember or every pick can use the same **`key`** name.  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
@@ -763,6 +765,10 @@ The command has the following configuration attributes:
   * `label`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
   * `json`: (Optional) A string containing a capture group reference <code>$<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
+
+(**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
+&nbsp;&nbsp;&nbsp;&nbsp;`["pick directory", "${pickFile:someDir}"]`  
+**Known issue**: in the `remember` storage the `value` string with variables is stored. This will be fixed.
 
 ### Examples
 

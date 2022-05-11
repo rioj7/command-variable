@@ -3,8 +3,13 @@
 ## [Unreleased]
 ### Added
 
-## [1.34.2] 2022-05-07
+## [1.35.0] 2022-05-11
 ### Added
+- `pickFile` can now pick directory
+- `pickStringRemember` values may contain variables
+
+## [1.34.2] 2022-05-07
+### Fixed
 - `${workspaceFolder}` also works if current editor is not part of a workspace
 
 ## [1.34.0] 2022-04-07

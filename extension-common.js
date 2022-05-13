@@ -90,7 +90,7 @@ function toString(obj) {
   }
   return obj.toString();
 }
-async function pickStringRemember(args) {
+async function pickStringRemember(args, processPick) {
   let qpItems = [];
   for (const option of utils.getProperty(args, 'options', ['item1', 'item2'])) {
     let qpItem = undefined;
@@ -103,6 +103,9 @@ async function pickStringRemember(args) {
     if (qpItem) { qpItems.push(qpItem); }
   }
   let result = await vscode.window.showQuickPick(qpItems, { placeHolder: utils.getProperty(args, 'description', 'Choose:') });
+  if (result && processPick) {
+    result.value = await processPick(result.value, args);
+  }
   return storeStringRemember(args, result);
 }
 async function promptStringRemember(args) {

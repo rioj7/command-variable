@@ -3,6 +3,11 @@
 ## [Unreleased]
 ### Added
 
+## [1.35.1] 2022-05-13
+### Fixed
+- `pickStringRemember` in the `remember` storage the `value` string after variable substitution is stored.
+- if you escape a UI element in a variable the result of the variable substitution will be `undefined`
+
 ## [1.35.0] 2022-05-11
 ### Added
 - `pickFile` can now pick directory

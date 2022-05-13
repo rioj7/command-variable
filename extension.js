@@ -78,6 +78,7 @@ function activate(context) {
     return vscode.commands.executeCommand(command, getProperty(args, 'args'));
   }
   var asyncVariable = async (text, args, func) => {
+    if (text === undefined) { return undefined; }  // escaped a UI element
     let asyncArgs = [];
     let varRE = new RegExp(`\\$\\{${func.name}:(.+?)\\}`, 'g');
     text = text.replace(varRE, (m, p1) => {
@@ -90,6 +91,7 @@ function activate(context) {
     });
     for (let i = 0; i < asyncArgs.length; i++) {
       asyncArgs[i] = await func(asyncArgs[i]);
+      if (asyncArgs[i] === undefined) { return undefined; }
     }
     text = text.replace(varRE, (m, p1) => {
       return asyncArgs.shift();
@@ -121,9 +123,12 @@ function activate(context) {
       result = await asyncVariable(result, args, fileContent);
       result = await asyncVariable(result, args, configExpression);
       result = await asyncVariable(result, args, command);
-      result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
-        return getRememberKey(p1);
-      });
+      if (result !== undefined) {
+        result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
+          return getRememberKey(p1);
+        });
+      }
+      if (result === undefined) { return undefined; }
 
       if (!editor) { return result; }
       var fileFSPath = editor.document.uri.fsPath;
@@ -544,8 +549,7 @@ function activate(context) {
         }
         args.options = options;
       }
-      let value = await common.pickStringRemember(args);
-      return variableSubstitution(value, args);
+      return common.pickStringRemember(args, variableSubstitution);
     })
   );
   // ******************************************************************

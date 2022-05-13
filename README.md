@@ -767,8 +767,7 @@ The command has the following configuration attributes:
   * `json`: (Optional) A string containing a capture group reference <code>$<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
-&nbsp;&nbsp;&nbsp;&nbsp;`["pick directory", "${pickFile:someDir}"]`  
-**Known issue**: in the `remember` storage the `value` string with variables is stored. This will be fixed.
+&nbsp;&nbsp;&nbsp;&nbsp;`["pick directory", "${pickFile:someDir}"]`
 
 ### Examples
 
@@ -939,6 +938,45 @@ An example task that picks multiple values:
       "type": "command",
       "command": "extension.commandvariable.remember",
       "args": { "key": "anyOther" }
+    }
+  ]
+}
+```
+
+If you have a `src` directory with a lot of subdirs and you want to run `cpplint` on all or only on a subdir you can add a `pickFile` variable as the value of a `pickString`:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cpp lint",
+      "type": "shell",
+      "command": "cpplint ${input:selectDir}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectDir",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which directory to Lint for C++?",
+        "options": [
+          ["Use previous directory", "${remember:srcSubDir}"],
+          ["All", "all"],
+          ["Pick directory", "${pickFile:srcSubDir}"]
+        ],
+        "default": null,
+        "pickFile": {
+          "srcSubDir": {
+            "description": "Which directory?",
+            "include": "src/**/*.{cpp,h}",
+            "showDirs": true,
+            "keyRemember": "srcSubDir"
+          }
+        }
+      }
     }
   ]
 }

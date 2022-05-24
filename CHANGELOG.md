@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.36.0] 2022-05-24
+### Added
+- `pickFile` property `fromFolder` has a `fixed` option (no picklist)
+
 ## [1.35.1] 2022-05-13
 ### Fixed
 - `pickStringRemember` in the `remember` storage the `value` string after variable substitution is stored.

@@ -634,6 +634,7 @@ You can set the following arguments to this command:
     * If `true`: show a Pick List of Workspaces to choose from
 * `fromFolder` : (Optional) Object with the properties:
     * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.
+    * `fixed` : (Optional) A string with a file system directory path to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace. You do not get a pick list. On Windows it is not possible to specify a directory path in the `include` Glob Pattern.
 
     Show a Pick list of folders specified in the property `predefined` and 2 additional entries
 

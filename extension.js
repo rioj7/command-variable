@@ -427,8 +427,14 @@ function activate(context) {
     let ignoreFocusOut = {ignoreFocusOut:true};
 
     if (fromFolder) {
-      let predefined = getProperty(fromFolder, 'predefined', []);
-      let picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+      let picked = undefined;
+      let fixedDir = getProperty(fromFolder, 'fixed');
+      if (fixedDir) {
+        picked = {value: fixedDir};
+      } else {
+        let predefined = getProperty(fromFolder, 'predefined', []);
+        picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+      }
       if (!picked) { return undefined; }
       let folderPath = picked.value;
       if (picked.askValue) {

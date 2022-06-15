@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.36.1] 2022-06-15
+### Fixed
+- `pickStringRemember` error "`text.replace` is not a function" when using multiple values to store.
+
 ## [1.36.0] 2022-05-24
 ### Added
 - `pickFile` property `fromFolder` has a `fixed` option (no picklist)

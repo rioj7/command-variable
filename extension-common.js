@@ -103,10 +103,11 @@ async function pickStringRemember(args, processPick) {
     if (qpItem) { qpItems.push(qpItem); }
   }
   let result = await vscode.window.showQuickPick(qpItems, { placeHolder: utils.getProperty(args, 'description', 'Choose:') });
+  result = storeStringRemember(args, result);
   if (result && processPick) {
-    result.value = await processPick(result.value, args);
+    result = await processPick(result, args);
   }
-  return storeStringRemember(args, result);
+  return result;
 }
 async function promptStringRemember(args) {
   let result = await vscode.window.showInputBox({ prompt: utils.getProperty(args, 'description', 'Enter:'), password: utils.getProperty(args, 'password', false) });

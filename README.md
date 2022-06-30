@@ -193,10 +193,10 @@ The content of the file is assumed to be encoded with UTF-8.
 
 The supported arguments:
 
-* `fileName` : specifies the file to read. Supports [variables](#variables), like `${workspaceFolder}`, <code>${workspaceFolder:<em>name</em>}</code>, <code>${pickFile:<em>name</em>}</code> and <code>${remember:<em>key</em>}</code>
+* `fileName` : specifies the file to read. Supports [variables](#variables), like `${workspaceFolder}`, <code>&dollar;{workspaceFolder:<em>name</em>}</code>, <code>&dollar;{pickFile:<em>name</em>}</code> and <code>&dollar;{remember:<em>key</em>}</code>
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
 
-Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
+Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
 ```json
 {
@@ -236,7 +236,7 @@ The supported arguments:
 * `default` : (Optional) If the key is not found and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
 
-Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
+Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
 ### Key-Value files
 
@@ -301,7 +301,7 @@ The supported arguments:
 
 The JSON file can be an array and you can address the elements with: `content[3]`
 
-Can be used as [variable](#variables) <code>${fileContent:<em>name</em>}</code>
+Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
 ### Example
 
@@ -501,7 +501,7 @@ If you have an array or object as configuration variable content (`settings.json
 The supported arguments:
 
 * `configVariable` : specifies the settings variable to read. Supports [variables](#variables).
-* `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>${pickStringRemember:<em>name</em>}</code>
+* `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
 
@@ -511,7 +511,7 @@ If the `configVariable` is an object you can address a property with: `content.i
 
 Any expression is allowed that does not have a function call. All arithmetic operators, comparison operators, ...
 
-Can be used as [variable](#variables) <code>${configExpression:<em>name</em>}</code>
+Can be used as [variable](#variables) <code>&dollar;{configExpression:<em>name</em>}</code>
 
 ### Example
 
@@ -694,7 +694,7 @@ The `args` property of this command is an object with the properties:
 * `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.
 * `key` : (Optional) the name of the key to retreive from the remember store. (default: `"empty"`)
 
-If you need to construct a new string with the value you can use the [variable](#variables): <code>${remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.
+If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.
 
 The default content of the remember store:
 
@@ -763,9 +763,9 @@ The command has the following configuration attributes:
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
   The object has the following attributes:
   * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_ and _value_ for the option. (default: `^(.*)$` )
-  * `label`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
-  * `value`: (Optional) A string containing capture group references <code>$<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
-  * `json`: (Optional) A string containing a capture group reference <code>$<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
+  * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
+  * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
+  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
 &nbsp;&nbsp;&nbsp;&nbsp;`["pick directory", "${pickFile:someDir}"]`
@@ -1162,7 +1162,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 
 * `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
 * `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
-* <code>${workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
+* <code>&dollar;{workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
 * `${file}` : the current opened file (the file system path)
 * `${relativeFile}` : the current opened file relative to workspaceFolder
 * `${fileBasename}` : the current opened file's basename
@@ -1170,15 +1170,15 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
-* <code>${pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
-* <code>${promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
-* <code>${remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable, _`key`_ matches 
+* <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
+* <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
+* <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable, _`key`_ matches 
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
-* <code>${pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
-* <code>${fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
-* <code>${configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>${pickStringRemember:<em>name</em>}</code>)
-* <code>${command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#command-variable)
+* <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
+* <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
+* <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
+* <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#command-variable)
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1228,7 +1228,7 @@ An example:
 ${workspaceFolder:server}
 ```
 
-The variable <code>${workspaceFolder:<em>name</em>}</code> is only invalid when there is no folder open.
+The variable <code>&dollar;{workspaceFolder:<em>name</em>}</code> is only invalid when there is no folder open.
 
 In most cases the _name_ is the basename of the workspace folder path (last directory name).
 
@@ -1256,7 +1256,7 @@ For the [transform](#transform) command you can define the properties `separator
 
 And you can define/overrule the properties by embedding them in the variable:
 
-<code>${selectedText <em>separator</em> <em>properties</em> <em>separator</em>}</code>
+<code>&dollar;{selectedText <em>separator</em> <em>properties</em> <em>separator</em>}</code>
 
 All _`separator`_'s used in a variable need to be the same.
 
@@ -1292,7 +1292,7 @@ You can use multiple `${selectedText}` variables that have different properties:
 
 ### pickStringRemember Variable
 
-If you want to add an entry you pick from a list use the variable: <code>${pickStringRemember:<em>name</em>}</code>
+If you want to add an entry you pick from a list use the variable: <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 
 _`name`_ is the property name of the `pickStringRemember` property of the `args` object of the command.
 
@@ -1334,7 +1334,7 @@ An example shows faster how it is to be used compared to a lot of text.
 ### promptStringRemember Variable
 
 The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
-If you want to add an entry you type on the keyboard use the variable: <code>${promptStringRemember:<em>name</em>}</code>
+If you want to add an entry you type on the keyboard use the variable: <code>&dollar;{promptStringRemember:<em>name</em>}</code>
 
 _`name`_ is the property name of the `promptStringRemember` property of the `args` object of the command.
 
@@ -1345,7 +1345,7 @@ See the command [`extension.commandvariable.promptStringRemember`](#promptstring
 ### pickFile Variable
 
 The `pickFile` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
-If you want a file path use the variable: <code>${pickFile:<em>name</em>}</code>
+If you want a file path use the variable: <code>&dollar;{pickFile:<em>name</em>}</code>
 
 _`name`_ is the property name of the `pickFile` property of the `args` object of the command.
 
@@ -1389,7 +1389,7 @@ An example: you have a number of key-value files and you want to select which en
 
 ### command Variable
 
-If you want to transform result of a command you use the <code>${command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
+If you want to transform result of a command you use the <code>&dollar;{command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
 
 `name` can be a commandID or a named argument object property (like `pickStringRemember`)
 
@@ -1424,7 +1424,7 @@ If the command does not use arguments you place the commandID directly in the va
 
 ### Named Arguments
 
-If the command uses arguments you have to put these in the arguments of the parent command in the property `command`. (Just like with the [<code>${pickStringRemember:<em>name</em>}</code> variable](#pickstringremember-variable))
+If the command uses arguments you have to put these in the arguments of the parent command in the property `command`. (Just like with the [<code>&dollar;{pickStringRemember:<em>name</em>}</code> variable](#pickstringremember-variable))
 
 The named arguments have the following properties:
 

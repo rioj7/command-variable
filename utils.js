@@ -11,6 +11,7 @@ function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8
 }
 
 function getProperty(obj, prop, deflt) { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; }
+function getDefaultProperty(obj, deflt) { return getProperty(obj, 'default', deflt); }
 function errorMessage(msg, noObject) { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";}
 function fileNotInFolderError(noObject) { return errorMessage('File not in Multi-root Workspace', noObject); }
 function isString(obj) { return typeof obj === 'string';}
@@ -20,5 +21,5 @@ function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + 
 function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
 
 module.exports = {
-  getProperty, errorMessage, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, utf8_to_str
+  getProperty, getDefaultProperty, errorMessage, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, utf8_to_str
 }

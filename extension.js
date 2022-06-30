@@ -77,6 +77,9 @@ function activate(context) {
     if (!command) { return 'Unknown'; }
     return vscode.commands.executeCommand(command, getProperty(args, 'args'));
   }
+  async function remember(args) { // make it async so it can be used with asyncVariable
+    return common.rememberCommand(args);
+  }
   var asyncVariable = async (text, args, func) => {
     if (text === undefined) { return undefined; }  // escaped a UI element
     let asyncArgs = [];
@@ -84,6 +87,7 @@ function activate(context) {
     text = text.replace(varRE, (m, p1) => {
       let deflt = undefined;
       if (func.name === 'command') { deflt = { command: p1 }; }
+      if (func.name === 'remember') { deflt = { key: p1 }; }
       let nameArgs = getProperty(getProperty(args, func.name, {}), p1, deflt);
       if (!nameArgs) { return 'Unknown'; }
       asyncArgs.push(nameArgs);
@@ -123,8 +127,10 @@ function activate(context) {
       result = await asyncVariable(result, args, fileContent);
       result = await asyncVariable(result, args, configExpression);
       result = await asyncVariable(result, args, command);
+      result = await asyncVariable(result, args, remember);
+      // TODO Deprecated 2021-10
       if (result !== undefined) {
-        result = result.replace(/\$\{remember(?:Pick)?:(.+?)\}/g, (m, p1) => {
+        result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
           return getRememberKey(p1);
         });
       }

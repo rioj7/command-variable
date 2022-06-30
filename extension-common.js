@@ -26,10 +26,32 @@ function storeStringRemember(args, result) {
     }
     rememberStore[argkey] = result;
   }
-  return result !== undefined ? result : utils.getProperty(args, 'default', 'Escaped');
+  return result !== undefined ? result : utils.getDefaultProperty(args);
+}
+/** @param {object} args has 'key' and ['default'] property @param {any} result undefined, kv-object, single value */
+function storeStringRemember2(args, result) {
+  if (result !== undefined) {
+    let argkey = utils.getProperty(args, 'key', '__unknown');
+    if (utils.isObject(result)) {
+      for (const vkey in result) {
+        if (result.hasOwnProperty(vkey)) {
+          rememberStore[vkey] = result[vkey];
+        }
+      }
+      return getRememberKey(argkey);
+    }
+    rememberStore[argkey] = result;
+  }
+  return result !== undefined ? result : utils.getDefaultProperty(args);
 }
 
 function getRememberKey(key) { return utils.getProperty(rememberStore, key, rememberStore['__not_yet']); }
+
+function rememberCommand(args) {
+  args = utils.dblQuest(args, {});
+  args.key = utils.getProperty(args, 'key', 'empty');
+  return storeStringRemember2(args, utils.getProperty(args, 'store', {}) );
+}
 
 function getNamedWorkspaceFolder(name, workspaceFolder, editor) {
   const folders = utils.dblQuest(vscode.workspace.workspaceFolders, []);
@@ -227,11 +249,6 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(checkIfArgsIsLaunchConfig(args)); })
   );
-  function rememberCommand(args) {
-    args = utils.dblQuest(args, {});
-    args.key = utils.getProperty(args, 'key', 'empty');
-    return storeStringRemember(args, { value: utils.getProperty(args, 'store', {}) });
-  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(checkIfArgsIsLaunchConfig(args)) )
   );
@@ -290,6 +307,8 @@ module.exports = {
   activate,
   deactivate,
   storeStringRemember,
+  storeStringRemember2,
+  rememberCommand,
   getRememberKey,
   getNamedWorkspaceFolder,
   activeTextEditorVariable,

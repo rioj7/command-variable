@@ -1172,9 +1172,12 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
 * <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
 * <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
-* <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable, _`key`_ matches 
+* <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable,  
+  _`key`_ is first tested as a named argument object property (like `pickStringRemember`), arguments are part of the `remember` property of the (parent) command.  
+  If not found _`key`_ is a key in the remeber store. _`key`_ matches:
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
+    * or a key used in storing multiple values in the remember command.
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)

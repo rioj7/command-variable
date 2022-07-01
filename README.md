@@ -79,13 +79,13 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.config.expression` : Apply a JavaScript expression to the content of a configuration variable in `settings.json`. Use it to extract an array element or property from an object, see [example](#config-expression).
 * `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
-* `extension.commandvariable.workspace.folderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
-* `extension.commandvariable.workspace.workspaceFolderPosix` : **deprecated** - identical to `extension.commandvariable.workspace.folderPosix`
 * `extension.commandvariable.workspace.folder1Up` : The directory path 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
 * `extension.commandvariable.workspace.folder2Up` : The directory path 2 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folder3Up` : The directory path 3 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folder4Up` : The directory path 4 Up of the workspace root directory.
 * `extension.commandvariable.workspace.folder5Up` : The directory path 5 Up of the workspace root directory.
+* `extension.commandvariable.workspace.workspaceFolderPosix` : **deprecated** - identical to `extension.commandvariable.workspace.folderPosix`
+* `extension.commandvariable.workspace.folderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
 * `extension.commandvariable.workspace.folder1UpPosix` : The same result as `extension.commandvariable.workspace.folder1Up` but in Posix form.
 * `extension.commandvariable.workspace.folder2UpPosix` : The same result as `extension.commandvariable.workspace.folder2Up` but in Posix form.
 * `extension.commandvariable.workspace.folder3UpPosix` : The same result as `extension.commandvariable.workspace.folder3Up` but in Posix form.

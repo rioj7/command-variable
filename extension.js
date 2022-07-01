@@ -131,6 +131,7 @@ function activate(context) {
       // TODO Deprecated 2021-10
       if (result !== undefined) {
         result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
+          common.showDeprecationMessage(common.gRememberPickVariable);
           return getRememberKey(p1);
         });
       }

@@ -4,6 +4,7 @@
 ### Added
 - `pickStringRemember` remember transformed value or not
 - `${remember}` remember variable can have a named argument, so you can also store values
+- deprecation messages for `rememberPick` (variable and command) (once per session)
 ### Modified
 - `README`: prevent KaTex Markdown to recognize a math expression
 

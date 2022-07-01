@@ -79,23 +79,25 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.config.expression` : Apply a JavaScript expression to the content of a configuration variable in `settings.json`. Use it to extract an array element or property from an object, see [example](#config-expression).
 * `extension.commandvariable.file.contentInEditor` : The same as `extension.commandvariable.file.content` to be used for keybindings. Result will be inserted in the current editor.
 * `extension.commandvariable.file.pickFile` : Show a Quick Pick selection box with file paths that match an **include** and an **exclude** glob pattern. Use "inputs", see [example](#pick-file).
-* `extension.commandvariable.workspace.folder1Up` : The directory path 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
-* `extension.commandvariable.workspace.folder2Up` : The directory path 2 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folder3Up` : The directory path 3 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folder4Up` : The directory path 4 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folder5Up` : The directory path 5 Up of the workspace root directory.
+* `extension.commandvariable.workspace.folder` : The path of the workspace root directory of the current file. `${workspaceFolder}` does not give this path in Multi Root workspaces. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
+* `extension.commandvariable.workspace.folder1Up` : The directory path 1 Up of the workspace root directory of the current file. The parent of the workspace root folder.
+* `extension.commandvariable.workspace.folder2Up` : The directory path 2 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folder3Up` : The directory path 3 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folder4Up` : The directory path 4 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folder5Up` : The directory path 5 Up of the workspace root directory of the current file.
 * `extension.commandvariable.workspace.workspaceFolderPosix` : **deprecated** - identical to `extension.commandvariable.workspace.folderPosix`
-* `extension.commandvariable.workspace.folderPosix` : The same result as `${workspaceFolder}` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
+* `extension.commandvariable.workspace.folderPosix` : The same result as `extension.commandvariable.workspace.folder` but in Posix form. You can target a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
 * `extension.commandvariable.workspace.folder1UpPosix` : The same result as `extension.commandvariable.workspace.folder1Up` but in Posix form.
 * `extension.commandvariable.workspace.folder2UpPosix` : The same result as `extension.commandvariable.workspace.folder2Up` but in Posix form.
 * `extension.commandvariable.workspace.folder3UpPosix` : The same result as `extension.commandvariable.workspace.folder3Up` but in Posix form.
 * `extension.commandvariable.workspace.folder4UpPosix` : The same result as `extension.commandvariable.workspace.folder4Up` but in Posix form.
 * `extension.commandvariable.workspace.folder5UpPosix` : The same result as `extension.commandvariable.workspace.folder5Up` but in Posix form.
-* `extension.commandvariable.workspace.folderBasename1Up` : (**Web**) The directory name 1 Up of the workspace root directory. The parent of the workspace folder that is opened with `File > Open Folder...`. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
-* `extension.commandvariable.workspace.folderBasename2Up` : (**Web**) The directory name 2 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename3Up` : (**Web**) The directory name 3 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename4Up` : (**Web**) The directory name 4 Up of the workspace root directory.
-* `extension.commandvariable.workspace.folderBasename5Up` : (**Web**) The directory name 5 Up of the workspace root directory.
+* `extension.commandvariable.workspace.folderBasename` : (**Web**) The directory name of the workspace root directory of the current file. You can get info for a particular workspace by [supplying a `name` in the arguments](#workspace-name-in-argument).
+* `extension.commandvariable.workspace.folderBasename1Up` : (**Web**) The directory name 1 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folderBasename2Up` : (**Web**) The directory name 2 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folderBasename3Up` : (**Web**) The directory name 3 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folderBasename4Up` : (**Web**) The directory name 4 Up of the workspace root directory of the current file.
+* `extension.commandvariable.workspace.folderBasename5Up` : (**Web**) The directory name 5 Up of the workspace root directory of the current file.
 * `extension.commandvariable.selectedText` : (**Web**) The selected text in the active editor, empty string if nothing selected. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.selectionStartLineNumber` : (**Web**) Line number of the selection start
 * `extension.commandvariable.selectionStartColumnNumber` : (**Web**) Column number of the selection start
@@ -1472,9 +1474,11 @@ The named arguments have the following properties:
 
 The commands
 
+* `extension.commandvariable.workspace.folder`
 * `extension.commandvariable.workspace.folderPosix`
 * <code>extension.commandvariable.workspace.folder<em>N</em>Up</code>
 * <code>extension.commandvariable.workspace.folder<em>N</em>UpPosix</code>
+* <code>extension.commandvariable.workspace.folderBasename</code>
 * <code>extension.commandvariable.workspace.folderBasename<em>N</em>Up</code>
 
 allow to get the information from a different workspace by specifying the name or last parts of the file path of the workspace directory. This can also be done when there is no editor active.

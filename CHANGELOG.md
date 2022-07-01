@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.38.0] 2022-07-01
+### Added
+- `extension.commandvariable.workspace.folderBasename`: basename of workspace root of current file
+- `extension.commandvariable.workspace.folder`: workspace root of current file
+
 ## [1.37.0] 2022-07-01
 ### Added
 - `pickStringRemember` remember transformed value or not

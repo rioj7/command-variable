@@ -19,7 +19,8 @@ function isArray(obj) { return Array.isArray(obj);}
 function isObject(obj) { return (typeof obj === 'object') && !isArray(obj);}
 function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + startAt); }  // https://stackoverflow.com/a/10050831/9938317
 function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
+function nUp(i) { return i===0 ? '' : i.toString()+'Up'; }
 
 module.exports = {
-  getProperty, getDefaultProperty, errorMessage, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, utf8_to_str
+  getProperty, getDefaultProperty, errorMessage, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str
 }

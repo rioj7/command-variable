@@ -231,16 +231,11 @@ function activate(context) {
       return basenameNUp(path.substring(0, lastSep), n);
     });
   };
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.file.fileDirBasename', () => {
-      return fileDirBasenameNUp(0);
-    })
-  );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirBasename${i}Up`,
+  context.subscriptions.push( ...range(6).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.file.fileDirBasename${utils.nUp(i)}`,
         () => fileDirBasenameNUp(i) )) );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folderBasename${i}Up`,
+  context.subscriptions.push( ...range(6).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folderBasename${utils.nUp(i)}`,
         (args) => workspaceFolderBasenameNUp(i, args) )) );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.selectedText', args => {

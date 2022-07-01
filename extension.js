@@ -489,14 +489,11 @@ function activate(context) {
     // TODO Deprecated 2022-03
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', args => { return workspaceFolderNUp(0, true, args); })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.workspace.folderPosix', args => { return workspaceFolderNUp(0, true, args); })
-  );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${i}Up`,
+  context.subscriptions.push( ...range(6).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${utils.nUp(i)}`,
         args => workspaceFolderNUp(i, false, args) )) );
-  context.subscriptions.push( ...range(5, 1).map(
-    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${i}UpPosix`,
+  context.subscriptions.push( ...range(6).map(
+    i => vscode.commands.registerCommand(`extension.commandvariable.workspace.folder${utils.nUp(i)}Posix`,
         args => workspaceFolderNUp(i, true, args) )) );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.dirSep', () => { return process.platform === 'win32' ? '\\' : '/'; })

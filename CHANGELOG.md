@@ -1,7 +1,11 @@
 # Change Log
 
-## [Unreleased]
+## [1.37.0] 2022-07-01
 ### Added
+- `pickStringRemember` remember transformed value or not
+- `${remember}` remember variable can have a named argument, so you can also store values
+### Modified
+- `README`: prevent KaTex Markdown to recognize a math expression
 
 ## [1.36.1] 2022-06-15
 ### Fixed

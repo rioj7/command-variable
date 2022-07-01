@@ -751,14 +751,16 @@ The configuration attributes need to be passed to the command in the `args` attr
 The command has the following configuration attributes:
 
 * `description` : Shown some context for the input.
-* `default` : Value returned if the user does not make a choice.
+* `default` : Value returned if the user does not make a choice.  
+  (**Not in Web**) It can contain [variables](#variables).
 * `options` : An array that can contain the following elements:
   * `string` : The label in the pickList and the value returned are this string.
   * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
-  The value can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example). The `default` argument does not work in this case.
+  The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
+  If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
 * `key` : (optional) Used to store and retrieve a particular pick.  
-  If you only have one pick to remember or every pick can use the same **`key`** name.  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
+* `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
   The object has the following attributes:

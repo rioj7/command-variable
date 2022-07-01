@@ -125,9 +125,23 @@ async function pickStringRemember(args, processPick) {
     if (qpItem) { qpItems.push(qpItem); }
   }
   let result = await vscode.window.showQuickPick(qpItems, { placeHolder: utils.getProperty(args, 'description', 'Choose:') });
-  result = storeStringRemember(args, result);
+  if (result === undefined) {
+    result = utils.getDefaultProperty(args);
+    if (result && processPick) {
+      result = await processPick(result, args);
+    }
+    return result;
+  }
+  let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
+  result = result.value;
+  if (utils.isObject(result) || !rememberTransformed) {
+    result = storeStringRemember2(args, result);
+  }
   if (result && processPick) {
     result = await processPick(result, args);
+  }
+  if (rememberTransformed) {
+    storeStringRemember2(args, result);
   }
   return result;
 }

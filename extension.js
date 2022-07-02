@@ -509,7 +509,7 @@ function activate(context) {
       let replace = getProperty(args, 'replace', "");
       let flags   = getProperty(args, 'flags', "");
       text = await variableSubstitution(text, args);
-      if (find) {
+      if (text && find) {
         text = text.replace(new RegExp(find, flags), replace);
       }
       return text;

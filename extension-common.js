@@ -2,19 +2,18 @@ const vscode = require('vscode');
 const UUID = require('./uuid');
 const utils = require('./utils');
 
-let gWebExtension = true;
-
 let deprecationStore = {};
-let gRememberPickVariable = 'rememberPickVariable';
-let gRememberPickCommand = 'rememberPickCommand';
+let gDeprecationRememberPickVariable = 'rememberPickVariable';
+let gDeprecationRememberPickCommand = 'rememberPickCommand';
+
 function showDeprecationMessage(key) {
   let showMessage = utils.getProperty(deprecationStore, key, true);
   if (!showMessage) { return; } // already shown this session
   let msg = undefined;
-  if (key === gRememberPickVariable ) {
+  if (key === gDeprecationRememberPickVariable ) {
     msg = "'${rememberPick}' variable is deprecated, use '${remember}' variable";
   }
-  if (key === gRememberPickCommand) {
+  if (key === gDeprecationRememberPickCommand) {
     msg = "'extension.commandvariable.rememberPick' command is deprecated, use command 'extension.commandvariable.remember'";
   }
   if (msg) {
@@ -22,6 +21,8 @@ function showDeprecationMessage(key) {
   }
   deprecationStore[key] = false;
 }
+
+let gWebExtension = true;
 
 function setAsDesktopExtension() {
   gWebExtension = false;
@@ -283,7 +284,7 @@ function activate(context) {
   context.subscriptions.push(
     // TODO Deprecated 2021-10
     vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => {
-      showDeprecationMessage(gRememberPickCommand);
+      showDeprecationMessage(gDeprecationRememberPickCommand);
       return rememberCommand(checkIfArgsIsLaunchConfig(args)) } )
   );
   let dateTimeFormat = (args) => {
@@ -337,8 +338,8 @@ module.exports = {
   activate,
   deactivate,
   showDeprecationMessage,
-  gRememberPickVariable,
-  gRememberPickCommand,
+  gDeprecationRememberPickVariable,
+  gDeprecationRememberPickCommand,
   storeStringRemember,
   storeStringRemember2,
   rememberCommand,

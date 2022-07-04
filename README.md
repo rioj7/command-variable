@@ -760,7 +760,7 @@ The command has the following configuration attributes:
   * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
-* `key` : (optional) Used to store and retrieve a particular pick.  
+* `key` : (Optional) Used to store and retrieve a particular pick.  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
@@ -1076,8 +1076,8 @@ The command `extension.commandvariable.inTerminal` types the string result of a 
 The command `extension.commandvariable.inTerminal` has an argument that is an object with the following properties:
 
 * `command` : the command to execute
-* `args` : (optional) the argument (string, array or object) for the `command`
-* `addCR` : (optional) boolean: end the text from the `command` with a Carriage Return (`\u000D`) (default: `false`)
+* `args` : (Optional) the argument (string, array or object) for the `command`
+* `addCR` : (Optional) boolean: end the text from the `command` with a Carriage Return (`\u000D`) (default: `false`)
 
 If you want to use the value of a standard variable in the terminal you have to use the command `extension.commandvariable.transform` in the `extension.commandvariable.inTerminal` arguments. An example:
 

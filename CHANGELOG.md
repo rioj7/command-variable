@@ -1,11 +1,9 @@
 # Change Log
 
-## [1.XX.0] 2022-XX-XX
+## [1.40.0] 2022-07-06
 ### Added
 - `transform` stores the result for a given key
-
-## [1.39.0] 2022-07-06
-### Added
+- `{transform:name}` transform command as variable
 - `checkEscapedUI` for compound task/launch
 
 ## [1.38.0] 2022-07-01

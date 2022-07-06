@@ -129,12 +129,13 @@ function activate(context) {
         return wsf.uri.fsPath;
       });
 
+      result = await asyncVariable(result, args, transform);
+      result = await asyncVariable(result, args, command);
       result = await asyncVariable(result, args, common.pickStringRemember);
       result = await asyncVariable(result, args, common.promptStringRemember);
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);
       result = await asyncVariable(result, args, configExpression);
-      result = await asyncVariable(result, args, command);
       result = await asyncVariable(result, args, remember);
       // TODO Deprecated 2021-10
       if (result !== undefined) {
@@ -513,21 +514,20 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.envListSep', () => { return process.platform === 'win32' ? ';' : ':'; })
   );
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.transform', async (args) => {
-      if (!args) { args = {}; }
-      let text    = getProperty(args, 'text', "");
-      let find    = getProperty(args, 'find');
-      let replace = getProperty(args, 'replace', "");
-      let flags   = getProperty(args, 'flags', "");
-      let key     = getProperty(args, 'key', 'transform');
-      text = await variableSubstitution(text, args);
-      if (text && find) {
-        text = text.replace(new RegExp(find, flags), replace);
-      }
-      return storeStringRemember2({ key }, text);
-    })
-  );
+  context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.transform', transform));
+  async function transform(args) {
+    args = dblQuest(args, {});
+    let text    = getProperty(args, 'text', "");
+    let find    = getProperty(args, 'find');
+    let replace = getProperty(args, 'replace', "");
+    let flags   = getProperty(args, 'flags', "");
+    let key     = getProperty(args, 'key', 'transform');
+    text = await variableSubstitution(text, args);
+    if (text && find) {
+      text = text.replace(new RegExp(find, flags), replace);
+    }
+    return storeStringRemember2({ key }, text);
+  }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.inTerminal', async args => {
       if (!args) { args = {}; }

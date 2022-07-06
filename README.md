@@ -32,6 +32,7 @@ Not all commands are supported yet in the web extension version. Supported comma
   * [`${promptStringRemember}`](#promptstringremember-variable)
   * [`${pickFile}`](#pickfile-variable)
   * [`${command}`](#command-variable)
+  * [`${transform}`](#transform-variable)
 * [`checkEscapedUI`](#checkescapedui)
 * [Workspace name in `argument`](#workspace-name-in-argument)
 * [UUID](#uuid)
@@ -1203,6 +1204,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#command-variable)
+* <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a named argument object property (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#transform-variable). You can transform strings that are the result of a transform.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1479,6 +1481,64 @@ The named arguments have the following properties:
           "folderPosix": {
             "command": "extension.commandvariable.workspace.folderPosix",
             "args": { "name": "server" }
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+### transform Variable
+
+Say you have a command/script that wants a series of numbers and they can be in a single argument. The numbers have to be clean, no other text in between. You also want to be able to select some text in an editor and use that to filter out the numbers.
+
+```json
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo top 2 workspace folder names",
+      "type": "shell",
+      "command": "myScript",
+      "args": [ "${input:numberSequence}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "numberSequence",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which number list?",
+        "options": [
+          "100 200 300",
+          "51 99 2",
+          ["Use a raw number list", "${transform:removeLeadingTrailingSpaces}"]
+        ],
+        "rememberTransformed": true,
+        "key": "numSeq",
+        "transform": {
+          "removeLeadingTrailingSpaces": {
+            "text": "${transform:nonNumbersToSpace}",
+            "find": "^ +| +$"
+            "transform": {
+              "nonNumbersToSpace": {
+                "text": "${pickStringRemember:getRawNumberList}",
+                "find": "[^0-9]+",
+                "replace": " ",
+                "pickStringRemember": {
+                  "getRawNumberList": {
+                    "description": "Which raw number list?",
+                    "options": [
+                      "foo 123 bar bar 456      ",
+                      "Alice: 10,  Bob: 3",
+                      ["Selected text", "${selectedText}"]
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }

@@ -67,8 +67,26 @@ function storeStringRemember2(args, result) {
 
 function getRememberKey(key) { return utils.getProperty(rememberStore, key, rememberStore['__not_yet']); }
 
+let gRememberKeyEscapedUI = '__escapedUI';
+let gRememberPropertyCheckEscapedUI = 'checkEscapedUI';
+
+/** @returns value of escapedUI state if check property in args else false */
+function checkEscapedUI(args) {
+  args = utils.dblQuest(args, {});
+  if (utils.getProperty(args, gRememberPropertyCheckEscapedUI)) {
+    return utils.getProperty(rememberStore, gRememberKeyEscapedUI);
+  }
+  return false;
+}
+/** @returns uiResult */
+function storeEscapedUI(uiResult) {
+  rememberStore[gRememberKeyEscapedUI] = (uiResult === undefined);
+  return uiResult;
+}
+
 function rememberCommand(args) {
   args = utils.dblQuest(args, {});
+  if (checkEscapedUI(args)) { return undefined; }
   args.key = utils.getProperty(args, 'key', 'empty');
   return storeStringRemember2(args, utils.getProperty(args, 'store', {}) );
 }
@@ -133,6 +151,9 @@ function toString(obj) {
   return obj.toString();
 }
 async function pickStringRemember(args, processPick) {
+  args = utils.dblQuest(args, {});
+  args.key = utils.getProperty(args, 'key', 'pickString');
+  if (checkEscapedUI(args)) { return undefined; }
   let qpItems = [];
   for (const option of utils.getProperty(args, 'options', ['item1', 'item2'])) {
     let qpItem = undefined;
@@ -150,7 +171,7 @@ async function pickStringRemember(args, processPick) {
     if (result && processPick) {
       result = await processPick(result, args);
     }
-    return result;
+    return storeEscapedUI(result);
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
   result = result.value;
@@ -163,11 +184,15 @@ async function pickStringRemember(args, processPick) {
   if (rememberTransformed) {
     storeStringRemember2(args, result);
   }
-  return result;
+  return storeEscapedUI(result);
 }
 async function promptStringRemember(args) {
+  args = utils.dblQuest(args, {});
+  if (checkEscapedUI(args)) { return undefined; }
   let result = await vscode.window.showInputBox({ prompt: utils.getProperty(args, 'description', 'Enter:'), password: utils.getProperty(args, 'password', false) });
-  return storeStringRemember(args, result);
+  args.key = utils.getProperty(args, 'key', 'promptString');
+  result = storeStringRemember2(args, result);
+  return storeEscapedUI(result);
 }
 function getExpressionFunctionFilterSelection(expr) {
   try {
@@ -344,6 +369,9 @@ module.exports = {
   storeStringRemember2,
   rememberCommand,
   getRememberKey,
+  checkEscapedUI,
+  storeEscapedUI,
+  gRememberPropertyCheckEscapedUI,
   getNamedWorkspaceFolder,
   activeTextEditorVariable,
   activeWorkspaceFolder,

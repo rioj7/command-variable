@@ -32,6 +32,7 @@ Not all commands are supported yet in the web extension version. Supported comma
   * [`${promptStringRemember}`](#promptstringremember-variable)
   * [`${pickFile}`](#pickfile-variable)
   * [`${command}`](#command-variable)
+* [`checkEscapedUI`](#checkescapedui)
 * [Workspace name in `argument`](#workspace-name-in-argument)
 * [UUID](#uuid)
 * [dateTime](#datetime)
@@ -612,7 +613,7 @@ If you want to pick a file and use it in your `launch.json` or `tasks.json` you 
 
 This command uses [`vscode.workspace.findFiles`](https://code.visualstudio.com/api/references/vscode-api#workspace.findFiles) to get a list of files to show in a Quick Pick selection box.
 
-You can set the following arguments to this command:
+You can set the following properties to this command:
 
 * `include` : a [Glob Pattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) that defines the files to search for (default: `"**/*"`)
 * `exclude` : a Glob Pattern that defines files and folders to exclude. (default: `"undefined"`)
@@ -652,6 +653,9 @@ You can set the following arguments to this command:
     }
     ```
 * `showDirs` : [ `true` | `false` ] If `true`: Show the directories that contain files that are found. The result of the pick is a directory path. (default: `false`)
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+
+Example:
 
 ```json
 {
@@ -695,6 +699,7 @@ The `args` property of this command is an object with the properties:
 
 * `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.
 * `key` : (Optional) the name of the key to retreive from the remember store. (default: `"empty"`)
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.
 
@@ -760,7 +765,7 @@ The command has the following configuration attributes:
   * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
-* `key` : (Optional) Used to store and retrieve a particular pick.  
+* `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
@@ -770,9 +775,13 @@ The command has the following configuration attributes:
   * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
   * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
 &nbsp;&nbsp;&nbsp;&nbsp;`["pick directory", "${pickFile:someDir}"]`
+
+If you Escape the UI and a `default` property is given the UI is not marked as Escaped.  
+(**Not in Web**) If the `default` property contains variables that have a UI they can be Escaped and that will be remembered.
 
 ### Examples
 
@@ -972,7 +981,7 @@ If you have a `src` directory with a lot of subdirs and you want to run `cpplint
           ["All", "all"],
           ["Pick directory", "${pickFile:srcSubDir}"]
         ],
-        "default": null,
+        "rememberTransformed": true,
         "pickFile": {
           "srcSubDir": {
             "description": "Which directory?",
@@ -989,7 +998,11 @@ If you have a `src` directory with a lot of subdirs and you want to run `cpplint
 
 ## promptStringRemember
 
-`extension.commandvariable.promptStringRemember` has the same configuration attributes as the [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables). `extension.commandvariable.promptStringRemember` also has the **`key`** attribute. It is used to store and retrieve a particular entered string.
+`extension.commandvariable.promptStringRemember` has the same configuration attributes as the [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables).
+`extension.commandvariable.promptStringRemember` also has the configuration attributes:
+* `key` : (Optional) It is used to store and retrieve a particular entered string. (default: `promptString` )
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one prompt to remember or every prompt can use the same **`key`** name.
 
@@ -1182,6 +1195,8 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
     * or a key used in storing multiple values in the remember command.
+
+  You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a named argument object like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
@@ -1464,6 +1479,89 @@ The named arguments have the following properties:
             "args": { "name": "server" }
           }
         }
+      }
+    }
+  ]
+}
+```
+
+## checkEscapedUI
+
+If you have a task/launch that uses variables that have a UI and you Escape the UI the task/launch is not executed.
+
+If you have a compound [task](#https://code.visualstudio.com/docs/editor/tasks#_compound-tasks)/[launch](#https://code.visualstudio.com/docs/editor/debugging#_compound-launch-configurations) you want to also terminate all following tasks/launches. All UI elements in this extension (`pickFile`, `pickString` and `promptString`), as command or variable, record if they are Escaped. They can test if there has been an Escaped UI and behave as if Escaped themself. Also the `remember` [command](#remember) and [variable](#variables) can test for an Escaped UI and behave as being an Escaped UI.
+
+You don't add the `checkEscapedUI` property to the first UI in the compound task/launch because it would check if the previous run was Escaped.
+
+### Example
+
+This example uses simple `echo` tasks to keep it short.
+
+```
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "Task 1",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "Task 1 using envType: ${input:envType}" ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Task 2",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "Task 2 with envMessage: ${input:envMessage}" ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Task 3",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "Task 3 with message: ${input:transformEnvMessage}" ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Task Sequence",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Task 1", "Task 2", "Task 3"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "envType",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which env do you want to debug?",
+        "key": "envType",
+        "options": [
+          ["development", "5000"],
+          ["staging", "5100"],
+          ["live", "5200"]
+        ]
+      }
+    },
+    {
+      "id": "envMessage",
+      "type": "command",
+      "command": "extension.commandvariable.promptStringRemember",
+      "args": {
+        "key": "envMessage",
+        "description": "Enter message",
+        "checkEscapedUI": true
+      }
+    },
+    {
+      "id": "transformEnvMessage",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${remember:envMessage__checkEscapedUI}",
+        "find": "(\\d+)",
+        "replace": "Number($1)"
       }
     }
   ]

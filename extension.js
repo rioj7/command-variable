@@ -87,7 +87,14 @@ function activate(context) {
     text = text.replace(varRE, (m, p1) => {
       let deflt = undefined;
       if (func.name === 'command') { deflt = { command: p1 }; }
-      if (func.name === 'remember') { deflt = { key: p1 }; }
+      if (func.name === 'remember') {
+        deflt = { key: p1 };
+        let checkStr = '__'+common.gRememberPropertyCheckEscapedUI;
+        if (p1.indexOf(checkStr) !== -1) {
+          deflt['key'] = p1.replace(checkStr, '');
+          deflt[common.gRememberPropertyCheckEscapedUI] = true;
+        }
+      }
       let nameArgs = getProperty(getProperty(args, func.name, {}), p1, deflt);
       if (!nameArgs) { return 'Unknown'; }
       asyncArgs.push(nameArgs);
@@ -419,8 +426,7 @@ function activate(context) {
     pickList.push(new FolderPickItem().workspace());
     return pickList;
   }
-  async function pickFile(args) {
-    args = args || {};
+  async function _pickFile(args) {
     let globInclude = getProperty(args, 'include', '**/*');
     let globExclude = getProperty(args, 'exclude', 'undefined');
     let maxResults  = getProperty(args, 'maxResults', undefined);
@@ -483,6 +489,11 @@ function activate(context) {
         if (!value) { return undefined; }
         return storeStringRemember({key: keyRemember}, value);
       });
+  }
+  async function pickFile(args) {
+    args = dblQuest(args, {});
+    if (common.checkEscapedUI(args)) { return undefined; }
+    return common.storeEscapedUI(await _pickFile(args));
   }
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));
   context.subscriptions.push(

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.39.0] 2022-07-06
+### Added
+- `checkEscapedUI` for compound task/launch
+
 ## [1.38.0] 2022-07-01
 ### Added
 - `extension.commandvariable.workspace.folderBasename`: basename of workspace root of current file

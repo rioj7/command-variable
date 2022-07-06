@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.XX.0] 2022-XX-XX
+### Added
+- `transform` stores the result for a given key
+
 ## [1.39.0] 2022-07-06
 ### Added
 - `checkEscapedUI` for compound task/launch

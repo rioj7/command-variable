@@ -52,6 +52,7 @@ function activate(context) {
   const range = utils.range;
   const dblQuest = utils.dblQuest;
   const storeStringRemember = common.storeStringRemember;
+  const storeStringRemember2 = common.storeStringRemember2;
   const getRememberKey = common.getRememberKey;
 
   common.setAsDesktopExtension();
@@ -519,11 +520,12 @@ function activate(context) {
       let find    = getProperty(args, 'find');
       let replace = getProperty(args, 'replace', "");
       let flags   = getProperty(args, 'flags', "");
+      let key     = getProperty(args, 'key', 'transform');
       text = await variableSubstitution(text, args);
       if (text && find) {
         text = text.replace(new RegExp(find, flags), replace);
       }
-      return text;
+      return storeStringRemember2({ key }, text);
     })
   );
   context.subscriptions.push(

@@ -644,7 +644,7 @@ You can set the following properties to this command:
     * `*** Ask ***` : open an Input Box where you enter the path of the folder
     * `*** Workspace ***` : show a Pick List of Workspaces
 
-    ```
+    ```json
     "fromFolder": {
       "predefined": [
         "C:\\temp\\log",
@@ -977,11 +977,12 @@ If you have a `src` directory with a lot of subdirs and you want to run `cpplint
       "args": {
         "description": "Which directory to Lint for C++?",
         "options": [
-          ["Use previous directory", "${remember:srcSubDir}"],
+          ["Use previous directory", "${remember:lintPath}"],
           ["All", "all"],
           ["Pick directory", "${pickFile:srcSubDir}"]
         ],
         "rememberTransformed": true,
+        "key": "lintPath",
         "pickFile": {
           "srcSubDir": {
             "description": "Which directory?",
@@ -1059,7 +1060,7 @@ The selections are sorted in the order they appear in the file.
 
 You can change the separator by specifying an argument object for the command with a property `"separator"`:
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -1143,7 +1144,7 @@ The command can be used with the `${input:}` variable and has the following argu
 
 We can use this command to construct custom variables by setting the `text` argument and not defining a `find` argument. The `id` of the `inputs` record is the name of the variable.
 
-```
+```json
 {
   "version": "0.2.0",
   "configurations": [
@@ -1204,7 +1205,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -1268,7 +1269,7 @@ If you only have 1 selection you don't need the properties `separator` and `filt
 
 For the [transform](#transform) command you can define the properties `separator` and `filterSelection` in the `args` property of the command.
 
-```
+```json
       "args": {
         "text": "${selectedText}",
         "separator": "@-@",
@@ -1292,7 +1293,7 @@ Everyting between `=` and the next _`separator`_ is the _`value`_
 
 The above example can be written as
 
-```
+```json
       "args": {
         "text": "${selectedText#separator=@-@#filterSelection=index%2===1#}"
       }
@@ -1306,7 +1307,7 @@ A few examples of `filterSelection` expressions
 
 You can use multiple `${selectedText}` variables that have different properties:
 
-```
+```json
       "args": {
         "text": "${selectedText#filterSelection=index===3#} ${selectedText#filterSelection=index===1#}"
       }
@@ -1324,7 +1325,7 @@ See the command [`extension.commandvariable.pickStringRemember`](#pickstringreme
 
 An example shows faster how it is to be used compared to a lot of text.
 
-```
+```json
 "inputs": [
   {
     "id": "appSelect",
@@ -1377,7 +1378,7 @@ See the command [`extension.commandvariable.pickFile`](#pick-file) for the argum
 
 An example: you have a number of key-value files and you want to select which environment to use 
 
-```
+```json
 {
   "version": "0.2.0",
   "tasks": [
@@ -1419,7 +1420,7 @@ If you want to transform result of a command you use the <code>&dollar;{command:
 
 If the command does not use arguments you place the commandID directly in the variable.
 
-```
+```json
 {
   "version": "0.2.0",
   "tasks": [
@@ -1453,7 +1454,7 @@ The named arguments have the following properties:
 * `command` : the commandID to execute
 * `args` : the arguments for this commandID
 
-```
+```json
 {
   "version": "0.2.0",
   "tasks": [
@@ -1497,7 +1498,7 @@ You don't add the `checkEscapedUI` property to the first UI in the compound task
 
 This example uses simple `echo` tasks to keep it short.
 
-```
+```json
 {
   "version": "0.2.0",
   "tasks": [
@@ -1583,7 +1584,7 @@ allow to get the information from a different workspace by specifying the name o
 
 You supply the name in the arguments of the command. You have to use an `${input}` variable.
 
-```
+```json
 {
   "version": "0.2.0",
   "tasks": [
@@ -1607,7 +1608,7 @@ You supply the name in the arguments of the command. You have to use an `${input
 
 If you have 2 workspaces with the same (folder base)name you can't target the second one by name only. You have to use more parts of the directory path to make the name unique. Use the `/` as path separator on all platforms. The `name` argument is tested to be at the end of the workspace folder path (using `/` as separator). An example of an `args` property is:
 
-```
+```json
 "args": { "name": "/websiteA/server" }
 ```
 
@@ -1630,7 +1631,7 @@ It has the following arguments:
 
 In this example the 3 printed UUIDs are all different
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [

@@ -699,7 +699,7 @@ The command `extension.commandvariable.remember` is used to retreive a value for
 The `args` property of this command is an object with the properties:
 
 * `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.
-* `key` : (Optional) the name of the key to retreive from the remember store. (default: `"empty"`)
+* `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables) (default: `"empty"`)
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.

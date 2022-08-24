@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.41.0] 2022-08-24
+### Added
+- `${workspaceFolderBasename}`
+- `key` of `remember` command can have variables
+
 ## [1.40.0] 2022-07-06
 ### Added
 - `transform` stores the result for a given key

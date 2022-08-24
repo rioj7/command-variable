@@ -579,6 +579,11 @@ function activate(context) {
       return common.pickStringRemember(args, variableSubstitution);
     })
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.remember', async args => {
+      return common.rememberCommand(common.checkIfArgsIsLaunchConfig(args), variableSubstitution);
+    })
+  );
   // ******************************************************************
 };
 

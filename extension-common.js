@@ -84,10 +84,11 @@ function storeEscapedUI(uiResult) {
   return uiResult;
 }
 
-function rememberCommand(args) {
+async function rememberCommand(args, processKey) {
   args = utils.dblQuest(args, {});
   if (checkEscapedUI(args)) { return undefined; }
   args.key = utils.getProperty(args, 'key', 'empty');
+  if (args.key && processKey) { args.key = await processKey(args.key); }
   return storeStringRemember2(args, utils.getProperty(args, 'store', {}) );
 }
 
@@ -299,18 +300,19 @@ function activate(context) {
     context.subscriptions.push(
       vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', args => { return pickStringRemember(checkIfArgsIsLaunchConfig(args)); })
     );
+    context.subscriptions.push(
+      vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(checkIfArgsIsLaunchConfig(args)) )
+    );
   }
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.promptStringRemember', args => { return promptStringRemember(checkIfArgsIsLaunchConfig(args)); })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.remember', args => rememberCommand(checkIfArgsIsLaunchConfig(args)) )
-  );
-  context.subscriptions.push(
     // TODO Deprecated 2021-10
     vscode.commands.registerCommand('extension.commandvariable.rememberPick', args => {
       showDeprecationMessage(gDeprecationRememberPickCommand);
-      return rememberCommand(checkIfArgsIsLaunchConfig(args)) } )
+      return rememberCommand(checkIfArgsIsLaunchConfig(args));
+    })
   );
   let dateTimeFormat = (args) => {
     args = dblQuest(args, {});

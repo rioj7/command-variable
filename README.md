@@ -1133,6 +1133,8 @@ The command can be used with the `${input:}` variable and has the following argu
 * `find` : (Optional) the Regular Expression to search in `text`. Can contain capture groups. If no `find` argument there is no `find-replace` operation.
 * `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
 * `flags` : (Optional) the flags to be used in the Regular Expression, like `gims`, default (`""`)
+    * `g` : replace all occurences (global)
+    * `i` : find case insensitive
 * `key` : (Optional) It is used to [store and retrieve](#remember) the transformed string. (default: `transform` )
 * `separator` : (Optional) the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
 * `filterSelection` : (Optional) a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:

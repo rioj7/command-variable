@@ -128,7 +128,11 @@ function activate(context) {
         if (!wsf) { return 'Unknown'; }
         return wsf.uri.fsPath;
       });
-
+      result = result.replace(/\$\{workspaceFolderBasename\}/g, m => {
+        return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
+          return path.basename(workspaceFolder.uri.fsPath);
+        });
+      });
       result = await asyncVariable(result, args, transform);
       result = await asyncVariable(result, args, command);
       result = await asyncVariable(result, args, common.pickStringRemember);
@@ -153,10 +157,10 @@ function activate(context) {
         return fileFSPath.substring(workspaceFolder.uri.fsPath.length + 1); // remove extra separator;
       });
       result = result.replace(/\$\{relativeFile\}/g, relativeFile);
-      const path = editor.document.uri.path;
-      const lastSep = path.lastIndexOf('/');
+      const editorPath = editor.document.uri.path;
+      const lastSep = editorPath.lastIndexOf('/');
       if (lastSep === -1) { return result; }
-      const fileBasename = path.substring(lastSep+1);
+      const fileBasename = editorPath.substring(lastSep+1);
       result = result.replace(/\$\{fileBasename\}/g, fileBasename);
       const lastDot = fileBasename.lastIndexOf('.');
       const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;

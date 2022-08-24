@@ -1185,13 +1185,14 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
 * `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
 * <code>&dollar;{workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
+* `${workspaceFolderBasename}` : the name of the workspace folder opened in VS Code containing the current file without any slashes
 * `${file}` : the current opened file (the file system path)
 * `${relativeFile}` : the current opened file relative to workspaceFolder
+* `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
 * `${fileBasename}` : the current opened file's basename
 * `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
-* `${relativeFileDirname}` : the current opened file's dirname relative to workspaceFolder
 * <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
 * <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
 * <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable,  

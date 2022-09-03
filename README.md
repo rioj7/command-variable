@@ -701,6 +701,9 @@ The command has the following configuration attributes:
 * `step` : number, if `random` is `false` the number returned is the previous value incremented with `step`, can be negative (default: `1`)
 * `uniqueCount` : number, if `random` is `true` the number returned is unique compared to the previous `uniqueCount` numbers (default: `0`)
 
+You can get the last value of a named number with the `remember` [command](#remember) or [variable](#variables).  
+You must use a special key format: <code>number-<em>name</em></code>
+
 ### Sequence of numbers
 
 The value of `step` determines the first value returned.
@@ -745,19 +748,24 @@ The value of `step` determines the first value returned.
 
 If you want a random number but it must be unique compared to the previous `n` numbers you have to set the attribute `uniqueCount`.
 
+The example is for debugging the Nios ii Embedded Design Suite:
+
 ```json
 {
-  "version": "2.0.0",
-  "tasks": [
+  "version": "0.2.0",
+  "configurations": [
     {
-      "label": "Start server",
-      "type": "shell",
-      "command": "myServer",
-      "args": [
-        "-p",
-        "${input:randomPort}"
-      ],
-      "problemMatcher": []
+      "name": "app",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/app.elf",
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerServerAddress": "localhost:${input:randomPort}",
+      "miDebuggerPath": "/home/me/intelFPGA/20.1/nios2eds/bin/gnu/H-x86_64-pc-linux-gnu/bin/nios2-elf-gdb",
+      "debugServerPath": "/home/me/intelFPGA/20.1/quartus/bin/nios2-gdb-server",
+      "debugServerArgs": "--tcpport ${input:rememberRandomPort} --reset-target --tcptimeout 5",
     }
   ],
   "inputs": [
@@ -766,11 +774,17 @@ If you want a random number but it must be unique compared to the previous `n` n
       "type": "command",
       "command": "extension.commandvariable.number",
       "args": {
-        "name": "sequence",
+        "name": "randomPort",
         "range": [1500, 60000],
         "random": true,
         "uniqueCount": 10
       }
+    },
+    {
+      "id": "rememberRandomPort",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "number-randomPort" }
     }
   ]
 }
@@ -789,7 +803,8 @@ The command `extension.commandvariable.remember` is used to retreive a value for
 The `args` property of this command is an object with the properties:
 
 * `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.
-* `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables) (default: `"empty"`)
+* `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables). (default: `"empty"`)  
+   To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.
@@ -1287,6 +1302,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
 * <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable,  
   _`key`_ is first tested as a named argument object property (like `pickStringRemember`), arguments are part of the `remember` property of the (parent) command.  
+  If not found and _`key`_ has the format <code>number-<em>name</em></code> the _name_ is used to get the last value of a named [number](#number).  
   If not found _`key`_ is a key in the remeber store. _`key`_ matches:
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command

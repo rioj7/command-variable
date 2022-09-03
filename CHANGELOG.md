@@ -1,8 +1,10 @@
 # Change Log
 
-## [1.42.0] 2022-09-03
+## [1.42.1] 2022-09-03
 ### Added
 - `extension.commandvariable.number` : from range of numbers - sequence of numbers with step or random number
+- `remember` command and variable can retrieve last value of named `number`: `key` format is <code>number-<em>name</em></code>
+### Modified
 - README: mark `pickStringRemember`, `promptStringRemember` and `remember` as Web commands
 
 ## [1.41.0] 2022-08-24

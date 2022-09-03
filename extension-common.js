@@ -28,6 +28,8 @@ function setAsDesktopExtension() {
   gWebExtension = false;
 }
 
+let numberStore = {};
+
 let rememberStore = { __not_yet: "I don't remember", empty: "" };
 
 function storeStringRemember(args, result) {
@@ -65,7 +67,14 @@ function storeStringRemember2(args, result) {
   return result !== undefined ? result : utils.getDefaultProperty(args);
 }
 
-function getRememberKey(key) { return utils.getProperty(rememberStore, key, rememberStore['__not_yet']); }
+function getRememberKey(key) {
+  const numberPrefix = 'number-';
+  if (key.startsWith(numberPrefix)) {
+    let numberConfig = utils.getProperty(numberStore, key.slice(numberPrefix.length), [0]);
+    return numberConfig[numberConfig.length-1].toString();
+  }
+  return utils.getProperty(rememberStore, key, rememberStore['__not_yet']);
+}
 
 let gRememberKeyEscapedUI = '__escapedUI';
 let gRememberPropertyCheckEscapedUI = 'checkEscapedUI';
@@ -357,7 +366,6 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.setClipboard', args => vscode.env.clipboard.writeText(args.text).then(v=>v, v=>null) )
   );
-  var numberStore = {};
   function getRandomIntInclusive(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }

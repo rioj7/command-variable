@@ -108,9 +108,9 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.currentLineText` : (**Web**) The text of the line in the active editor where the selection starts or where the cursor is. Supports [multicursor](#multicursor-and-text).
 * `extension.commandvariable.dirSep` : Directory separator for this platform. '\\' on Windows, '/' on other platforms
 * `extension.commandvariable.envListSep` : Environment variable list separator for this platform. ';' on Windows, ':' on other platforms
-* `extension.commandvariable.pickStringRemember` : like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember).
-* `extension.commandvariable.promptStringRemember` : like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember).
-* `extension.commandvariable.remember` : retreive a [remembered](#remember) pickString, promptString, pickFile or fileContent by key and/or store _key_-_value_ pair(s).
+* `extension.commandvariable.pickStringRemember` : (**Web**) like [Input variable pickString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the picked item by a key, configured by strings or [_label_,_value_] tuples, see [example](#pickstringremember).
+* `extension.commandvariable.promptStringRemember` : (**Web**) like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember).
+* `extension.commandvariable.remember` : (**Web**) retreive a [remembered](#remember) pickString, promptString, pickFile or fileContent by key and/or store _key_-_value_ pair(s).
 * `extension.commandvariable.rememberPick` : **deprecated** - identical to `extension.commandvariable.remember`, it is not only picks that are remembered
 * `extension.commandvariable.dateTime` : (**Web**) language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : (**Web**) language-sensitive format of current date and time (using a Locale) to be used for keybindings

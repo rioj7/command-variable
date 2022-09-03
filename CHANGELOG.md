@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.42.0] 2022-09-03
+### Added
+- `extension.commandvariable.number` : from range of numbers - sequence of numbers with step or random number
+- README: mark `pickStringRemember`, `promptStringRemember` and `remember` as Web commands
+
 ## [1.41.0] 2022-08-24
 ### Added
 - `${workspaceFolderBasename}`

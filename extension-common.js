@@ -357,6 +357,63 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.setClipboard', args => vscode.env.clipboard.writeText(args.text).then(v=>v, v=>null) )
   );
+  var numberStore = {};
+  function getRandomIntInclusive(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.number', args => {
+      args = checkIfArgsIsLaunchConfig(args);
+      let name = getProperty(args, 'name', '__number');
+      let [minimum, maximum] = getProperty(args, 'range', [0, 100]);
+      let step = getProperty(args, 'step', 1);
+      let random = getProperty(args, 'random', false);
+      let uniqueCount = getProperty(args, 'uniqueCount', 0);
+      let number = 0;
+      let numberConfig = getProperty(numberStore, name);
+      if (random) {
+        if (uniqueCount > 0 && uniqueCount > (maximum - minimum - 5)) {
+          vscode.window.showErrorMessage('uniqueCount is too close to rangeCount');
+          return number;
+        }
+        if (numberConfig === undefined) { numberConfig = []; }
+        let unique = true;
+        do {
+          unique = true;
+          number = getRandomIntInclusive(minimum, maximum);
+          if (uniqueCount > 0) {
+            if (numberConfig.length > uniqueCount) {
+              numberConfig = numberConfig.slice(-uniqueCount);
+            }
+            if (numberConfig.indexOf(number) >= 0) {
+              unique = false;
+            } else {
+              const count = numberConfig.push(number);
+              if (count > uniqueCount) {
+                numberConfig = numberConfig.slice(-uniqueCount);
+              }
+            }
+          } else {
+            numberConfig = [number];
+          }
+        } while (!unique);
+      } else {
+        if (numberConfig === undefined) {
+          number = step >= 0 ? minimum : maximum;
+        } else {
+          number = numberConfig[numberConfig.length-1] + step;
+          if (step >= 0) {
+            if (number > maximum) { number = minimum; }
+          } else {
+            if (number < minimum) { number = maximum; }
+          }
+        }
+        numberConfig = [number];
+      }
+      numberStore[name] = numberConfig;
+      return number.toString();
+    })
+  );
 };
 
 function deactivate() {}

@@ -112,6 +112,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.promptStringRemember` : (**Web**) like [Input variable promptString](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) but it remembers the entered string by a key, see [example](#promptstringremember).
 * `extension.commandvariable.remember` : (**Web**) retreive a [remembered](#remember) pickString, promptString, pickFile or fileContent by key and/or store _key_-_value_ pair(s).
 * `extension.commandvariable.rememberPick` : **deprecated** - identical to `extension.commandvariable.remember`, it is not only picks that are remembered
+* `extension.commandvariable.number` : (**Web**) from a range of numbers return a number, in sequence with a step or random (with last uniqueCount), see [example](#number).
 * `extension.commandvariable.dateTime` : (**Web**) language-sensitive format of current date and time (using a Locale), see [example](#datetime)
 * `extension.commandvariable.dateTimeInEditor` : (**Web**) language-sensitive format of current date and time (using a Locale) to be used for keybindings
 * `extension.commandvariable.transform` : make a custom variable by echoing static text or transform the content of a variable with a Regular Expression Find-Replace, see [example](#transform).
@@ -680,6 +681,95 @@ Example:
       "args": {
         "include": "**/*.{htm,html,xhtml}",
         "exclude": "**/{scratch,backup}/**"
+      }
+    }
+  ]
+}
+```
+
+## number
+
+If you want a different whole number (n ∈ ℤ) in your task or launch config each time you run you can use the command `extension.commandvariable.number`.
+
+The configuration attributes need to be passed to the command in the `args` attribute.
+
+The command has the following configuration attributes:
+
+* `name` : if you have more than 1 number you have to name them to keep track of the previous value(s)
+* `range` : an array with 2 numbers, `[min, max]`, both values are inclusive and can be the result returned, `min < max` (default: `[0, 100]`)
+* `random` : boolean, do you want a random number from the range (default: `false`)
+* `step` : number, if `random` is `false` the number returned is the previous value incremented with `step`, can be negative (default: `1`)
+* `uniqueCount` : number, if `random` is `true` the number returned is unique compared to the previous `uniqueCount` numbers (default: `0`)
+
+### Sequence of numbers
+
+The value of `step` determines the first value returned.
+
+* if `step >= 0`
+  * start with minimum
+  * when next value > maximum return minimum
+* if `step < 0`
+  * start with maximum
+  * when next value < minimum return maximum
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Number from sequence",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:numberSeq}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "numberSeq",
+      "type": "command",
+      "command": "extension.commandvariable.number",
+      "args": {
+        "name": "sequence",
+        "range": [0, 20],
+        "step": 3
+      }
+    }
+  ]
+}
+```
+
+### Random number
+
+If you want a random number but it must be unique compared to the previous `n` numbers you have to set the attribute `uniqueCount`.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start server",
+      "type": "shell",
+      "command": "myServer",
+      "args": [
+        "-p",
+        "${input:randomPort}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "randomPort",
+      "type": "command",
+      "command": "extension.commandvariable.number",
+      "args": {
+        "name": "sequence",
+        "range": [1500, 60000],
+        "random": true,
+        "uniqueCount": 10
       }
     }
   ]

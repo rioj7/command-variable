@@ -18,6 +18,7 @@ Not all commands are supported yet in the web extension version. Supported comma
 * [File Content in Editor](#file-content-in-editor)
 * [Config Expression](#config-expression)
 * [Pick File](#pick-file)
+* [number](#number)
 * [remember](#remember)
 * [pickStringRemember](#pickstringremember)
 * [promptStringRemember](#promptstringremember)

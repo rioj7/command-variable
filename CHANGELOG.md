@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.42.2] 2022-09-22
+### Modified
+- `promptStringRemember`: allow to escape when a default is set, show default in inputbox
+
 ## [1.42.1] 2022-09-03
 ### Added
 - `extension.commandvariable.number` : from range of numbers - sequence of numbers with step or random number

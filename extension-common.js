@@ -51,7 +51,7 @@ function storeStringRemember(args, result) {
   return result !== undefined ? result : utils.getDefaultProperty(args);
 }
 /** @param {object} args has 'key' and ['default'] property @param {any} result undefined, kv-object, single value */
-function storeStringRemember2(args, result) {
+function storeStringRemember2(args, result, defaultFromArgs) {
   if (result !== undefined) {
     let argkey = utils.getProperty(args, 'key', '__unknown');
     if (utils.isObject(result)) {
@@ -64,7 +64,8 @@ function storeStringRemember2(args, result) {
     }
     rememberStore[argkey] = result;
   }
-  return result !== undefined ? result : utils.getDefaultProperty(args);
+  if (defaultFromArgs === undefined) { defaultFromArgs = true; }
+  return result !== undefined ? result : (defaultFromArgs ? utils.getDefaultProperty(args) : undefined);
 }
 
 function getRememberKey(key) {
@@ -199,9 +200,13 @@ async function pickStringRemember(args, processPick) {
 async function promptStringRemember(args) {
   args = utils.dblQuest(args, {});
   if (checkEscapedUI(args)) { return undefined; }
-  let result = await vscode.window.showInputBox({ prompt: utils.getProperty(args, 'description', 'Enter:'), password: utils.getProperty(args, 'password', false) });
+  let result = await vscode.window.showInputBox({
+      prompt: utils.getProperty(args, 'description', 'Enter:'),
+      password: utils.getProperty(args, 'password', false),
+      value: utils.getProperty(args, 'default')
+  });
   args.key = utils.getProperty(args, 'key', 'promptString');
-  result = storeStringRemember2(args, result);
+  result = storeStringRemember2(args, result, false);
   return storeEscapedUI(result);
 }
 function getExpressionFunctionFilterSelection(expr) {

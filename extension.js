@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
+const YAML = require('yaml')
 const common = require('./out/extension-common');
 const utils = require('./utils');
 
@@ -349,7 +350,9 @@ function activate(context) {
     let jsonExpr = args.json;
     if (jsonExpr) {
       jsonExpr = await variableSubstitution(jsonExpr, args);
-      let value = getExpressionFunction(jsonExpr)(JSON.parse(content));
+      let isYaml = args.fileName.endsWith(".yaml") || args.fileName.endsWith(".yml");
+      let parsedContent = isYaml ? YAML.parse(content) : JSON.parse(content);
+      let value = getExpressionFunction(jsonExpr)(parsedContent);
       if (value === undefined) { return value; }
       return String(value);
     }

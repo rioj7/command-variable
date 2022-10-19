@@ -5,11 +5,31 @@
   "publisher": "rioj7",
   "license": "MIT",
   "version": "1.42.2",
-  "engines": {"vscode": "^1.55.0"},
-  "categories": ["Other"],
-  "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file","key","value","uuid","clipboard"],
+  "engines": {
+    "vscode": "^1.55.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "command",
+    "variable",
+    "launch",
+    "tasks",
+    "date",
+    "multi-root ready",
+    "pick",
+    "file",
+    "key",
+    "value",
+    "uuid",
+    "clipboard"
+  ],
   "icon": "images/icon.png",
-  "galleryBanner": {"color": "#000080", "theme": "dark"},
+  "galleryBanner": {
+    "color": "#000080",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onCommand:extension.commandvariable.file.relativeDirDots",
     "onCommand:extension.commandvariable.file.relativeFileDots",
@@ -124,5 +144,8 @@
     "mocha": "^9.1.3",
     "rollup": "^2.48.0",
     "simple-mock": "^0.8.0"
+  },
+  "dependencies": {
+    "yaml": "^2.1.3"
   }
 }

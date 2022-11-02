@@ -1289,6 +1289,9 @@ Many strings of commands support variables.
 VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here:
 
 * `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
+* <code>&dollar;{env:<em>name</em>}</code> : get the value for environment variable <code><em>name</em></code>
+* <code>&dollar;{pathSeparator}</code> : the character used by the operating system to separate components in file paths
+* <code>&dollar;{userHome}</code> : the path of the user's home folder
 * `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
 * <code>&dollar;{workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
 * `${workspaceFolderBasename}` : the name of the workspace folder opened in VS Code containing the current file without any slashes

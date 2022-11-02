@@ -115,6 +115,11 @@ function activate(context) {
     let stringSubstitution = async (text) => {
       const editor = vscode.window.activeTextEditor;
       var result = text;
+      result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
+      result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');
+      result = result.replace(/\$\{env:([^}]+)\}/g, (m, p1) => {
+        return getProperty(process.env, p1, '');
+      } );
       if (editor) {
         result = replaceVariableWithProperties(result, 'selectedText', args, _args => common.concatMapSelections(_args, common.getEditorSelection) );
       }

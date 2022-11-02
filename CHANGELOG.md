@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.43.0] 2022-11-02
+### Added
+- variables : <code>&dollar;{env:<em>name</em>}</code>, <code>&dollar;{pathSeparator}</code>, <code>&dollar;{userHome}</code>
+- `file.content` : extract an expression value from a YAML file
+
 ## [1.42.2] 2022-09-22
 ### Modified
 - `promptStringRemember`: allow to escape when a default is set, show default in inputbox

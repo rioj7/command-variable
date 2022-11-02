@@ -14,6 +14,7 @@ Not all commands are supported yet in the web extension version. Supported comma
 * [File Content](#file-content)
 * [File Content Key Value pairs](#file-content-key-value-pairs)
 * [File Content JSON Property](#file-content-json-property)
+* [File Content YAML Property](#file-content-yaml-property)
 * [File Content Multiple Key-Values/Properties](#file-content-multiple-key-valuesproperties)
 * [File Content in Editor](#file-content-in-editor)
 * [Config Expression](#config-expression)
@@ -204,6 +205,12 @@ The supported arguments:
 
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
+With additional arguments it is possible to parse the content of the file types:
+
+* [Key Value pairs](#file-content-key-value-pairs)
+* [JSON](#file-content-json-property)
+* [YAML](#file-content-yaml-property)
+
 ```json
 {
   "version": "2.0.0",
@@ -358,6 +365,21 @@ In your `tasks.json` you want to use the server1 port value.
   ]
 }
 ```
+
+## File Content YAML Property
+
+If you have a YAML file and you want the value for a given property you can use the command `extension.commandvariable.file.content`.
+
+The supported arguments:
+
+* `fileName` : specifies the file to read, see [File Content](#file-content).
+* `yaml` : specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed YAML file. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}`
+* `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
+* `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
+
+Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
+
+See [File Content JSON Property](#file-content-json-property) for examples.
 
 ## File Content Multiple Key-Values/Properties
 

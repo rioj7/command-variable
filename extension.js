@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const common = require('./out/extension-common');
 const utils = require('./utils');
+const YAML = require('./yaml.js');
 
 class FilePickItem {
   fromURI(uri, display) {
@@ -351,10 +352,18 @@ function activate(context) {
     }
   }
   async function contentValue(args, content) {
-    let jsonExpr = args.json;
-    if (jsonExpr) {
-      jsonExpr = await variableSubstitution(jsonExpr, args);
-      let value = getExpressionFunction(jsonExpr)(JSON.parse(content));
+    let expr = undefined;
+    let parsedContent = undefined;
+    if (args.json) {
+      expr = args.json;
+      parsedContent = JSON.parse(content);
+    } else if (args.yaml) {
+      expr = args.yaml;
+      parsedContent = YAML.parse(content);
+    }
+    if (expr) {
+      expr = await variableSubstitution(expr, args);
+      let value = getExpressionFunction(expr)(parsedContent);
       if (value === undefined) { return value; }
       return String(value);
     }

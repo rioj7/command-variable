@@ -10,6 +10,7 @@ Not all commands are supported yet in the web extension version. Supported comma
 
 * [Commands](#commands)
 * [Usage](#usage)
+* [Configuration / Settings](#settings)
 * [FileAsKey](#fileaskey)
 * [File Content](#file-content)
 * [File Content Key Value pairs](#file-content-key-value-pairs)
@@ -145,6 +146,14 @@ An example `launch.json` :
 ```
 
 You can use a Task to [see the value of a variable substitution](https://code.visualstudio.com/docs/editor/variables-reference#_how-can-i-know-a-variables-actual-value).
+
+## Settings
+
+The following settings can only be defined in the User settings:
+
+* `commandvariable.file.pickFile.labelMaximumLength` : number ∈ ℕ (>= 0), the [pickFile](#pick-file) command can show a list of predefined directories. It can be that the directory path is too large to show in the QuickPick List. VSC does clip the path but only on the end and thus can make it difficult to choose a path when they have the save start. This setting allows to transform the shown label if larger than a maximum number of characters. The transforms to apply are defined in the pickFile command. If this setting is `0` (default value) no transforms are applied.  
+**!!** Be aware that the text shown in the QuickPick List use a **variable width** font.
+* `commandvariable.file.pickFile.labelClipPoint` : number ∈ ℤ (positive and negative), used in the pickFile label transform: `clipMiddle`, determines how many characters to pick from the start (`>=0`) or from the end (`<0`). The characters taken from the other end are calculated using `commandvariable.file.pickFile.labelMaximumLength`
 
 ## FileAsKey
 
@@ -661,7 +670,21 @@ You can set the following properties to this command:
     * if <code>"<em>name</em>"</code>: find the workspace with that name
     * If `true`: show a Pick List of Workspaces to choose from
 * `fromFolder` : (Optional) Object with the properties:
-    * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.
+    * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.  
+    Each entry can be a string or an object with properties:
+
+      * `path` : file system path of directory
+      * `label` : used in certain transformations
+    * `labelTransform` : (Optional) An array of strings of the transformations to apply to the pickList label when it is longer than the setting: [`commandvariable.file.pickFile.labelMaximumLength`](#settings)  
+      Transformations are applied in the order defined to the pickList label as long it is too large.  
+      Possible transformations are:
+        * `useLabel` : regardless of the current length use the label property if defined in the entry in the `predefined` property.
+        * `hasLabel` : if current length is too large use the label property if defined in the entry in the `predefined` property.
+        * `removeWorkspacePath` : if the path can be found in one of the (Multi Root) Workspaces remove the workspace path
+        * `clipMiddle` : use the setting [`commandvariable.file.pickFile.labelClipPoint`](#settings) to determine how many characters to take from the start and from the end.
+
+      An example would be: `"labelTransform": ["useLabel", "removeWorkspacePath", "clipMiddle"]`
+
     * `fixed` : (Optional) A string with a file system directory path to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace. You do not get a pick list. On Windows it is not possible to specify a directory path in the `include` Glob Pattern.
 
     Show a Pick list of folders specified in the property `predefined` and 2 additional entries

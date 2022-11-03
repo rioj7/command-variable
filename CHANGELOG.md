@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.44.0] 2022-11-03
+### Added
+- `pickFile` : transform label for `fromFolder` pickList if path is too long
+
 ## [1.43.0] 2022-11-02
 ### Added
 - variables : <code>&dollar;{env:<em>name</em>}</code>, <code>&dollar;{pathSeparator}</code>, <code>&dollar;{userHome}</code>

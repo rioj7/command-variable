@@ -4,7 +4,7 @@
   "description": "Calculate command variables for launch.json and tasks.json",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "1.43.0",
+  "version": "1.44.0",
   "engines": {"vscode": "^1.55.0"},
   "categories": ["Other"],
   "keywords": ["command","variable","launch","tasks","date","multi-root ready","pick","file","key","value","uuid","clipboard","number"],
@@ -99,7 +99,23 @@
         "command": "extension.commandvariable.UUIDInEditor",
         "title": "Generate a UUID v4 (from random numbers)"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Command Variable",
+      "properties": {
+        "commandvariable.file.pickFile.labelMaximumLength": {
+          "type": "integer",
+          "description": "If pickFile label is longer apply the defined transforms",
+          "scope": "machine",
+          "minimum": 0
+        },
+        "commandvariable.file.pickFile.labelClipPoint": {
+          "type": "integer",
+          "description": "Define the clip point at start (>=0) or at end (<0) of the path, other clip point is calculated",
+          "scope": "machine"
+        }
+      }
+    }
   },
   "main": "./extension.js",
   "browser": "./out/extension-common.js",

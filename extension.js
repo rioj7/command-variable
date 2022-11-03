@@ -28,9 +28,40 @@ class FilePickItem {
 }
 
 class FolderPickItem {
-  fromString(path) {
+  fromString(path, labelTransform) {
+    let label = undefined;
+    let hasLabel = false;
+    if (utils.isObject(path)) { ({path, label} = path); hasLabel = true; }
     this.label = path;
     this.value = path;
+    if (labelTransform.maxLength > 0) {
+      for (const apply of labelTransform.transform) {
+        if (apply === 'useLabel') {
+          if (hasLabel) {
+            this.label = label;
+          }
+          continue;
+        }
+        if (this.label.length <= labelTransform.maxLength) { break; }
+        if (apply === 'hasLabel') {
+          if (hasLabel) {
+            this.label = label;
+          }
+          continue;
+        }
+        if (apply === 'removeWorkspacePath') {
+          let workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
+          if (workspace) {
+            this.label = this.label.substring(workspace.uri.fsPath.length+1);
+          }
+          continue;
+        }
+        if (apply === 'clipMiddle') {
+          this.label = `${this.label.slice(0, labelTransform.takeStart)}.....${this.label.slice(-labelTransform.takeEnd)}`;
+          continue;
+        }
+      }
+    }
     return this;
   }
   ask() {
@@ -55,6 +86,7 @@ function activate(context) {
   const storeStringRemember = common.storeStringRemember;
   const storeStringRemember2 = common.storeStringRemember2;
   const getRememberKey = common.getRememberKey;
+  const getConfig = () => vscode.workspace.getConfiguration("commandvariable", null);
 
   common.setAsDesktopExtension();
   common.activate(context);
@@ -440,8 +472,8 @@ function activate(context) {
     return pickList;
   }
   /** @param {string[]} predef */
-  function constructFolderPickList(predef) {
-    let pickList = predef.map(p => new FolderPickItem().fromString(p));
+  function constructFolderPickList(predef, labelTransform) {
+    let pickList = predef.map(p => new FolderPickItem().fromString(p, labelTransform));
     pickList.push(new FolderPickItem().ask());
     pickList.push(new FolderPickItem().workspace());
     return pickList;
@@ -466,7 +498,25 @@ function activate(context) {
         picked = {value: fixedDir};
       } else {
         let predefined = getProperty(fromFolder, 'predefined', []);
-        picked = await vscode.window.showQuickPick(constructFolderPickList(predefined), {placeHolder: "Select a folder"});
+        const config = getConfig();
+        const labelClipPoint = config.get("file.pickFile.labelClipPoint");
+        let labelMaximumLength = Math.max(0, config.get("file.pickFile.labelMaximumLength"));
+        labelMaximumLength = labelMaximumLength < 10 ? 0 : labelMaximumLength;
+        let takeStart = undefined;
+        let takeEnd = undefined;
+        if (labelMaximumLength > 0) {
+          let maxLengthAdjust = labelMaximumLength-5;
+          let validClip = Math.min(maxLengthAdjust, Math.abs(labelClipPoint));
+          if (labelClipPoint >= 0) {
+            takeStart = validClip;
+            takeEnd = maxLengthAdjust - validClip;
+          } else {
+            takeStart = maxLengthAdjust - validClip;
+            takeEnd = validClip;
+          }
+        }
+        let labelTransform = {maxLength: labelMaximumLength, takeStart, takeEnd, transform: getProperty(fromFolder, 'labelTransform', [])};
+        picked = await vscode.window.showQuickPick(constructFolderPickList(predefined, labelTransform), {placeHolder: "Select a folder"});
       }
       if (!picked) { return undefined; }
       let folderPath = picked.value;

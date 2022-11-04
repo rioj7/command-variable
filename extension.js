@@ -487,6 +487,7 @@ function activate(context) {
     let placeHolder = getProperty(args, 'description', 'Select a file');
     let keyRemember = getProperty(args, 'keyRemember', 'pickFile');
     let showDirs = getProperty(args, 'showDirs', false);
+    let acceptIfOneFile = getProperty(args, 'acceptIfOneFile', false);
     if (globExclude === 'undefined') globExclude = undefined;
     if (globExclude === 'null') globExclude = null;
     let ignoreFocusOut = {ignoreFocusOut:true};
@@ -547,6 +548,9 @@ function activate(context) {
           let unique = new Set();
           uriList.forEach( uri => unique.add(path.dirname(uri.fsPath)) );
           uriList = Array.from(unique).map( p => vscode.Uri.file(p) );
+        }
+        if (acceptIfOneFile && uriList.length === 1) {
+          return new FilePickItem().fromURI(uriList[0]);
         }
         return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder});
       })

@@ -670,7 +670,7 @@ You can set the following properties to this command:
 * `fromWorkspace` : [ <code>"<em>name</em>"</code> | `true` | `false` ] - limit the `include` pattern relative to a workspace (default: `false`)
     * if <code>"<em>name</em>"</code>: find the workspace with that name
     * If `true`: show a Pick List of Workspaces to choose from
-* `fromFolder` : (Optional) Object with the properties:
+* `fromFolder` : (Optional) Object with the properties (Filepaths support [variables](#variables)):
     * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.  
     Each entry can be a string or an object with properties:
 

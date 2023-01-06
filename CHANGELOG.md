@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.46.0] 2023-01-06
+### Fixed
+- `pickFile` : use of variables allowed in `fromFolder` filepaths
+
 ## [1.45.0] 2022-11-04
 ### Added
 - `pickFile` : `acceptIfOneFile` to automatically accept the file if pickList has 1 entry

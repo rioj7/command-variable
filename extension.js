@@ -528,7 +528,7 @@ function activate(context) {
       if (picked.askWorkspace) {
         fromWorkspace = true;
       } else {
-        globInclude = new vscode.RelativePattern(vscode.Uri.file(folderPath), globInclude);
+        globInclude = new vscode.RelativePattern(vscode.Uri.file(await variableSubstitution(folderPath, args)), globInclude);
       }
     }
     if (fromWorkspace) {

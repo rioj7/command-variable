@@ -91,6 +91,7 @@
 - `workspace.folderPosix`
 - <code>workspace.folder<em>N</em>Up</code>
 - <code>workspace.folder<em>N</em>UpPosix</code>
+- add `CHANGELOG.md`
 ### Deprecated
 - `workspace.workspaceFolderPosix`
 

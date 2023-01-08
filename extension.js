@@ -595,6 +595,10 @@ function activate(context) {
     let flags   = getProperty(args, 'flags', "");
     let key     = getProperty(args, 'key', 'transform');
     text = await variableSubstitution(text, args);
+    find = await variableSubstitution(find, args);
+    replace = await variableSubstitution(replace, args);
+    key = await variableSubstitution(key, args);
+    flags = await variableSubstitution(flags, args);
     if (text && find) {
       text = text.replace(new RegExp(find, flags), replace);
     }

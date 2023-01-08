@@ -1282,8 +1282,8 @@ With the command `extension.commandvariable.transform` you can find-replace with
 The command can be used with the `${input:}` variable and has the following arguments:
 
 * `text` : the string where you want to apply a find-replace. It can contain a selection of [variables](#variables) and literal text.
-* `find` : (Optional) the Regular Expression to search in `text`. Can contain capture groups. If no `find` argument there is no `find-replace` operation.
-* `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`), default (`""`)
+* `find` : (Optional) the Regular Expression to search in `text`. Can contain capture groups and [variables](#variables). If no `find` argument there is no `find-replace` operation.
+* `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`) and [variables](#variables), default (`""`)
 * `flags` : (Optional) the flags to be used in the Regular Expression, like `gims`, default (`""`)
     * `g` : replace all occurences (global)
     * `i` : find case insensitive

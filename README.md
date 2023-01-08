@@ -1431,6 +1431,14 @@ If you only have 1 selection you don't need the properties `separator` and `filt
 
 For the [transform](#transform) command you can define the properties `separator` and `filterSelection` in the `args` property of the command.
 
+* `separator` : (Optional) the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
+* `filterSelection` : (Optional) a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:
+    * `index` : the 0-base sequence number of the selection
+    * `value` : the text of the selection
+    * `numSel` : number of selections (or cursors)
+
+    The `index` is 0-based to make (modulo) calculations easier. The first `index` is 0.
+
 ```json
       "args": {
         "text": "${selectedText}",

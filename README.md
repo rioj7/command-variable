@@ -29,13 +29,13 @@ Not all commands are supported yet in the web extension version. Supported comma
 * [setClipboard](#setclipboard)
 * [Transform](#transform)
 * [Variables](#variables)
-  * [`${workspaceFolder}`](#workspacefolder-variable)
-  * [`${selectedText}`](#selectedtext-variable)
-  * [`${pickStringRemember}`](#pickstringremember-variable)
-  * [`${promptStringRemember}`](#promptstringremember-variable)
-  * [`${pickFile}`](#pickfile-variable)
-  * [`${command}`](#command-variable)
-  * [`${transform}`](#transform-variable)
+  * [`${workspaceFolder}`](#variable-workspacefolder)
+  * [`${selectedText}`](#variable-selectedtext)
+  * [`${pickStringRemember}`](#variable-pickstringremember)
+  * [`${promptStringRemember}`](#variable-promptstringremember)
+  * [`${pickFile}`](#variable-pickfile)
+  * [`${command}`](#variable-command)
+  * [`${transform}`](#variable-transform)
 * [`checkEscapedUI`](#checkescapedui)
 * [Workspace name in `argument`](#workspace-name-in-argument)
 * [UUID](#uuid)
@@ -1334,7 +1334,7 @@ Many strings of commands support variables.
 
 VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here:
 
-* `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#selectedtext-variable)
+* `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#variable-selectedtext)
 * <code>&dollar;{env:<em>name</em>}</code> : get the value for environment variable <code><em>name</em></code>
 * <code>&dollar;{pathSeparator}</code> : the character used by the operating system to separate components in file paths
 * <code>&dollar;{userHome}</code> : the path of the user's home folder
@@ -1348,8 +1348,8 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * `${fileBasenameNoExtension}` : the current opened file's basename with no file extension
 * `${fileExtname}` : the current opened file's extension
 * `${fileDirname}` : the current opened file's dirname
-* <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#pickstringremember-variable)
-* <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#promptstringremember-variable)
+* <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#variable-pickstringremember)
+* <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#variable-promptstringremember)
 * <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable,  
   _`key`_ is first tested as a named argument object property (like `pickStringRemember`), arguments are part of the `remember` property of the (parent) command.  
   If not found and _`key`_ has the format <code>number-<em>name</em></code> the _name_ is used to get the last value of a named [number](#number).  
@@ -1359,11 +1359,11 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
     * or a key used in storing multiple values in the remember command.
 
   You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a named argument object like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.
-* <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#pickfile-variable)
+* <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#variable-pickfile)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
-* <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#command-variable)
-* <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a named argument object property (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#transform-variable). You can transform strings that are the result of a transform.
+* <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
+* <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a named argument object property (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1394,7 +1394,7 @@ The variables are processed in the order mentioned. This means that if the selec
 }
 ```
 
-### workspaceFolder Variable
+### Variable `workspaceFolder`
 
 The variable `${workspaceFolder}` is only valid in certain cases:
 
@@ -1425,7 +1425,7 @@ An example:
 ${workspaceFolder:/websiteA/server}
 ```
 
-### selectedText Variable
+### Variable `selectedText`
 
 If you only have 1 selection you don't need the properties `separator` and `filterSelection`.
 
@@ -1483,7 +1483,7 @@ You can use multiple `${selectedText}` variables that have different properties:
       }
 ```
 
-### pickStringRemember Variable
+### Variable `pickStringRemember`
 
 If you want to add an entry you pick from a list use the variable: <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 
@@ -1524,9 +1524,9 @@ An example shows faster how it is to be used compared to a lot of text.
 ]
 ```
 
-### promptStringRemember Variable
+### Variable `promptStringRemember`
 
-The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
+The `promptStringRemember` variable works the same as the [`pickStringRemember` variable](#variable-pickstringremember).
 If you want to add an entry you type on the keyboard use the variable: <code>&dollar;{promptStringRemember:<em>name</em>}</code>
 
 _`name`_ is the property name of the `promptStringRemember` property of the `args` object of the command.
@@ -1535,9 +1535,9 @@ Because the command has no way to determine if it is called from which workspace
 
 See the command [`extension.commandvariable.promptStringRemember`](#promptstringremember) for the arguments you can use.
 
-### pickFile Variable
+### Variable `pickFile`
 
-The `pickFile` variable works the same as the [`pickStringRemember` variable](#pickstringremember-variable).
+The `pickFile` variable works the same as the [`pickStringRemember` variable](#variable-pickstringremember).
 If you want a file path use the variable: <code>&dollar;{pickFile:<em>name</em>}</code>
 
 _`name`_ is the property name of the `pickFile` property of the `args` object of the command.
@@ -1580,13 +1580,13 @@ An example: you have a number of key-value files and you want to select which en
 }
 ```
 
-### command Variable
+### Variable `command`
 
 If you want to transform result of a command you use the <code>&dollar;{command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
 
 `name` can be a commandID or a named argument object property (like `pickStringRemember`)
 
-### CommandID
+#### CommandID
 
 If the command does not use arguments you place the commandID directly in the variable.
 
@@ -1615,9 +1615,9 @@ If the command does not use arguments you place the commandID directly in the va
 }
 ```
 
-### Named Arguments
+#### Named Arguments
 
-If the command uses arguments you have to put these in the arguments of the parent command in the property `command`. (Just like with the [<code>&dollar;{pickStringRemember:<em>name</em>}</code> variable](#pickstringremember-variable))
+If the command uses arguments you have to put these in the arguments of the parent command in the property `command`. (Just like with the [<code>&dollar;{pickStringRemember:<em>name</em>}</code> variable](#variable-pickstringremember))
 
 The named arguments have the following properties:
 
@@ -1656,7 +1656,7 @@ The named arguments have the following properties:
 }
 ```
 
-### transform Variable
+### Variable `transform`
 
 Say you have a command/script that wants a series of numbers and they can be in a single argument. The numbers have to be clean, no other text in between. You also want to be able to select some text in an editor and use that to filter out the numbers.
 

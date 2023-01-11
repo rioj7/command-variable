@@ -841,9 +841,9 @@ The example is for debugging the Nios ii Embedded Design Suite:
 
 It can be useful to store key-value pairs to be used later. The value of the key is remembered for this session of Visual Studio Code.
 
-Some commands in this extension can store key-value pairs: [`pickStringRemember`](#pickstringremember), [`promptStringRemember`](#promptstringremember), `file.content` (json, key-value), `file.pickFile`.
+Some commands in this extension can store key-value pairs: [`pickStringRemember`](#pickstringremember), [`promptStringRemember`](#promptstringremember), [`file.content`](#file-content) (json, key-value, yaml), [`file.pickFile`](#pick-file).
 
-The stored value is retreived with a command or a variable. In the same task/launch config or in a different one, or in a keybinding.
+The stored value is retrieved with a command or a [variable](#variables). In the same task/launch config or in a different one, or in a keybinding.
 
 The command `extension.commandvariable.remember` is used to retreive a value for a particular key or store _key_-_value_ pair(s).
 
@@ -1351,19 +1351,19 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{pickStringRemember:<em>name</em>}</code> : use the [`pickStringRemember`](#pickstringremember) command as a variable, arguments are part of the [`pickStringRemember` property of the (parent) command](#variable-pickstringremember)
 * <code>&dollar;{promptStringRemember:<em>name</em>}</code> : use the [`promptStringRemember`](#promptstringremember) command as a variable, arguments are part of the [`promptStringRemember` property of the (parent) command](#variable-promptstringremember)
 * <code>&dollar;{remember:<em>key</em>}</code> : use the [remember](#remember) command as a variable,  
-  _`key`_ is first tested as a named argument object property (like `pickStringRemember`), arguments are part of the `remember` property of the (parent) command.  
+  _`key`_ is first tested as a _named argument object property_ (like `pickStringRemember`), arguments are part of the `remember` property of the (parent) command.  
   If not found and _`key`_ has the format <code>number-<em>name</em></code> the _name_ is used to get the last value of a named [number](#number).  
   If not found _`key`_ is a key in the remeber store. _`key`_ matches:
     * `key` argument of the `pickStringRemember` or `promptStringRemember` variable/command
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
-    * or a key used in storing multiple values in the remember command.
+    * or a key used in storing multiple values in the `remember` command.
 
-  You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a named argument object like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.
+  You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a _named argument object_ like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#variable-pickfile)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
-* <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a named argument object property (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
-* <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a named argument object property (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
+* <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
+* <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1584,7 +1584,7 @@ An example: you have a number of key-value files and you want to select which en
 
 If you want to transform result of a command you use the <code>&dollar;{command:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
 
-`name` can be a commandID or a named argument object property (like `pickStringRemember`)
+`name` can be a commandID or a _named argument object property_ (like `pickStringRemember`)
 
 #### CommandID
 

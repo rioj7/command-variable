@@ -147,6 +147,7 @@ function activate(context) {
     args = dblQuest(args, {});
     let stringSubstitution = async (text) => {
       const editor = vscode.window.activeTextEditor;
+      if (!isString(text)) { return text; }
       var result = text;
       result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
       result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');

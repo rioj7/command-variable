@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.46.2] 2023-01-11
+### Fixed
+- `transform` : use of variables allowed in all properties
+
 ## [1.46.1] 2023-01-08
 ### Fixed
 - `transform` : use of variables allowed in all properties

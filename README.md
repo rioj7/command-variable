@@ -4,6 +4,8 @@ Visual Studio Code provides [variable substitution](https://code.visualstudio.co
 
 One of the variables allows the [result of a command](https://code.visualstudio.com/docs/editor/variables-reference#_command-variables) to be used with the following syntax: **`${command:commandID}`**
 
+If a [command](#commands) or [variable](#variables) is almost what you need you can use the [transform](#transform) command to perform a regular expression find-replace of the result.
+
 Not all commands are supported yet in the web extension version. Supported commands are marked with : (**Web**)
 
 ## Table of contents
@@ -1295,6 +1297,40 @@ The command can be used with the `${input:}` variable and has the following argu
     * `numSel` : number of selections (or cursors)
 
     The `index` is 0-based to make (modulo) calculations easier. The first `index` is 0.
+
+Example:
+
+If you want the directory name of the active editor file but using forward slash (on Windows, see [issue #47](https://github.com/rioj7/command-variable/issues/47))
+
+```jsonc
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Current File Dirname Forward Slash",
+      "type": "shell",
+      "command": "my_program",
+      "args": [
+        "${input:fileDirnameForwardSlash}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "fileDirnameForwardSlash",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${fileDirname}",
+        "find": "\\\\",  // Reason for four '\': https://stackoverflow.com/a/4025505/2909854
+        "replace": "/",
+        "flags": "g"
+      }
+    }
+  ]
+}
+```
 
 ### Custom variables
 

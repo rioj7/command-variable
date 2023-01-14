@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.47.0] 2023-01-14
+### Add
+- `pickFile` and `remember` : transform the result, use part of the picked file path
+- `pickFile` : property `empty` to return empty string, silent pick, use pick result in `remember` command/variable
+- `transform` : apply a sequence of find-replace operations
+
 ## [1.46.2] 2023-01-11
 ### Fixed
 - `transform` : use of variables allowed in all properties

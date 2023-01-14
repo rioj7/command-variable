@@ -1366,6 +1366,9 @@ The command can be used with the `${input:}` variable and has the following argu
 * `flags` : (Optional) the flags to be used in the Regular Expression, like `gims`, default (`""`)
     * `g` : replace all occurences (global)
     * `i` : find case insensitive
+* `apply` : (Optional) defines a sequence of find-replace operations.  
+  It is an array of objects, each object can have the properties: `find`, `replace` and `flags`.  
+  See [`${transform}`](#variable-transform) variable for an example.
 * `key` : (Optional) It is used to [store and retrieve](#remember) the transformed string. (default: `transform` )
 * `separator` : (Optional) the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)
 * `filterSelection` : (Optional) a JavaScript expression that allows which (multi cursor) selections to use for `${selectedText}`, default (`"true"`) all are selected.<br/>The expression can use the following variables:
@@ -1818,12 +1821,14 @@ Say you have a command/script that wants a series of numbers and they can be in 
         "transform": {
           "removeLeadingTrailingSpaces": {
             "text": "${transform:nonNumbersToSpace}",
-            "find": "^ +| +$"
+            "find": "^ +| +$",
+            "flags": "g",
             "transform": {
               "nonNumbersToSpace": {
                 "text": "${pickStringRemember:getRawNumberList}",
                 "find": "[^0-9]+",
                 "replace": " ",
+                "flags": "g",
                 "pickStringRemember": {
                   "getRawNumberList": {
                     "description": "Which raw number list?",
@@ -1842,6 +1847,59 @@ Say you have a command/script that wants a series of numbers and they can be in 
     }
   ]
 }
+```
+
+The above example can be made more readable with the `apply` property to define a sequence of find-replace operations (we also replace multiple spaces by 1 space)
+
+```json
+  "inputs": [
+    {
+      "id": "numberSequence",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which number list?",
+        "options": [
+          "100 200 300",
+          "51 99 2",
+          ["Use a raw number list", "${transform:rawNumberList}"]
+        ],
+        "rememberTransformed": true,
+        "key": "numSeq",
+        "transform": {
+          "rawNumberList": {
+            "text": "${pickStringRemember:getRawNumberList}",
+            "apply": [
+              {
+                "find": "[^0-9]+",
+                "replace": " ",
+                "flags": "g",
+              },
+              {
+                "find": "^ +| +$",
+                "flags": "g",
+              },
+              {
+                "find": " {2,}",
+                "replace": " ",
+                "flags": "g",
+              }
+            ]
+            "pickStringRemember": {
+              "getRawNumberList": {
+                "description": "Which raw number list?",
+                "options": [
+                  "foo 123 bar bar 456      ",
+                  "Alice: 10,  Bob: 3",
+                  ["Selected text", "${selectedText}"]
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 ```
 
 ### Variable `remember`

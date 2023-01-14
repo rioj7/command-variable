@@ -640,13 +640,19 @@ function activate(context) {
     let replace = getProperty(args, 'replace', "");
     let flags   = getProperty(args, 'flags', "");
     let key     = getProperty(args, 'key', 'transform');
+    let apply   = getProperty(args, 'apply');
     text = await variableSubstitution(text, args, uri);
-    find = await variableSubstitution(find, args, uri);
-    replace = await variableSubstitution(replace, args, uri);
     key = await variableSubstitution(key, args, uri);
-    flags = await variableSubstitution(flags, args, uri);
-    if (text && find) {
-      text = text.replace(new RegExp(find, flags), replace);
+    if (!apply) {
+      apply = [ {find, replace, flags} ]
+    }
+    for (const fr of apply) {
+      find    = await variableSubstitution(getProperty(fr, 'find'), args, uri);
+      replace = await variableSubstitution(getProperty(fr, 'replace', ""), args, uri);
+      flags   = await variableSubstitution(getProperty(fr, 'flags', ""), args, uri);
+      if (text && find) {
+        text = text.replace(new RegExp(find, flags), replace);
+      }
     }
     return storeStringRemember2({ key }, text);
   }

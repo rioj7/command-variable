@@ -30,7 +30,7 @@ function setAsDesktopExtension() {
 
 let numberStore = {};
 
-let rememberStore = { __not_yet: "I don't remember", empty: "" };
+let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined };
 
 function storeStringRemember(args, result) {
   if (result !== undefined) {
@@ -68,13 +68,14 @@ function storeStringRemember2(args, result, defaultFromArgs) {
   return result !== undefined ? result : (defaultFromArgs ? utils.getDefaultProperty(args) : undefined);
 }
 
-function getRememberKey(key) {
+function getRememberKey(key, defaultKey) {
   const numberPrefix = 'number-';
   if (key.startsWith(numberPrefix)) {
     let numberConfig = utils.getProperty(numberStore, key.slice(numberPrefix.length), [0]);
     return numberConfig[numberConfig.length-1].toString();
   }
-  return utils.getProperty(rememberStore, key, rememberStore['__not_yet']);
+  defaultKey = utils.dblQuest(defaultKey, '__not_yet');
+  return utils.getProperty(rememberStore, key, rememberStore[defaultKey]);
 }
 
 let gRememberKeyEscapedUI = '__escapedUI';

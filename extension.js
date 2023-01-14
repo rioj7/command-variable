@@ -5,8 +5,15 @@ const common = require('./out/extension-common');
 const utils = require('./utils');
 const YAML = require('./yaml.js');
 
+const PostfixURI = '@URI@';
+
 class FilePickItem {
+  constructor() {
+    this.uri = undefined;
+    this.value = undefined;
+  }
   fromURI(uri, display) {
+    this.uri = uri;
     this.label = uri.fsPath;
     if (display === 'fileName') {
       this.description = ' $(folder) ' + path.dirname(this.label);
@@ -106,13 +113,35 @@ function activate(context) {
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
+  function URIWorkspaceFolder(uri, action) {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders) { return utils.errorMessage('No folder open'); }
+    let wsf = undefined;
+    if (folders.length > 1) {
+      if (!uri) { return utils.errorMessage('Use the name of the Workspace Folder'); }
+      wsf = vscode.workspace.getWorkspaceFolder(uri);
+    }
+    if (!wsf) {
+      wsf = folders[0];  // choose first folder in the list
+    }
+    return action(wsf);
+  }
+  async function transformResult(args, result, textDefault, uriKey) {
+    let transformArgs = getProperty(args, 'transform');
+    if (transformArgs) {
+      args['__result'] = result;
+      result = await transform(transformArgs, textDefault, getRememberKey(uriKey+PostfixURI, '__undefined'));
+    }
+    return result;
+  }
   async function command(args) {
     let command = getProperty(args, 'command');
     if (!command) { return 'Unknown'; }
     return vscode.commands.executeCommand(command, getProperty(args, 'args'));
   }
   async function remember(args) { // make it async so it can be used with asyncVariable
-    return common.rememberCommand(args);
+    let result = common.rememberCommand(args, variableSubstitution);
+    return transformResult(args, result, '${result}', args.key);
   }
   var asyncVariable = async (text, args, func) => {
     if (text === undefined) { return undefined; }  // escaped a UI element
@@ -143,12 +172,13 @@ function activate(context) {
     });
     return text;
   };
-  var variableSubstitution = async (text, args) => {
+  var variableSubstitution = async (text, args, uri) => {
     args = dblQuest(args, {});
     let stringSubstitution = async (text) => {
       const editor = vscode.window.activeTextEditor;
       if (!isString(text)) { return text; }
       var result = text;
+      result = result.replace(/\$\{result\}/g, getProperty(args, '__result', ''));
       result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
       result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');
       result = result.replace(/\$\{env:([^}]+)\}/g, (m, p1) => {
@@ -157,8 +187,9 @@ function activate(context) {
       if (editor) {
         result = replaceVariableWithProperties(result, 'selectedText', args, _args => common.concatMapSelections(_args, common.getEditorSelection) );
       }
+      if (!uri && editor) { uri = editor.document.uri; }
       result = result.replace(/\$\{workspaceFolder\}/g, m => {
-        return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
+        return URIWorkspaceFolder(uri, workspaceFolder => {
           return workspaceFolder.uri.fsPath;
         });
       });
@@ -168,7 +199,7 @@ function activate(context) {
         return wsf.uri.fsPath;
       });
       result = result.replace(/\$\{workspaceFolderBasename\}/g, m => {
-        return common.activeWorkspaceFolderEditorOptional( workspaceFolder => {
+        return URIWorkspaceFolder(uri, workspaceFolder => {
           return path.basename(workspaceFolder.uri.fsPath);
         });
       });
@@ -189,17 +220,21 @@ function activate(context) {
       }
       if (result === undefined) { return undefined; }
 
-      if (!editor) { return result; }
-      var fileFSPath = editor.document.uri.fsPath;
+      if (!uri) { return result; }
+      const fileFSPath = uri.fsPath;
       result = result.replace(/\$\{file\}/g, fileFSPath);
-      let relativeFile = common.activeWorkspaceFolder( workspaceFolder => {
-        return fileFSPath.substring(workspaceFolder.uri.fsPath.length + 1); // remove extra separator;
+      const relativeFile = URIWorkspaceFolder(uri, workspaceFolder => {
+        const wsfFSPath = workspaceFolder.uri.fsPath;
+        if (fileFSPath.startsWith(wsfFSPath)) {
+          return fileFSPath.substring(wsfFSPath.length + 1); // remove extra separator;
+        }
+        return 'Unknown';
       });
       result = result.replace(/\$\{relativeFile\}/g, relativeFile);
-      const editorPath = editor.document.uri.path;
-      const lastSep = editorPath.lastIndexOf('/');
+      const filePath = uri.path;
+      const lastSep = filePath.lastIndexOf('/');
       if (lastSep === -1) { return result; }
-      const fileBasename = editorPath.substring(lastSep+1);
+      const fileBasename = filePath.substring(lastSep+1);
       result = result.replace(/\$\{fileBasename\}/g, fileBasename);
       const lastDot = fileBasename.lastIndexOf('.');
       const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;
@@ -208,7 +243,10 @@ function activate(context) {
       result = result.replace(/\$\{fileExtname\}/g, fileExtname);
       let fileDirname = fileFSPath.substring(0, fileFSPath.length-(fileBasename.length+1));
       result = result.replace(/\$\{fileDirname\}/g, fileDirname);
-      let relativeFileDirname = relativeFile.substring(0, relativeFile.length-(fileBasename.length+1));
+      let relativeFileDirname = relativeFile;
+      if (relativeFile.endsWith(fileBasename)) {
+        relativeFileDirname = relativeFile.substring(0, relativeFile.length-(fileBasename.length+1));
+      }
       result = result.replace(/\$\{relativeFileDirname\}/g, relativeFileDirname);
       return result;
     };
@@ -555,14 +593,21 @@ function activate(context) {
         }
         return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder});
       })
-      .then( picked => {
+      .then(async picked => {
         if (!picked) { return undefined; }
-        if (picked.askValue) { return vscode.window.showInputBox(ignoreFocusOut); }
-        return picked.value;
-      })
-      .then( value => {
-        if (!value) { return undefined; }
-        return storeStringRemember({key: keyRemember}, value);
+        if (picked.askValue) {
+          picked.value = await vscode.window.showInputBox(ignoreFocusOut);
+          if (picked.value !== undefined && picked.value.length > 0) {
+            picked.uri = vscode.Uri.file(picked.value);
+          }
+        }
+        if (picked.value === undefined) { return undefined; }
+        let kvPairs = {};
+        kvPairs[keyRemember] = picked.value;
+        kvPairs[keyRemember+PostfixURI] = picked.uri;
+        let result = storeStringRemember2({key: keyRemember}, kvPairs);
+        result = await transformResult(args, result, '${file}', keyRemember);
+        return getProperty(args, 'empty', false) ? '' : result;
       });
   }
   async function pickFile(args) {
@@ -588,18 +633,18 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.envListSep', () => { return process.platform === 'win32' ? ';' : ':'; })
   );
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.transform', transform));
-  async function transform(args) {
+  async function transform(args, textDefault, uri) {
     args = dblQuest(args, {});
-    let text    = getProperty(args, 'text', "");
+    let text    = getProperty(args, 'text', dblQuest(textDefault, ''));
     let find    = getProperty(args, 'find');
     let replace = getProperty(args, 'replace', "");
     let flags   = getProperty(args, 'flags', "");
     let key     = getProperty(args, 'key', 'transform');
-    text = await variableSubstitution(text, args);
-    find = await variableSubstitution(find, args);
-    replace = await variableSubstitution(replace, args);
-    key = await variableSubstitution(key, args);
-    flags = await variableSubstitution(flags, args);
+    text = await variableSubstitution(text, args, uri);
+    find = await variableSubstitution(find, args, uri);
+    replace = await variableSubstitution(replace, args, uri);
+    key = await variableSubstitution(key, args, uri);
+    flags = await variableSubstitution(flags, args, uri);
     if (text && find) {
       text = text.replace(new RegExp(find, flags), replace);
     }
@@ -654,7 +699,7 @@ function activate(context) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.remember', async args => {
-      return common.rememberCommand(common.checkIfArgsIsLaunchConfig(args), variableSubstitution);
+      return remember(common.checkIfArgsIsLaunchConfig(args));
     })
   );
   // ******************************************************************

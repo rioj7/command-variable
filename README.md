@@ -32,12 +32,14 @@ Not all commands are supported yet in the web extension version. Supported comma
 * [Transform](#transform)
 * [Variables](#variables)
   * [`${workspaceFolder}`](#variable-workspacefolder)
+  * [`${workspaceFolderBasename}`](#variable-workspacefolderbasename)
   * [`${selectedText}`](#variable-selectedtext)
   * [`${pickStringRemember}`](#variable-pickstringremember)
   * [`${promptStringRemember}`](#variable-promptstringremember)
   * [`${pickFile}`](#variable-pickfile)
   * [`${command}`](#variable-command)
   * [`${transform}`](#variable-transform)
+  * [`${remember}`](#variable-remember)
 * [`checkEscapedUI`](#checkescapedui)
 * [Workspace name in `argument`](#workspace-name-in-argument)
 * [UUID](#uuid)
@@ -679,7 +681,7 @@ You can set the following properties to this command:
       * `path` : file system path of directory
       * `label` : used in certain transformations
     * `labelTransform` : (Optional) An array of strings of the transformations to apply to the pickList label when it is longer than the setting: [`commandvariable.file.pickFile.labelMaximumLength`](#settings)  
-      Transformations are applied in the order defined to the pickList label as long it is too large.  
+      Transformations are applied to the pickList label in the order defined as long as it is too large.  
       Possible transformations are:
         * `useLabel` : regardless of the current length use the label property if defined in the entry in the `predefined` property.
         * `hasLabel` : if current length is too large use the label property if defined in the entry in the `predefined` property.
@@ -705,6 +707,8 @@ You can set the following properties to this command:
     ```
 * `showDirs` : [ `true` | `false` ] If `true`: Show the directories that contain files that are found. The result of the pick is a directory path. (default: `false`)
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+* `transform`: (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
+* `empty` : (Optional) [ `true` | `false` ] The full file path is saved for the given `keyRemember`. If `true`: result of command is the empty string. Can be used with [`remember:transform`](#remember) command or variable. This is the last test of the command (it overrules a possible `transform`). (default: `false`)
 
 Example:
 
@@ -730,6 +734,42 @@ Example:
       "args": {
         "include": "**/*.{htm,html,xhtml}",
         "exclude": "**/{scratch,backup}/**"
+      }
+    }
+  ]
+}
+```
+
+If you want the directory name of the picked file but using forward slash (on Windows, see [issue #47](https://github.com/rioj7/command-variable/issues/47))
+
+```jsonc
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo FilePick Dirname Forward Slash",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:filePickDirnameForwardSlash}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "filePickDirnameForwardSlash",
+      "type": "command",
+      "command": "extension.commandvariable.file.pickFile",
+      "args": {
+        "include": "**/*.{htm,html,xhtml}",
+        "exclude": "**/{scratch,backup}/**",
+        "transform": {
+          "text": "${fileDirname}",
+          "find": "\\\\",  // Reason for four '\': https://stackoverflow.com/a/4025505/2909854
+          "replace": "/",
+          "flags": "g"
+        }
       }
     }
   ]
@@ -855,8 +895,9 @@ The `args` property of this command is an object with the properties:
 * `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables). (default: `"empty"`)  
    To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+* `transform`: (Optional) (**Not in Web**) an object with the same properties as the [`transform`](#transform) command. It allows to find and replace in the string or to extract part of the [`file.pickFile`](#pick-file) picked file URI by using a [variable](#variables). The default value of the `text` property is `${result}`. This is the value stored in the remember store for the given `key`.
 
-If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command.
+If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command or the `transform` property.
 
 The default content of the remember store:
 
@@ -873,6 +914,7 @@ The example is a bit contrived but it shows how you can store _key_-_value_ pair
       "type": "shell",
       "command": "${config:python.pythonPath}${input:rememberConfig}",
       "args": [
+        "my_script.py",
         "${input:remember.path}",
         "${input:remember.name}"
       ],
@@ -899,6 +941,41 @@ The example is a bit contrived but it shows how you can store _key_-_value_ pair
       "type": "command",
       "command": "extension.commandvariable.remember",
       "args": { "key": "name" }
+    }
+  ]
+}
+```
+
+If you have picked a file, the `key` used is `sourceFile`, and you don't want the full file path you can get certain parts with the `transform` property:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DoSomething2",
+      "type": "shell",
+      "command": "${config:python.pythonPath}",
+      "args": [
+        "my_script2.py",
+        "${input:remember.showWorkspace}",
+        "${input:remember.showBasename}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "remember.showWorkspace",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "sourceFile", "transform": { "text": "${workspaceFolder}" } }
+    },
+    {
+      "id": "remember.showBasename",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "sourceFile", "transform": { "text": "${fileBasename}" } }
     }
   ]
 }
@@ -1368,6 +1445,8 @@ We can use this command to construct custom variables by setting the `text` argu
 
 Many strings of commands support variables.
 
+If the variable substitution is done with a [`pickFile:transform`](#pick-file) or [`remember:transform`](#remember) of a picked file, command or variable, the text "**current opened file**" should be replaced with "**picked file**".
+
 VSC does not perform [variable substitution](https://code.visualstudio.com/docs/editor/variables-reference) in the strings of the `inputs` fields, so currently only a selection of variables is replicated here:
 
 * `${selectedText}` : a joined string constructed from the (multi cursor) selections.<br/>You can [overide the used properties by embedding them in the variable](#variable-selectedtext)
@@ -1394,12 +1473,14 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
     * `keyRemember` argument of the `pickFile` or `fileContent` variable/command
     * or a key used in storing multiple values in the `remember` command.
 
-  You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a _named argument object_ like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.
+  You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a _named argument object_ like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.  
+  See a few [examples of the `${remember}` variable](#variable-remember).
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#variable-pickfile)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
 * <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
+* <code>&dollar;{result}</code> : a special variable used in the [`remember:transform:text`](#remember) property. It contains the string stored for the given `key`. In all other cases it is the empty string.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 
@@ -1432,16 +1513,25 @@ The variables are processed in the order mentioned. This means that if the selec
 
 ### Variable `workspaceFolder`
 
-The variable `${workspaceFolder}` is only valid in certain cases:
+The variable `${workspaceFolder}` is only valid in certain cases and depends on the URI of a file:
 
-| File Open | Workspace | `${workspaceFolder}` |
-| ---- | ---------  | --- |
-| No   | No         | `"Unknown"` and Error: `"No Folder"` |
-| No   | Folder     | Path of the open folder |
-| No   | Multi Root | `"Unknown"` and Error: `"Use workspace name"` |
-| Yes  | No         | `"Unknown"` and Error: `"No Folder"` |
-| Yes  | Folder     | Path of the open folder |
-| Yes  | Multi Root | Path of the workspace containing current file or first workspace in the list |
+The URI used is:
+
+| location `${workspaceFolder}` | File Open | URI |
+| ---- | ---- | ---- |
+| `pickFile:transform` | -- | URI of the picked file |
+| `remember:transform` of a picked file | -- | URI of the picked file |
+| other | No | `undefined` |
+| other | Yes | URI of the open file |
+
+Be aware that "**other**" also refers to the `pickFile:fromFolder` property.
+
+| URI  | Workspace | `${workspaceFolder}` |
+| ---- | ---- | ---- |
+| --  | No     | `"Unknown"` and Error: `"No Folder"` |
+| --  | Folder | Path of the open folder |
+| `undefined` | Multi Root | `"Unknown"` and Error: `"Use workspace name"` |
+| valid  | Multi Root | Path of the workspace containing URI or first workspace in the list |
 
 An example:
 
@@ -1460,6 +1550,10 @@ An example:
 ```
 ${workspaceFolder:/websiteA/server}
 ```
+
+### Variable `workspaceFolderBasename`
+
+The variable `${workspaceFolderBasename}` uses the same strategy as variable [`${workspaceFolder}`](#variable-workspacefolder) to determine the workspace to use.
 
 ### Variable `selectedText`
 
@@ -1742,6 +1836,80 @@ Say you have a command/script that wants a series of numbers and they can be in 
                 }
               }
             }
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+### Variable `remember`
+
+If you want to use one of the stored values you can use the <code>${remember:<em>name</em>}</code> variable in the `text` property of the `extension.commandvariable.transform` command.
+
+#### Key name
+
+If you only want to retreive a value for a stored key just use the key name <code>${remember:<em>key_name</em>}</code>.
+
+The value for `key` `serverPortNr` was stored with another command.
+
+```json
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo Server Port",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "Attach to port ${input:severPortNr}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "severPortNr",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "${remember:serverPortNr}"
+      }
+    }
+  ]
+}
+```
+
+#### Named Arguments
+
+If you want to pass more arguments to the `remember` command you have to put these in the arguments of the parent command in the property `remember`. (Just like with the [<code>${pickStringRemember:<em>name</em>}</code> variable](#variable-pickstringremember))
+
+If you have picked a file, the `key` used is `sourceFile`, and you don't want the full file path you can get certain parts with the `transform` property:
+
+```json
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "label": "echo Source file",
+      "type": "shell",
+      "command": "echo",
+      "args": [ "${input:sourceFileInfo}" ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "sourceFileInfo",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "text": "From Workspace ${remember:showWorkspace} we use ${remember:showBasename}",
+        "remember": {
+          "showWorkspace": {
+            "key": "sourceFile",
+            "transform": { "text": "${workspaceFolder}" }
+          },
+          "showBasename": {
+            "key": "sourceFile",
+            "transform": { "text": "${fileBasename}" }
           }
         }
       }

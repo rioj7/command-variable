@@ -137,11 +137,23 @@ function activate(context) {
   async function command(args) {
     let command = getProperty(args, 'command');
     if (!command) { return 'Unknown'; }
-    return vscode.commands.executeCommand(command, getProperty(args, 'args'));
+    let command_args = getProperty(args, 'args');
+    if (utils.getProperty(args, "variableSubstArgs", false) === true) {
+      for (const key in command_args) {
+        let arg = utils.getProperty(command_args, key);
+        arg = await variableSubstitution(arg, command_args);
+        if (arg === undefined) { return undefined; }
+        command_args[key] = arg;
+      }
+    }
+    return vscode.commands.executeCommand(command, command_args);
   }
   async function remember(args) { // make it async so it can be used with asyncVariable
     let result = common.rememberCommand(args, variableSubstitution);
     return transformResult(args, result, '${result}', args.key);
+  }
+  async function pickStringRemember(args) { // make it async so it can be used with asyncVariable
+    return common.pickStringRemember(args, variableSubstitution);
   }
   var asyncVariable = async (text, args, func) => {
     if (text === undefined) { return undefined; }  // escaped a UI element
@@ -205,7 +217,7 @@ function activate(context) {
       });
       result = await asyncVariable(result, args, transform);
       result = await asyncVariable(result, args, command);
-      result = await asyncVariable(result, args, common.pickStringRemember);
+      result = await asyncVariable(result, args, pickStringRemember);
       result = await asyncVariable(result, args, common.promptStringRemember);
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);

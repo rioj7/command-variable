@@ -995,6 +995,12 @@ The command has the following configuration attributes:
 * `options` : An array that can contain the following elements:
   * `string` : The label in the pickList and the value returned are this string.
   * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
+  * An object with the following attributes:
+    * `value`: The value returned when selected.
+    * `label`: (Optional) The label to be displayed for the item in the pick list. If not specified, the `value` is used as the label in the pick list.
+    * `description`: (Optional) The description to be used for the item in the pick list. If not specified and `label` is specified, the `value` is used as the description in the pick list, otherwise no description is used in the pick list.
+    * `preProcess`: (Optional) If `true`, any [variables](#variables) within the `value` are expanded prior to displaying the pick list. If the expansion of the variables requires user interaction, then that interaction will occur prior to the pick list being displayed.
+
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
@@ -1161,9 +1167,9 @@ An example task that picks multiple values:
       "args": {
         "key": "path",
         "options": [
-          ["project1", {"path":"p1","name":"n1","link":"lnk1","anyOther":"any1"}],
-          ["project2", {"path":"p2","name":"n2","link":"lnk2","anyOther":"any2"}]
-         ],
+          { "label": "project1", "value": {"path":"p1","name":"n1","link":"lnk1","anyOther":"any1"}, "description": "Project 1 description" },
+          { "label": "project2", "value": {"path":"p2","name":"n2","link":"lnk2","anyOther":"any2"}, "description": "Project 2 description" }
+        ],
         "description": "Pick a project"
       }
     },
@@ -1209,9 +1215,9 @@ If you have a `src` directory with a lot of subdirs and you want to run `cpplint
       "args": {
         "description": "Which directory to Lint for C++?",
         "options": [
-          ["Use previous directory", "${remember:lintPath}"],
-          ["All", "all"],
-          ["Pick directory", "${pickFile:srcSubDir}"]
+          { "label": "Use previous directory", "value": "${remember:lintPath}", "preProcess": true },
+          { "label": "All", "value": "all" },
+          { "label": "Pick directory", "value": "${pickFile:srcSubDir}", "description": "Select to pick a directory" }
         ],
         "rememberTransformed": true,
         "key": "lintPath",

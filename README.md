@@ -994,7 +994,15 @@ The command has the following configuration attributes:
   (**Not in Web**) It can contain [variables](#variables).
 * `options` : An array that can contain the following elements:
   * `string` : The label in the pickList and the value returned are this string.
-  * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.  
+  * <code>[<em>label</em>,<em>value</em>]</code> tuple : The label in the pickList is the first element of the tuple, the second element is the value returned and the description in the pickList.
+  * An object with the following attributes:
+    * `value` : The value returned when selected.  
+      (**Not in Web**) Any [variables](#variables) are resolved when item is picked.
+    * `label` : (Optional) The label to be displayed for the item in the pick list. If not specified, the `value` is used.  
+      (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
+    * `description`: (Optional) The description to be used for the item in the pick list.  
+      (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
+
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
@@ -1212,6 +1220,66 @@ If you have a `src` directory with a lot of subdirs and you want to run `cpplint
           ["Use previous directory", "${remember:lintPath}"],
           ["All", "all"],
           ["Pick directory", "${pickFile:srcSubDir}"]
+        ],
+        "rememberTransformed": true,
+        "key": "lintPath",
+        "pickFile": {
+          "srcSubDir": {
+            "description": "Which directory?",
+            "include": "src/**/*.{cpp,h}",
+            "showDirs": true,
+            "keyRemember": "srcSubDir"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+We can also use the object variant of the `options`, this allows us to show resolved variables in the pick list.
+
+Possibilities for the `Use previous directory` are:
+
+* Only show the label text  
+  ```json
+  { "label": "Use previous directory", "value": "${remember:lintPath}" }
+  ```
+* Only show the label text but variables resolved  
+  ```json
+  { "label": "${remember:lintPath}", "value": "${remember:lintPath}" }
+  ```
+* Show the resolved variables in the description  
+  ```json
+  { "label": "Use previous directory:",
+     "description": "${remember:lintPath}",
+     "value": "${remember:lintPath}"
+  }
+  ```
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cpp lint",
+      "type": "shell",
+      "command": "cpplint ${input:selectDir}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectDir",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which directory to Lint for C++?",
+        "options": [
+          { "label": "Use previous directory",
+            "description": "${remember:lintPath}",
+            "value": "${remember:lintPath}" }
+          { "label": "All", "value": "all" },
+          { "label": "Pick directory", "value": "${pickFile:srcSubDir}" }
         ],
         "rememberTransformed": true,
         "key": "lintPath",

@@ -175,6 +175,20 @@ async function pickStringRemember(args, processPick) {
     if (utils.isArray(option) && (option.length === 2)) {
       qpItem = {value:option[1], label:option[0], description:toString(option[1])};
     }
+    if (utils.isObject(option)) {
+      let value = utils.getProperty(option, "value");
+      if (value === undefined) { continue; }
+      let label = utils.getProperty(option, "label");
+      if (label === undefined) { label = toString(value); }
+      else {
+        if (processPick) { label = await processPick(label, args); }
+      }
+      let description = utils.getProperty(option, "description");
+      if (description !== undefined && processPick) {
+        description = await processPick(description, args);
+      }
+      qpItem = {value, label, description};
+    }
     if (qpItem) { qpItems.push(qpItem); }
   }
   let result = await vscode.window.showQuickPick(qpItems, { placeHolder: utils.getProperty(args, 'description', 'Choose:') });

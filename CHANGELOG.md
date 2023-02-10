@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.48.0] 2023-02-10
+### Add
+- `pickStringRemember` options can be an object, variables can be shown resolved in pick list
+
 ## [1.47.0] 2023-01-14
 ### Add
 - `pickFile` and `remember` : transform the result, use part of the picked file path

@@ -740,7 +740,7 @@ Example:
 }
 ```
 
-If you want the directory name of the picked file but using forward slash (on Windows, see [issue #47](https://github.com/rioj7/command-variable/issues/47))
+If you want the directory name of the picked file but using forward slash (on Windows, see [issue 47](https://github.com/rioj7/command-variable/issues/47))
 
 ```jsonc
 {

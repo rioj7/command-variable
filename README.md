@@ -1380,7 +1380,7 @@ The command can be used with the `${input:}` variable and has the following argu
 
 Example:
 
-If you want the directory name of the active editor file but using forward slash (on Windows, see [issue #47](https://github.com/rioj7/command-variable/issues/47))
+If you want the directory name of the active editor file but using forward slash (on Windows, see [issue 47](https://github.com/rioj7/command-variable/issues/47))
 
 ```jsonc
 {

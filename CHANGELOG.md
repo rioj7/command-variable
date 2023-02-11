@@ -1,8 +1,9 @@
 # Change Log
 
-## [1.48.0] 2023-02-10
+## [1.49.0] 2023-02-10
 ### Add
 - `pickStringRemember` options can be an object, variables can be shown resolved in pick list
+- <code>&dollar;{command:<em>name</em>}</code> : variable substitution in `args` of command
 
 ## [1.47.0] 2023-01-14
 ### Add

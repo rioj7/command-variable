@@ -134,10 +134,41 @@ function activate(context) {
     }
     return result;
   }
+  async function dataStructVariableSubstitution(v, args, uri) {
+    if (isString(v)) {
+      return variableSubstitution(v, args, uri);
+    }
+    if (Array.isArray(v)) {
+      let result = [];
+      for (const v1 of v) {
+        let v1a = await dataStructVariableSubstitution(v1, args, uri);
+        if (v1a === undefined) { return undefined; }
+        result.push(v1a);
+      }
+      return result;
+    }
+    if (utils.isObject(v)) {
+      let result = {};
+      for (const key in v) {
+        if (v.hasOwnProperty(key)) {
+          let v1a = await dataStructVariableSubstitution(v[key], args, uri);
+          if (v1a === undefined) { return undefined; }
+          result[key] = v1a;
+        }
+      }
+      return result;
+    }
+    return v;
+  }
   async function command(args) {
     let command = getProperty(args, 'command');
     if (!command) { return 'Unknown'; }
-    return vscode.commands.executeCommand(command, getProperty(args, 'args'));
+    let command_args = getProperty(args, 'args');
+    if (utils.getProperty(args, "variableSubstArgs")) {
+      command_args = await dataStructVariableSubstitution(command_args, args);
+      if (command_args === undefined) { return undefined; }
+    }
+    return vscode.commands.executeCommand(command, command_args);
   }
   async function remember(args) { // make it async so it can be used with asyncVariable
     let result = common.rememberCommand(args, variableSubstitution);

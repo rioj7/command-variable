@@ -174,6 +174,9 @@ function activate(context) {
     let result = common.rememberCommand(args, variableSubstitution);
     return transformResult(args, result, '${result}', args.key);
   }
+  async function pickStringRemember(args) { // pass variableSubstitution
+    return common.pickStringRemember(args, variableSubstitution);
+  }
   var asyncVariable = async (text, args, func) => {
     if (text === undefined) { return undefined; }  // escaped a UI element
     let asyncArgs = [];
@@ -236,7 +239,7 @@ function activate(context) {
       });
       result = await asyncVariable(result, args, transform);
       result = await asyncVariable(result, args, command);
-      result = await asyncVariable(result, args, common.pickStringRemember);
+      result = await asyncVariable(result, args, pickStringRemember);
       result = await asyncVariable(result, args, common.promptStringRemember);
       result = await asyncVariable(result, args, pickFile);
       result = await asyncVariable(result, args, fileContent);

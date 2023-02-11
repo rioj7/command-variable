@@ -1893,7 +1893,16 @@ The following example shows how the `variableSubstArgs` option can be used to ex
               "pickAnOption": {
                 "key": "selectedOption",
                 "description": "Pick an option",
-                "options": [ "Option A", "Option B" ]
+                "options": [
+                  { "label": "Previous option:",
+                    "value": "${remember:selectedOption}",
+                    "description": "${remember:selectedOption}"
+                  },
+                  "Option A",
+                  "Option B",
+                  "Option C",
+                  "Option D"
+                ]
               }
             }
           }

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.49.2] 2023-04-04
+### Modified
+- `transform` only perform variable substitution on `replace` when `find` is found in `text`
+
 ## [1.49.1] 2023-02-11
 ### Add
 - `pickStringRemember` options can be an object, variables can be shown resolved in pick list

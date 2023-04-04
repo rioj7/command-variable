@@ -681,11 +681,14 @@ function activate(context) {
       apply = [ {find, replace, flags} ]
     }
     for (const fr of apply) {
-      find    = await variableSubstitution(getProperty(fr, 'find'), args, uri);
-      replace = await variableSubstitution(getProperty(fr, 'replace', ""), args, uri);
-      flags   = await variableSubstitution(getProperty(fr, 'flags', ""), args, uri);
+      find = await variableSubstitution(getProperty(fr, 'find'), args, uri);
       if (text && find) {
-        text = text.replace(new RegExp(find, flags), replace);
+        flags = await variableSubstitution(getProperty(fr, 'flags', ""), args, uri);
+        let regex = new RegExp(find, flags);
+        if (!regex.test(text)) { continue; }
+        replace = await variableSubstitution(getProperty(fr, 'replace', ""), args, uri);
+        regex.lastIndex = 0;
+        text = text.replace(regex, replace);
       }
     }
     return storeStringRemember2({ key }, text);

@@ -1430,12 +1430,13 @@ The command can be used with the `${input:}` variable and has the following argu
 
 * `text` : the string where you want to apply a find-replace. It can contain a selection of [variables](#variables) and literal text.
 * `find` : (Optional) the Regular Expression to search in `text`. Can contain capture groups and [variables](#variables). If no `find` argument there is no `find-replace` operation.
-* `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`) and [variables](#variables), default (`""`)
+* `replace` : (Optional) the replace string of what is matched by `find`, can contain group references (`$1`) and [variables](#variables), variables are only evaluated when `find` is found in `text`, default (`""`)
 * `flags` : (Optional) the flags to be used in the Regular Expression, like `gims`, default (`""`)
     * `g` : replace all occurences (global)
     * `i` : find case insensitive
 * `apply` : (Optional) defines a sequence of find-replace operations.  
   It is an array of objects, each object can have the properties: `find`, `replace` and `flags`.  
+  If `apply` is defined: `find`, `replace` and `flags` sibling properties are ignored.  
   See [`${transform}`](#variable-transform) variable for an example.
 * `key` : (Optional) It is used to [store and retrieve](#remember) the transformed string. (default: `transform` )
 * `separator` : (Optional) the string used to join the (multi cursor) selections for `${selectedText}`, default (`"\n"`)

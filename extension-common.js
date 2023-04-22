@@ -162,44 +162,120 @@ function toString(obj) {
   }
   return obj.toString();
 }
+
+class PickStringGroup {
+  constructor(name, label, minCount, maxCount) {
+    this.name = name;
+    this.label = label;
+    this.minCount = minCount;
+    this.maxCount = maxCount;
+    this.itemLabels = [];
+  }
+  addItemLabel(itemLabel) {
+    this.itemLabels.push(itemLabel);
+  }
+  checkConstraint(pickedLabels) {
+    let pickCount = this.itemLabels.filter(s => pickedLabels.includes(s)).length;
+    let violation = false;
+    if (this.minCount && (pickCount < this.minCount)) { violation = true; }
+    if (this.maxCount && (pickCount > this.maxCount)) { violation = true; }
+    if (violation) {
+      utils.errorMessage(`Constraint violation in group: ${this.label} selected: ${pickCount}${this.minCount ? ' min: '+this.minCount.toString() : ''}${this.maxCount ? ' max: '+this.maxCount.toString() : ''}`);
+    }
+    return !violation;
+  }
+}
+
 async function pickStringRemember(args, processPick) {
   args = utils.dblQuest(args, {});
   args.key = utils.getProperty(args, 'key', 'pickString');
   if (checkEscapedUI(args)) { return undefined; }
-  let qpItems = [];
-  for (const option of utils.getProperty(args, 'options', ['item1', 'item2'])) {
-    let qpItem = undefined;
-    if (utils.isString(option)) {
-      qpItem = {value:option, label:option};
-    }
-    if (utils.isArray(option) && (option.length === 2)) {
-      qpItem = {value:option[1], label:option[0], description:toString(option[1])};
-    }
-    if (utils.isObject(option)) {
-      let value = utils.getProperty(option, "value");
-      if (value === undefined) { continue; }
-      let label = utils.getProperty(option, "label");
-      if (label === undefined) { label = toString(value); }
-      else {
-        if (processPick) { label = await processPick(label, args); }
-      }
-      let description = utils.getProperty(option, "description");
-      if (description !== undefined && processPick) {
-        description = await processPick(description, args);
-      }
-      qpItem = {value, label, description};
-    }
-    if (qpItem) { qpItems.push(qpItem); }
+  let multiPick = utils.getProperty(args, 'multiPick');
+  let multiPickLabelSeparator = '@zyx@';
+  let multiPickLabelKey = 'pickStringMultiPick@@' + args.key;
+  let previousPicked = getRememberKey(multiPickLabelKey, 'empty').split(multiPickLabelSeparator);
+  let optionGroups = utils.getProperty(args, 'optionGroups');
+  if (!optionGroups) {
+    optionGroups = [ {options: utils.getProperty(args, 'options', ['item1', 'item2'])} ];
   }
-  let result = await vscode.window.showQuickPick(qpItems, { placeHolder: utils.getProperty(args, 'description', 'Choose:') });
-  if (result === undefined) {
-    result = utils.getDefaultProperty(args);
-    if (result && processPick) {
-      result = await processPick(result, args);
+  let result = undefined;
+  const quickPickSeparator = -1;
+  while (true) {
+    let qpItems = [];
+    let groups = [];
+    for (const optionGroup of optionGroups) {
+      let name = utils.getProperty(optionGroup, 'name');
+      let groupLabel = utils.getProperty(optionGroup, 'label', name);
+      let minCount = utils.getProperty(optionGroup, 'minCount');
+      let maxCount = utils.getProperty(optionGroup, 'maxCount');
+      if (groupLabel !== undefined || minCount !== undefined || maxCount !== undefined) {
+        let separatorLabel = groupLabel ? ` ${groupLabel} ` : '';
+        separatorLabel = `—${separatorLabel}—`;
+        if (minCount !== undefined) { separatorLabel += ` min: ${minCount}`; }
+        if (maxCount !== undefined) { separatorLabel += ` max: ${maxCount}`; }
+        qpItems.push({label: separatorLabel, kind:quickPickSeparator});
+      } else {
+        if (groups.length >= 1) {
+          qpItems.push({label: '', kind:quickPickSeparator});
+        }
+      }
+      name = name ? name : `group-${groups.length + 1}`;
+      groupLabel = groupLabel ? groupLabel : name;
+      let group = new PickStringGroup(name, groupLabel, minCount, maxCount);
+      groups.push(group);
+      for (const option of utils.getProperty(optionGroup, 'options', ['item1', 'item2'])) {
+        let qpItem = undefined;
+        if (utils.isString(option)) {
+          qpItem = {value:option, label:option};
+        }
+        if (utils.isArray(option) && (option.length === 2)) {
+          qpItem = {value:option[1], label:option[0], description:toString(option[1])};
+        }
+        if (utils.isObject(option)) {
+          let value = utils.getProperty(option, "value");
+          if (value === undefined) { continue; }
+          let label = utils.getProperty(option, "label");
+          if (label === undefined) { label = toString(value); }
+          if (processPick) { label = await processPick(label, args); }
+          let description = utils.getProperty(option, "description");
+          if (description !== undefined && processPick) {
+            description = await processPick(description, args);
+          }
+          qpItem = {value, label, description};
+        }
+        if (qpItem) {
+          // @ts-ignore
+          qpItem.picked = previousPicked.includes(qpItem.label);
+          qpItems.push(qpItem);
+          group.addItemLabel(qpItem.label);
+        }
+      }
     }
-    return storeEscapedUI(result);
+    result = await vscode.window.showQuickPick(qpItems, {
+      placeHolder: utils.getProperty(args, 'description', 'Choose:'),
+      canPickMany: multiPick
+    });
+    if (result === undefined) {
+      result = utils.getDefaultProperty(args);
+      if (result && processPick) {
+        result = await processPick(result, args);
+      }
+      return storeEscapedUI(result);
+    }
+    if (multiPick) {
+      previousPicked = result.map(e => e.label);
+    }
+    if (groups.every(g => g.checkConstraint(previousPicked))) {
+      break;
+    }
+  }
+  if (multiPick) {
+    storeStringRemember2({key: multiPickLabelKey}, previousPicked.join(multiPickLabelSeparator));
+    // @ts-ignore
+    result = { value: result.map(e => e.value).join(utils.getProperty(args, 'separator', ' '))};
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
+  // @ts-ignore
   result = result.value;
   if (utils.isObject(result) || !rememberTransformed) {
     result = storeStringRemember2(args, result);

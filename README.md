@@ -1005,8 +1005,17 @@ The command has the following configuration attributes:
 
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
+* `optionGroups` : An array that contains groups of options with constraint checks. If `optionGroups` is defined the property `options` is ignored.  
+  If a group has a constraint the `pickStringRemember` is not accepted until all constraints are met.  
+  An option group is an object with the properties:
+  * `label` : (Optional) A description of the group shown in the top right of the group (below separator line)
+  * `minCount` : [_number_] (Optional) If defined a check is performed if the number of items selected is at least `minCount`, also shown in the top right of the group
+  * `maxCount` : [_number_] (Optional) If defined a check is performed if the number of items selected is at most `maxCount`, also shown in the top right of the group
+  * `options` : Identical to the `options` property of the `args` attribute
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
+* `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
+* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. The selected items are remembered, for this session, usig the property `key` (default: `false`)
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
@@ -1142,7 +1151,7 @@ If you have additional options in a file:
 }
 ```
 
-An example task that picks multiple values:
+An example task that stores multiple values:
 
 ```json
 {
@@ -1291,6 +1300,61 @@ Possibilities for the `Use previous directory` are:
             "keyRemember": "srcSubDir"
           }
         }
+      }
+    }
+  ]
+}
+```
+
+If you have a C++ build task that has many options and you sometimes have to select 1 or more items in a group:
+
+The actual compile task is not shown. It depends on the used compiler. The task uses the variable: `${input:cpp-options-powerAI}`
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    .....
+  ],
+  "inputs": [
+    {
+      "id": "cpp-options-powerAI",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "C++ build options",
+        "key": "cpp-build-powerAI",
+        "multiPick": true,
+        "optionGroups": [
+          {
+            "label": "Debug / Release",
+            "minCount": 1,
+            "maxCount": 1,
+            "options": [
+              ["debug", "-g"],
+              ["release", "-O2"]
+            ]
+          },
+          {
+            "label": "C++ standard",
+            "minCount": 1,
+            "maxCount": 1,
+            "options": [
+              ["C++11", "-std=c++11"],
+              ["C++14", "-std=c++14"],
+              ["C++17", "-std=c++17"],
+              ["C++20", "-std=c++20"]
+            ]
+          },
+          {
+            "label": "Log Options",
+            "options": [
+              ["Input", "-log=input"],
+              ["Output", "-log=output"],
+              ["Training", "-log=training"]
+            ]
+          }
+        ]
       }
     }
   ]

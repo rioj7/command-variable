@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.50.0] 2023-04-22
+### Added
+- `pickStringRemember` multi pick items and remember previous multi pick
+- `pickStringRemember` create (named) item groups with optional `minCount` and `maxCount` constraint
+
 ## [1.49.2] 2023-04-04
 ### Modified
 - `transform` only perform variable substitution on `replace` when `find` is found in `text`

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.51.0] 2023-04-2X
+### Modified
+- `pickStringRemember` remember previous multi pick items persistent (global or workspace)
+
 ## [1.50.0] 2023-04-22
 ### Added
 - `pickStringRemember` multi pick items and remember previous multi pick

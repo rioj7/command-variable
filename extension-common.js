@@ -2,6 +2,9 @@ const vscode = require('vscode');
 const UUID = require('./uuid');
 const utils = require('./utils');
 
+/** @type {vscode.ExtensionContext} */
+let extensionContext = undefined;
+
 let deprecationStore = {};
 let gDeprecationRememberPickVariable = 'rememberPickVariable';
 let gDeprecationRememberPickCommand = 'rememberPickCommand';
@@ -191,9 +194,10 @@ async function pickStringRemember(args, processPick) {
   args.key = utils.getProperty(args, 'key', 'pickString');
   if (checkEscapedUI(args)) { return undefined; }
   let multiPick = utils.getProperty(args, 'multiPick');
+  let multiPickStorage = utils.getProperty(args, 'multiPickStorage') === 'global' ? extensionContext.globalState : extensionContext.workspaceState;
   let multiPickLabelSeparator = '@zyx@';
-  let multiPickLabelKey = 'pickStringMultiPick@@' + args.key;
-  let previousPicked = getRememberKey(multiPickLabelKey, 'empty').split(multiPickLabelSeparator);
+  let multiPickLabelKey = 'commandvariable:pickStringMultiPick@@' + args.key;
+  let previousPicked = multiPickStorage.get(multiPickLabelKey, '').split(multiPickLabelSeparator);
   let optionGroups = utils.getProperty(args, 'optionGroups');
   if (!optionGroups) {
     optionGroups = [ {options: utils.getProperty(args, 'options', ['item1', 'item2'])} ];
@@ -270,7 +274,11 @@ async function pickStringRemember(args, processPick) {
     }
   }
   if (multiPick) {
-    storeStringRemember2({key: multiPickLabelKey}, previousPicked.join(multiPickLabelSeparator));
+    let prevStored = multiPickStorage.get(multiPickLabelKey, '');
+    let newStored = previousPicked.join(multiPickLabelSeparator);
+    if (newStored !== prevStored) {
+      multiPickStorage.update(multiPickLabelKey, newStored);
+    }
     // @ts-ignore
     result = { value: result.map(e => e.value).join(utils.getProperty(args, 'separator', ' '))};
   }
@@ -343,6 +351,8 @@ function activate(context) {
   const getProperty = utils.getProperty;
   const range = utils.range;
   const dblQuest = utils.dblQuest;
+
+  extensionContext = context;
 
   var basenameNUp = function (dirUriPath, n) {
     const rootParts = dirUriPath.split('/');

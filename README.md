@@ -1015,7 +1015,8 @@ The command has the following configuration attributes:
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
-* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. The selected items are remembered, for this session, usig the property `key` (default: `false`)
+* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. The selected items are remembered persistent, `multiPickStorage` (default: `false`)
+* `multiPickStorage` : [ `"global"` | `"workspace"` ] (Optional) If `multiPick` is `true` the picked items are remembered and stored persistent. This property determines if that is done global or for the current workspace. Using the property `key`. (default: `"workspace"`)
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  

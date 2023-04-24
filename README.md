@@ -1002,6 +1002,9 @@ The command has the following configuration attributes:
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
     * `description`: (Optional) The description to be used for the item in the pick list.  
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
+    * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
+      It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
+    * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on an item it controls if the value of the item is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
 
   The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
   If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
@@ -1012,6 +1015,9 @@ The command has the following configuration attributes:
   * `minCount` : [_number_] (Optional) If defined a check is performed if the number of items selected is at least `minCount`, also shown in the top right of the group
   * `maxCount` : [_number_] (Optional) If defined a check is performed if the number of items selected is at most `maxCount`, also shown in the top right of the group
   * `options` : Identical to the `options` property of the `args` attribute
+  * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
+    It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
+  * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
@@ -1032,6 +1038,24 @@ The command has the following configuration attributes:
 
 If you Escape the UI and a `default` property is given the UI is not marked as Escaped.  
 (**Not in Web**) If the `default` property contains variables that have a UI they can be Escaped and that will be remembered.
+
+The `name` and `label` properties in `options` and `optionGroups` must be unique for this `pickStringRemember`.
+
+### `dependsOn`
+
+The `dependsOn` property of a group or pick item is a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups.
+
+The value of these `name`-variables is the selection count in the group (`0` ... `N`) and for a named pick item it is `0` or `1` depending if it is picked.
+
+The value of the `name`-variables is only calulated once. At the moment of accepting the pickString picked items. If an item in a group is picked but it `dependsOn` expression results in `false` the item is still counted in the group selection count. Otherwise the value of the `name`-variables change by evaluating `dependsOn` expressions that use the value of `name`-variables. Will that eventually converge to a stable situation in all cases?
+
+In boolean expressions the number `0` is treated falsy and any other number is treated truthy.
+
+If groupA has a `dependsOn` with referring to groupB that has a `dependsOn` on _`nameC`_ you must include the `dependsOn` expression of groupB in the groupA's `dependsOn` expression:
+
+`"dependsOn": "((nameC) && groupB)"`
+
+`()` around single variables can be removed. In this example all `()`'s can be removed.
 
 ### Examples
 
@@ -1351,8 +1375,77 @@ The actual compile task is not shown. It depends on the used compiler. The task 
             "label": "Log Options",
             "options": [
               ["Input", "-log=input"],
-              ["Output", "-log=output"],
-              ["Training", "-log=training"]
+              ["Output", "-log=output"]
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+An example of using `dependsOn` to select the arguments for an application:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    .....
+  ],
+  "inputs": [
+    {
+      "id": "powerAI",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Execution arguments",
+        "key": "run-powerAI",
+        "multiPick": true,
+        "optionGroups": [
+          {
+            "label": "Debug / Release",
+            "minCount": 1,
+            "maxCount": 1,
+            "options": [
+              {"label": "debug", "value": "--debugg", "name": "debug"},
+              {"label": "release", "value": "--release", "name": "release"}
+            ]
+          },
+          {
+            "label": "Port Number",
+            "minCount": 1,
+            "maxCount": 2,
+            "dependsOn": "release",
+            "options": [
+              ["development", "5000"],
+              ["staging", "5100"],
+              ["live", "5200"]
+            ]
+          },
+          {
+            "label": "Logging",
+            "name": "logging",
+            "dependsOn": "debug",
+            "options": [
+              ["Logging", "--logging"]
+            ]
+          },
+          {
+            "label": "Training",
+            "name": "training",
+            "options": [
+              ["Training", "--training"]
+            ]
+          },
+          {
+            "label": "Log Options",
+            "minCount": 1,
+            "dependsOn": "debug && logging",
+            "options": [
+              ["Log Input", "--log=input"],
+              ["Log Output", "--log=output"],
+              {"label": "Log Training", "value": "--log=training", "dependsOn": "training"}
             ]
           }
         ]

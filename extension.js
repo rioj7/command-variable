@@ -94,6 +94,7 @@ function activate(context) {
   const storeStringRemember2 = common.storeStringRemember2;
   const getRememberKey = common.getRememberKey;
   const getConfig = () => vscode.workspace.getConfiguration("commandvariable", null);
+  const getExpressionFunction = common.getExpressionFunction;
 
   common.setAsDesktopExtension();
   common.activate(context);
@@ -446,16 +447,6 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.file.content: readFileContent: read file before utf8 conversion`); }
     return utf8_to_str(contentUTF8);
   };
-  function getExpressionFunction(expr) {
-    try {
-      return Function(`"use strict";return (function calcexpr(content) {
-        return ${expr};
-      })`)();
-    }
-    catch (ex) {
-      vscode.window.showErrorMessage("extension.commandvariable.file.content: Incomplete expression");
-    }
-  }
   async function contentValue(args, content) {
     let expr = undefined;
     let parsedContent = undefined;
@@ -468,7 +459,7 @@ function activate(context) {
     }
     if (expr) {
       expr = await variableSubstitution(expr, args);
-      let value = getExpressionFunction(expr)(parsedContent);
+      let value = getExpressionFunction(expr, 'commandvariable.file.content')(parsedContent);
       if (value === undefined) { return value; }
       return String(value);
     }

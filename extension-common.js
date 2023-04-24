@@ -166,24 +166,81 @@ function toString(obj) {
   return obj.toString();
 }
 
-class PickStringGroup {
-  constructor(name, label, minCount, maxCount) {
+class PickStringMulti {
+  constructor(name, label, dependsOn) {
     this.name = name;
     this.label = label;
+    this.dependsOn = dependsOn ? dependsOn : 'true';
+    this.dependsOnFunc = x => false;  // pass checkConstraint for non multi pick
+    this.pickCount = 0;
+  }
+  collectNames() {
+    let names = [];
+    if (this.name) { names.push(this.name); }
+    return names;
+  }
+  constructDependsOnFunc(definedNamesRegex) {
+    this.dependsOnFunc = getExpressionFunction(this.dependsOn.replace(definedNamesRegex, 'content.$1'), 'commandvariable.pickStringRemember');
+  }
+  calcPickCount(pickedLabels) {
+    this.pickCount = pickedLabels.includes(this.label) ? 1 : 0;
+    return this.pickCount;
+  }
+  updatePickContext(pickContext) {
+    if (this.name) {
+      pickContext[this.name] = this.pickCount;
+    }
+  }
+  allowedLabel(pickContext, label) {
+    return (this.label === label) && this.dependsOnFunc(pickContext);
+  }
+}
+
+class PickStringItem extends PickStringMulti {
+  constructor(name, label, dependsOn) {
+    super(name, label, dependsOn);
+  }
+}
+
+class PickStringGroup extends PickStringMulti {
+  constructor(name, label, minCount, maxCount, dependsOn) {
+    super(name, label, dependsOn);
     this.minCount = minCount;
     this.maxCount = maxCount;
-    this.itemLabels = [];
+    this.items = [];
   }
-  addItemLabel(itemLabel) {
-    this.itemLabels.push(itemLabel);
+  addItem(qpItem) {
+    let label = utils.getProperty(qpItem, 'label');
+    let name = utils.getProperty(qpItem, 'name');
+    let dependsOn = utils.getProperty(qpItem, 'dependsOn');
+    this.items.push(new PickStringItem(name, label, dependsOn));
   }
-  checkConstraint(pickedLabels) {
-    let pickCount = this.itemLabels.filter(s => pickedLabels.includes(s)).length;
+  collectNames() {
+    return super.collectNames().concat(this.items.flatMap(i => i.collectNames()));
+  }
+  constructDependsOnFunc(definedNamesRegex) {
+    super.constructDependsOnFunc(definedNamesRegex);
+    this.items.forEach(i => i.constructDependsOnFunc(definedNamesRegex));
+  }
+  calcPickCount(pickedLabels) {
+    this.pickCount = this.items.reduce((count, item) => count + item.calcPickCount(pickedLabels), 0);
+    return this.pickCount;
+  }
+  updatePickContext(pickContext) {
+    super.updatePickContext(pickContext);
+    this.items.forEach(i => i.updatePickContext(pickContext));
+  }
+  allowedLabel(pickContext, label) {
+    if (!this.dependsOnFunc(pickContext)) { return false; }
+    return this.items.some(i => i.allowedLabel(pickContext, label));
+  }
+  checkConstraint(pickContext) {
+    if (!this.dependsOnFunc(pickContext)) { return true; }
     let violation = false;
-    if (this.minCount && (pickCount < this.minCount)) { violation = true; }
-    if (this.maxCount && (pickCount > this.maxCount)) { violation = true; }
+    if (this.minCount && (this.pickCount < this.minCount)) { violation = true; }
+    if (this.maxCount && (this.pickCount > this.maxCount)) { violation = true; }
     if (violation) {
-      utils.errorMessage(`Constraint violation in group: ${this.label} selected: ${pickCount}${this.minCount ? ' min: '+this.minCount.toString() : ''}${this.maxCount ? ' max: '+this.maxCount.toString() : ''}`);
+      utils.errorMessage(`Constraint violation in group: ${this.label} selected: ${this.pickCount}${this.minCount ? ' min: '+this.minCount.toString() : ''}${this.maxCount ? ' max: '+this.maxCount.toString() : ''}`);
     }
     return !violation;
   }
@@ -203,15 +260,18 @@ async function pickStringRemember(args, processPick) {
     optionGroups = [ {options: utils.getProperty(args, 'options', ['item1', 'item2'])} ];
   }
   let result = undefined;
+  let pickContext = {};
+  let groups = [];
   const quickPickSeparator = -1;
   while (true) {
     let qpItems = [];
-    let groups = [];
+    groups = [];
     for (const optionGroup of optionGroups) {
       let name = utils.getProperty(optionGroup, 'name');
       let groupLabel = utils.getProperty(optionGroup, 'label', name);
       let minCount = utils.getProperty(optionGroup, 'minCount');
       let maxCount = utils.getProperty(optionGroup, 'maxCount');
+      let dependsOn = utils.getProperty(optionGroup, 'dependsOn');
       if (groupLabel !== undefined || minCount !== undefined || maxCount !== undefined) {
         let separatorLabel = groupLabel ? ` ${groupLabel} ` : '';
         separatorLabel = `—${separatorLabel}—`;
@@ -225,7 +285,7 @@ async function pickStringRemember(args, processPick) {
       }
       name = name ? name : `group-${groups.length + 1}`;
       groupLabel = groupLabel ? groupLabel : name;
-      let group = new PickStringGroup(name, groupLabel, minCount, maxCount);
+      let group = new PickStringGroup(name, groupLabel, minCount, maxCount, dependsOn);
       groups.push(group);
       for (const option of utils.getProperty(optionGroup, 'options', ['item1', 'item2'])) {
         let qpItem = undefined;
@@ -245,13 +305,15 @@ async function pickStringRemember(args, processPick) {
           if (description !== undefined && processPick) {
             description = await processPick(description, args);
           }
-          qpItem = {value, label, description};
+          let name = utils.getProperty(option, 'name');
+          let dependsOn = utils.getProperty(option, 'dependsOn');
+          qpItem = {value, label, description, name, dependsOn};
         }
         if (qpItem) {
           // @ts-ignore
           qpItem.picked = previousPicked.includes(qpItem.label);
           qpItems.push(qpItem);
-          group.addItemLabel(qpItem.label);
+          group.addItem(qpItem);
         }
       }
     }
@@ -268,6 +330,12 @@ async function pickStringRemember(args, processPick) {
     }
     if (multiPick) {
       previousPicked = result.map(e => e.label);
+      let definedNames = groups.flatMap(g => g.collectNames());
+      let definedNamesRegex = new RegExp(`\\b(${definedNames.join('|')})\\b`, 'g');
+      groups.forEach(g => g.constructDependsOnFunc(definedNamesRegex));
+      groups.forEach(g => g.calcPickCount(previousPicked));
+      pickContext = {};
+      groups.forEach(g => g.updatePickContext(pickContext));
     }
     if (groups.every(g => g.checkConstraint(previousPicked))) {
       break;
@@ -279,8 +347,7 @@ async function pickStringRemember(args, processPick) {
     if (newStored !== prevStored) {
       multiPickStorage.update(multiPickLabelKey, newStored);
     }
-    // @ts-ignore
-    result = { value: result.map(e => e.value).join(utils.getProperty(args, 'separator', ' '))};
+    result = { value: result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label))).map(e => e.value).join(utils.getProperty(args, 'separator', ' '))};
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
   // @ts-ignore
@@ -307,6 +374,16 @@ async function promptStringRemember(args) {
   args.key = utils.getProperty(args, 'key', 'promptString');
   result = storeStringRemember2(args, result, false);
   return storeEscapedUI(result);
+}
+function getExpressionFunction(expr, commandID) {
+  try {
+    return Function(`"use strict";return (function calcexpr(content) {
+      return ${expr};
+    })`)();
+  }
+  catch (ex) {
+    vscode.window.showErrorMessage(`${commandID}: Incomplete expression`);
+  }
 }
 function getExpressionFunctionFilterSelection(expr) {
   try {
@@ -545,6 +622,7 @@ module.exports = {
   checkEscapedUI,
   storeEscapedUI,
   gRememberPropertyCheckEscapedUI,
+  getExpressionFunction,
   getNamedWorkspaceFolder,
   activeTextEditorVariable,
   activeWorkspaceFolder,

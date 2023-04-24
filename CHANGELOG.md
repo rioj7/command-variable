@@ -1,6 +1,8 @@
 # Change Log
 
-## [1.51.0] 2023-04-2X
+## [1.51.0] 2023-04-24
+### Added
+- `pickStringRemember` multi pick - `dependsOn` : perform group validation based on picked items, filter picked items in output based on other picked items
 ### Modified
 - `pickStringRemember` remember previous multi pick items persistent (global or workspace)
 

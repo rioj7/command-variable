@@ -135,14 +135,14 @@ function activate(context) {
     }
     return result;
   }
-  async function dataStructVariableSubstitution(v, args, uri) {
+  async function dataStructSubstitution(v, cbData, callback) {
     if (isString(v)) {
-      return variableSubstitution(v, args, uri);
+      return callback(v, cbData);
     }
     if (Array.isArray(v)) {
       let result = [];
       for (const v1 of v) {
-        let v1a = await dataStructVariableSubstitution(v1, args, uri);
+        let v1a = await dataStructSubstitution(v1, cbData, callback);
         if (v1a === undefined) { return undefined; }
         result.push(v1a);
       }
@@ -152,7 +152,7 @@ function activate(context) {
       let result = {};
       for (const key in v) {
         if (v.hasOwnProperty(key)) {
-          let v1a = await dataStructVariableSubstitution(v[key], args, uri);
+          let v1a = await dataStructSubstitution(v[key], cbData, callback);
           if (v1a === undefined) { return undefined; }
           result[key] = v1a;
         }
@@ -166,7 +166,7 @@ function activate(context) {
     if (!command) { return 'Unknown'; }
     let command_args = getProperty(args, 'args');
     if (utils.getProperty(args, "variableSubstArgs")) {
-      command_args = await dataStructVariableSubstitution(command_args, args);
+      command_args = await dataStructSubstitution(command_args, args, (s, args) => variableSubstitution(s, args));
       if (command_args === undefined) { return undefined; }
     }
     return vscode.commands.executeCommand(command, command_args);
@@ -705,26 +705,48 @@ function activate(context) {
       if (!args) { args = {}; }
       let fileName = getProperty(args, 'fileName');
       if (fileName) {
-        let pattern = getProperty(args, 'pattern', {});
-        let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'));
-        let labelRepl = getProperty(pattern, 'label', '$1');
-        if (!labelRepl) { return 'Unknown'; }
-        let valueRepl = getProperty(pattern, 'value', labelRepl);
-        let jsonRepl = getProperty(pattern, 'json');
-        const getValue = line => {
-          if (jsonRepl) {
-            let capture = line.replace(regexp, jsonRepl);
-            if (capture) {
-              return JSON.parse(capture);
-            }
-          }
-          return line.replace(regexp, valueRepl);
-        };
+        let fileFormat = getProperty(args, 'fileFormat', 'pattern');
         let content = await readFileContent(args, getProperty(args, 'debug'));
         let options = getProperty(args, 'options', []);
-        for (const line of content.split(/\r?\n/)) {
-          if (!line.match(regexp)) { continue; }
-          options.push( [line.replace(regexp, labelRepl), getValue(line)] );
+        if (fileFormat === 'pattern') {
+          let pattern = getProperty(args, 'pattern', {});
+          let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'));
+          let labelRepl = getProperty(pattern, 'label', '$1');
+          if (!labelRepl) { return 'Unknown'; }
+          let valueRepl = getProperty(pattern, 'value', labelRepl);
+          let jsonRepl = getProperty(pattern, 'json');
+          const getValue = line => {
+            if (jsonRepl) {
+              let capture = line.replace(regexp, jsonRepl);
+              if (capture) {
+                return JSON.parse(capture);
+              }
+            }
+            return line.replace(regexp, valueRepl);
+          };
+          for (const line of content.split(/\r?\n/)) {
+            if (!line.match(regexp)) { continue; }
+            options.push( [line.replace(regexp, labelRepl), getValue(line)] );
+          }
+        }
+        if (fileFormat === 'json') {
+          const jsonOption = getProperty(args, 'jsonOption', {});
+          const data = JSON.parse(content);
+          const convertString = (s, cbData) => {
+            s = s.replace(/(__itemIdx__)/g, 'contentExt.$1');
+            let func = getExpressionFunction(s, 'commandvariable.pickStringRemember');
+            if (func === undefined) {
+              throw new Error("Illegal expression");
+            }
+            return func(cbData.data, { __itemIdx__: cbData.index });
+          };
+          for (let index = 0; index < 10000; index++) {
+            try {
+              options.push(await dataStructSubstitution(jsonOption, {data, index}, convertString));
+            } catch (e) {
+              break;
+            }
+          }
         }
         args.options = options;
       }

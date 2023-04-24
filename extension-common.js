@@ -377,7 +377,7 @@ async function promptStringRemember(args) {
 }
 function getExpressionFunction(expr, commandID) {
   try {
-    return Function(`"use strict";return (function calcexpr(content) {
+    return Function(`"use strict";return (function calcexpr(content, contentExt) {
       return ${expr};
     })`)();
   }

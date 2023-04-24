@@ -1024,13 +1024,22 @@ The command has the following configuration attributes:
 * `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. The selected items are remembered persistent, `multiPickStorage` (default: `false`)
 * `multiPickStorage` : [ `"global"` | `"workspace"` ] (Optional) If `multiPick` is `true` the picked items are remembered and stored persistent. This property determines if that is done global or for the current workspace. Using the property `key`. (default: `"workspace"`)
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
-* `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are matched using the `pattern` attribute and appended to the already specified `options`. The file is assumed to have an UTF-8 encoding.
+* `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are appended to the already specified `options`. The file is assumed to have an UTF-8 encoding. The format of the file is determined by the `fileFormat` property.
+* `fileFormat` : (**Not in Web**) [_string_] (Optional) How should the file content be processed. (default: `pattern` )  
+  Possible values:
+  * `pattern` : use the `pattern` property
+  * `json` : use the `jsonOption` property
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
   The object has the following attributes:
   * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_ and _value_ for the option. (default: `^(.*)$` )
   * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
-  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `undefined` )
+  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `{}` )
+* `jsonOption` : (**Not in Web**) In the `options` array you can specify an option in multiple ways. The `jsonOption` property can be any of those alternatives but the strings are JavaScript expressions that gets the value you want from the variable `content`. The variable `content` is the parsed JSON file. You can even use the _`value`_ as object with _key_-_value_ pair(s). The expressions **must** use the variable `__itemIdx__` to address an item in some array of the JSON file. The expression can manipulate the retieved data in any way.  
+  As an example you can concatenate multiple items from different arrays:  
+      `content.Array1[__itemIdx__].p1+'-'+content.Array2[__itemIdx__].p2`  
+  The maximum number of items read is 10000. To prevent an infinite loop if expressions contain an error.  
+  See a [complete example where you select a server](#select-server-from-json).
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
@@ -1450,6 +1459,92 @@ An example of using `dependsOn` to select the arguments for an application:
           }
         ]
       }
+    }
+  ]
+}
+```
+
+#### Select server from JSON
+
+When you have a JSON file that specifies a list of servers you can use and you want to pick one of the servers and pass some attributes to a task.
+
+The servers are specified in **servers.json** that is in the root of the workspace:
+
+```json
+{
+  "Servers": [
+    {
+      "name": "S1T",
+      "description": "Server Test 1",
+      "hostname": "st001.test.mycomp.com",
+      "port": "1234"
+    },
+    {
+      "name": "S2T",
+      "description": "Server Test 2",
+      "hostname": "sq003.test.mycomp.com",
+      "port": "1235"
+    },
+    {
+      "name": "S1P",
+      "description": "Server Prod 1",
+      "hostname": "spab.mycomp.com",
+      "port": "1236"
+    },
+    {
+      "name": "S2P",
+      "description": "Server Prod 2",
+      "hostname": "sdef01.cs.mycomp.com",
+      "port": "1237"
+    }
+  ]
+}
+```
+
+In **tasks.json**:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Get server progress",
+      "type": "shell",
+      "command": "progress --server ${input:selectServer} --host ${input:server-hostname} --port ${input:server-port}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectServer",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which server?",
+        "key": "server-name",
+        "fileName": "${workspaceFolder}/servers.json",
+        "fileFormat": "json",
+        "jsonOption": {
+          "label": "content.Servers[__itemIdx__].name",
+          "description": "content.Servers[__itemIdx__].description",
+          "value": {
+            "server-name": "content.Servers[__itemIdx__].name",
+            "server-hostname": "content.Servers[__itemIdx__].hostname",
+            "server-port": "content.Servers[__itemIdx__].port"
+          }
+        }
+      }
+    },
+    {
+      "id": "server-hostname",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "server-hostname" }
+    },
+    {
+      "id": "server-port",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "server-port" }
     }
   ]
 }

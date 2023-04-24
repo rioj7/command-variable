@@ -2,14 +2,14 @@
 
 ## [1.51.0] 2023-04-24
 ### Added
-- `pickStringRemember` multi pick - `dependsOn` : perform group validation based on picked items, filter picked items in output based on other picked items
+- `pickStringRemember`: multi pick - `dependsOn` : perform group validation based on picked items, filter picked items in output based on other picked items
 ### Modified
-- `pickStringRemember` remember previous multi pick items persistent (global or workspace)
+- `pickStringRemember`: remember previous multi pick items persistent (global or workspace)
 
 ## [1.50.0] 2023-04-22
 ### Added
-- `pickStringRemember` multi pick items and remember previous multi pick
-- `pickStringRemember` create (named) item groups with optional `minCount` and `maxCount` constraint
+- `pickStringRemember`: multi pick items and remember previous multi pick
+- `pickStringRemember`: create (named) item groups with optional `minCount` and `maxCount` constraint
 
 ## [1.49.2] 2023-04-04
 ### Modified
@@ -17,7 +17,7 @@
 
 ## [1.49.1] 2023-02-11
 ### Add
-- `pickStringRemember` options can be an object, variables can be shown resolved in pick list
+- `pickStringRemember`: options can be an object, variables can be shown resolved in pick list
 - <code>&dollar;{command:<em>name</em>}</code> : variable substitution in `args` of command
 
 ## [1.47.0] 2023-01-14

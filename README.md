@@ -1560,6 +1560,11 @@ In **tasks.json**:
 
 The configuration attributes need to be passed to the command in the `args` attribute. The **`key`** attribute is optional if you only have one prompt to remember or every prompt can use the same **`key`** name.
 
+If you have given a `key` attribute the Input Box will be prefilled with:
+
+* first call in session: the default value
+* next call in session: the previous value
+
 The string can later be retrieved with the [`remember`](#remember) command or variable.
 
 ```json

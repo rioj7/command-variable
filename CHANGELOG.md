@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.52.1] 2023-05-05
+### Modified
+- `promptStringRemember`: on next call, with given key, use remembered/previous value as default
+
 ## [1.52.0] 2023-04-24
 ### Added
 - `pickStringRemember`: read options from a JSON file

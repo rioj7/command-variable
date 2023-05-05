@@ -366,12 +366,18 @@ async function pickStringRemember(args, processPick) {
 async function promptStringRemember(args) {
   args = utils.dblQuest(args, {});
   if (checkEscapedUI(args)) { return undefined; }
+  let value = undefined;
+  args.key = utils.getProperty(args, 'key');
+  if (args.key === undefined) {
+    args.key = 'promptString';
+  } else {
+    value = getRememberKey(args.key, '__undefined');
+  }
   let result = await vscode.window.showInputBox({
       prompt: utils.getProperty(args, 'description', 'Enter:'),
       password: utils.getProperty(args, 'password', false),
-      value: utils.getProperty(args, 'default')
+      value: value !== undefined ? value : utils.getProperty(args, 'default')
   });
-  args.key = utils.getProperty(args, 'key', 'promptString');
   result = storeStringRemember2(args, result, false);
   return storeEscapedUI(result);
 }

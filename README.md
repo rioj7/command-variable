@@ -8,6 +8,9 @@ If a [command](#commands) or [variable](#variables) is almost what you need you 
 
 Not all commands are supported yet in the web extension version. Supported commands are marked with : (**Web**)
 
+Some commands can store/remember the result to be retrieved later in the session.  
+If you want persistent storage have a look at the [`commandvariable.remember.persistent.file`](#settings) setting.
+
 ## Table of contents
 
 * [Commands](#commands)
@@ -152,6 +155,14 @@ An example `launch.json` :
 You can use a Task to [see the value of a variable substitution](https://code.visualstudio.com/docs/editor/variables-reference#_how-can-i-know-a-variables-actual-value).
 
 ## Settings
+
+* `commandvariable.remember.persistent.file`: (**Not in Web**) string containing the persistent storage file system path for `remember`. The load and save of the file is done in the `activate` and `deactivate` (on close VSC) methods of the extension. All actions there needs to be done synchronous and I don't know what parts of VSC are still valid in `deactivate`. I use the NodeJS module `fs`, so storing in a remote workspace is not supported. The file needs to be in the local file system.  
+  The remembered values are stored in a JSON file.  
+  Saving it in a local/workspace file allows you to use the same values if you open the workspace with a different installed version of VSC.  
+  **If you set/change the setting restart VSC.** The file path is evaluated in the `activate` method.  
+  The following [variables](#variables) are supported: `${workspaceFolder}`, <code>&dollar;{workspaceFolder:<em>name</em>}</code>, `${pathSeparator}`, <code>&dollar;{env:<em>name</em>}</code>, `${userHome}`  
+  A file path in the workspace `.vscode` folder could be:  
+  `${workspaceFolder}${pathSeparator}.vscode${pathSeparator}remember.json`
 
 The following settings can only be defined in the User settings:
 

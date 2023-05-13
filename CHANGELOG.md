@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.53.0] 2023-05-13
+### Added
+- `commandvariable.remember.persistent.file`: (setting) persistent storage for `remember` in local file system
+
 ## [1.52.1] 2023-05-05
 ### Modified
 - `promptStringRemember`: on next call, with given key, use remembered/previous value as default

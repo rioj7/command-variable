@@ -6,6 +6,7 @@ const utils = require('./utils');
 const YAML = require('./yaml.js');
 
 const PostfixURI = '@URI@';
+let gRememberStorePersistentFSPath = undefined;
 
 class FilePickItem {
   constructor() {
@@ -83,6 +84,22 @@ class FolderPickItem {
   }
 }
 
+function readRememberPersistent(getConfig, variableSubstitutionSync_1) {
+  let rememberPersistentFile = getConfig().get("remember.persistent.file");
+  if (!rememberPersistentFile) { return; }
+  gRememberStorePersistentFSPath = variableSubstitutionSync_1(rememberPersistentFile);
+  let content = undefined;
+  try {
+    content = fs.readFileSync(gRememberStorePersistentFSPath, 'utf8');
+  } catch (error) { }
+  if (!content) { return; }
+  let json = JSON.parse(content);
+  let rememberStore = common.getRememberStore();
+  for (const key of Object.keys(json)) {
+    rememberStore[key] = json[key];
+  }
+}
+
 function activate(context) {
   const getProperty = utils.getProperty;
   const fileNotInFolderError = utils.fileNotInFolderError;
@@ -98,6 +115,8 @@ function activate(context) {
 
   common.setAsDesktopExtension();
   common.activate(context);
+
+  readRememberPersistent(getConfig, variableSubstitutionSync_1);
 
   var replaceVariableWithProperties = (text, varName, args, replaceFunc) => {
     var fieldRegex = new RegExp(`\\$\\{${varName}(\\}|([^a-zA-Z{}]+)(.+?)\\2\\})`, 'g');
@@ -207,37 +226,41 @@ function activate(context) {
     });
     return text;
   };
+  function variableSubstitutionSync_1(result, uri) {
+    result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
+    result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');
+    result = result.replace(/\$\{env:([^}]+)\}/g, (m, p1) => {
+      return getProperty(process.env, p1, '');
+    } );
+    result = result.replace(/\$\{workspaceFolder\}/g, m => {
+      return URIWorkspaceFolder(uri, workspaceFolder => {
+        return workspaceFolder.uri.fsPath;
+      });
+    });
+    result = result.replace(/\$\{workspaceFolder:(.+?)\}/g, (m, p1) => {
+      let wsf = common.getNamedWorkspaceFolder(p1);
+      if (!wsf) { return 'Unknown'; }
+      return wsf.uri.fsPath;
+    });
+    result = result.replace(/\$\{workspaceFolderBasename\}/g, m => {
+      return URIWorkspaceFolder(uri, workspaceFolder => {
+        return path.basename(workspaceFolder.uri.fsPath);
+      });
+    });
+    return result;
+  }
   var variableSubstitution = async (text, args, uri) => {
     args = dblQuest(args, {});
     let stringSubstitution = async (text) => {
       const editor = vscode.window.activeTextEditor;
+      if (!uri && editor) { uri = editor.document.uri; }
       if (!isString(text)) { return text; }
       var result = text;
       result = result.replace(/\$\{result\}/g, getProperty(args, '__result', ''));
-      result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
-      result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');
-      result = result.replace(/\$\{env:([^}]+)\}/g, (m, p1) => {
-        return getProperty(process.env, p1, '');
-      } );
       if (editor) {
         result = replaceVariableWithProperties(result, 'selectedText', args, _args => common.concatMapSelections(_args, common.getEditorSelection) );
       }
-      if (!uri && editor) { uri = editor.document.uri; }
-      result = result.replace(/\$\{workspaceFolder\}/g, m => {
-        return URIWorkspaceFolder(uri, workspaceFolder => {
-          return workspaceFolder.uri.fsPath;
-        });
-      });
-      result = result.replace(/\$\{workspaceFolder:(.+?)\}/g, (m, p1) => {
-        let wsf = common.getNamedWorkspaceFolder(p1);
-        if (!wsf) { return 'Unknown'; }
-        return wsf.uri.fsPath;
-      });
-      result = result.replace(/\$\{workspaceFolderBasename\}/g, m => {
-        return URIWorkspaceFolder(uri, workspaceFolder => {
-          return path.basename(workspaceFolder.uri.fsPath);
-        });
-      });
+      result = variableSubstitutionSync_1(result, uri);
       result = await asyncVariable(result, args, transform);
       result = await asyncVariable(result, args, command);
       result = await asyncVariable(result, args, pickStringRemember);
@@ -761,7 +784,20 @@ function activate(context) {
   // ******************************************************************
 };
 
-function deactivate() {}
+function deactivate() {
+  if (gRememberStorePersistentFSPath) {
+    let rememberStore = common.getRememberStore();
+    delete rememberStore["empty"];
+    for (const key of Object.keys(rememberStore)) {
+      if (key.startsWith('__')) {
+        delete rememberStore[key];
+      }
+    }
+    try {
+      fs.writeFileSync(gRememberStorePersistentFSPath, JSON.stringify(rememberStore), {encoding: 'utf8', mode: 0o600});
+    } catch (error) {}
+  }
+}
 
 module.exports = {
   activate,

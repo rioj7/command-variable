@@ -35,6 +35,9 @@ let numberStore = {};
 
 let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined };
 
+function getRememberStore() {
+  return rememberStore;
+}
 function storeStringRemember(args, result) {
   if (result !== undefined) {
     let argkey = utils.getProperty(args, 'key', '__unknown');
@@ -623,6 +626,7 @@ module.exports = {
   gDeprecationRememberPickCommand,
   storeStringRemember,
   storeStringRemember2,
+  getRememberStore,
   rememberCommand,
   getRememberKey,
   checkEscapedUI,

@@ -552,7 +552,7 @@ If you have an array or object as configuration variable content (`settings.json
 
 The supported arguments:
 
-* `configVariable` : specifies the settings variable to read. Supports [variables](#variables).
+* `configVariable` : specifies the settings variable to read. Must contain a `section` part (at least 1 `.`) : `sectionX.configY`. Supports [variables](#variables).
 * `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
@@ -1818,6 +1818,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
   See a few [examples of the `${remember}` variable](#variable-remember).
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#variable-pickfile)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
+* <code>&dollar;{config:<em>name</em>}</code> : use the variable <code>&dollar;{configExpression:<em>name</em>}</code> (!!_name_ is not the name of the config variable!!)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
 * <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.

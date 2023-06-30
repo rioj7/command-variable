@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.54.0] 2023-06-30
+### Added
+- `pickFile`: `"display: "relativePath"`, and it is now the default
+### Modified
+- README update for <code>&dollar;{configExpression:<em>name</em>}</code>: `configVariable` must contain a `section` part (at least 1 `.`) : `sectionX.configY`
+
 ## [1.53.0] 2023-05-13
 ### Added
 - `commandvariable.remember.persistent.file`: (setting) persistent storage for `remember` in local file system

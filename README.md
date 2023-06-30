@@ -679,8 +679,9 @@ You can set the following properties to this command:
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
 * `addAsk` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Ask ***`) that will open an Input Box where you enter the path to be returned. (default: `false`)
 * `acceptIfOneFile` : [ `true` | `false` ] If `true`: if only one file is shown in the pickList accept this file. (default: `false`)
-* `display` : How do you want to see the files displayed (default: `"fullPath"`)
+* `display` : How do you want to see the files displayed (default: `"relativePath"`)
     * `"fullpath"` : show the file full path, if path is big it can be clipped by the selection box
+    * `"relativePath"` : show the file path relative to the chosen folder (`fromFolder`) followed by the path of the chosen folder, that is relative to a possible workspace, the Fuzzy Search is now on the relative file path.
     * `"fileName"` : show the file name followed by the directory path of the file, the Fuzzy Search is now only on the file name and file extension.
 * `fromWorkspace` : [ <code>"<em>name</em>"</code> | `true` | `false` ] - limit the `include` pattern relative to a workspace (default: `false`)
     * if <code>"<em>name</em>"</code>: find the workspace with that name

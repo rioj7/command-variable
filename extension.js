@@ -12,13 +12,24 @@ class FilePickItem {
   constructor() {
     this.uri = undefined;
     this.value = undefined;
+    this.label = '***';
   }
-  fromURI(uri, display) {
+  /** @param {vscode.Uri} uri @param {string} [display] @param {vscode.Uri} [folderPath] */
+  fromURI(uri, display, folderPath) {
     this.uri = uri;
     this.label = uri.fsPath;
     if (display === 'fileName') {
       this.description = ' $(folder) ' + path.dirname(this.label);
       this.label = path.basename(this.label);
+    }
+    if (display === 'relativePath') {
+      let description = folderPath.fsPath;
+      let workspace = vscode.workspace.getWorkspaceFolder(folderPath);
+      if (workspace) {
+        description = `\${ws:${workspace.name}}` + description.substring(workspace.uri.fsPath.length);
+      }
+      this.description = ' $(folder) ' + description;
+      this.label = this.label.substring(folderPath.fsPath.length + 1);
     }
     this.value = uri.fsPath;
     return this;
@@ -548,12 +559,12 @@ function activate(context) {
     })
   );
   /** @param {vscode.Uri[]} uriList @param {Object} args */
-  function constructFilePickList(uriList, args) {
+  function constructFilePickList(uriList, args, folderPath) {
     let addEmpty    = getProperty(args, 'addEmpty', false);
     let addAsk      = getProperty(args, 'addAsk', false);
-    let display     = getProperty(args, 'display', "fullPath");
+    let display     = getProperty(args, 'display', "relativePath");
 
-    let pickList = uriList.map(u => new FilePickItem().fromURI(u, display));
+    let pickList = uriList.map(u => new FilePickItem().fromURI(u, display, folderPath));
     if (addAsk) { pickList.unshift(new FilePickItem().ask()); }
     if (addEmpty) { pickList.unshift(new FilePickItem().empty()); }
     return pickList;
@@ -578,6 +589,7 @@ function activate(context) {
     if (globExclude === 'undefined') globExclude = undefined;
     if (globExclude === 'null') globExclude = null;
     let ignoreFocusOut = {ignoreFocusOut:true};
+    let folderPath = undefined;
 
     if (fromFolder) {
       let picked = undefined;
@@ -607,7 +619,7 @@ function activate(context) {
         picked = await vscode.window.showQuickPick(constructFolderPickList(predefined, labelTransform), {placeHolder: "Select a folder"});
       }
       if (!picked) { return undefined; }
-      let folderPath = picked.value;
+      folderPath = picked.value;
       if (picked.askValue) {
         folderPath = await vscode.window.showInputBox(ignoreFocusOut);
         if (!folderPath) { return undefined; }
@@ -615,7 +627,8 @@ function activate(context) {
       if (picked.askWorkspace) {
         fromWorkspace = true;
       } else {
-        globInclude = new vscode.RelativePattern(vscode.Uri.file(await variableSubstitution(folderPath, args)), globInclude);
+        folderPath = vscode.Uri.file(await variableSubstitution(folderPath, args));
+        globInclude = new vscode.RelativePattern(folderPath, globInclude);
       }
     }
     if (fromWorkspace) {
@@ -626,6 +639,7 @@ function activate(context) {
         workspace = await vscode.window.showWorkspaceFolderPick(ignoreFocusOut);
       }
       if (!workspace) { return undefined; }
+      folderPath = workspace.uri;
       globInclude = new vscode.RelativePattern(workspace, globInclude);
     }
 
@@ -639,7 +653,7 @@ function activate(context) {
         if (acceptIfOneFile && uriList.length === 1) {
           return new FilePickItem().fromURI(uriList[0]);
         }
-        return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args), {placeHolder});
+        return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args, folderPath), {placeHolder});
       })
       .then(async picked => {
         if (!picked) { return undefined; }

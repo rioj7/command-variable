@@ -473,6 +473,7 @@ function activate(context) {
     if (!isString(args.fileName)) return "Unknown";
     // variables are not substituted by VSC
     args.fileName = await variableSubstitution(args.fileName, args);
+    if (args.fileName === undefined) { return undefined; }
     if (debug) { console.log(`commandvariable.file.content: readFileContent: after variable substitution: ${args.fileName}`); }
     let uri = vscode.Uri.file(args.fileName);
     if (debug) { console.log(`commandvariable.file.content: readFileContent: test if file exists: ${uri.fsPath}`); }
@@ -493,26 +494,31 @@ function activate(context) {
     }
     if (expr) {
       expr = await variableSubstitution(expr, args);
+      if (expr === undefined) { return undefined; }
       let value = getExpressionFunction(expr, 'commandvariable.file.content')(parsedContent);
-      if (value === undefined) { return value; }
+      if (value === undefined) { return null; }
       return String(value);
     }
     let key = args.key;
     if (!key) { return content; }
     key = await variableSubstitution(key, args);
+    if (key === undefined) { return undefined; }
     for (const kvLine of content.split(/\r?\n/)) {
       if (kvLine.match(/^\s*(\/\/|#)/)) { continue; }  // check comment lines
       let kvMatch = kvLine.match(/^\s*([^:=]+)[:=](.*)/);
       if (kvMatch && (kvMatch[1] === key) ) { return kvMatch[2]; }
     }
+    return null;
   }
   const argsContentValue = async (args, getContentFunc, keyRememberDflt, debugCmd) => {
     args = dblQuest(args, {});
     let debug = getProperty(args, 'debug');
     if (debug) { console.log(`commandvariable.${debugCmd}: debug logs enabled`); }
     let content = await getContentFunc(args, debug);
+    if (content === undefined) { return undefined; }
     if (debug) { console.log(`commandvariable.${debugCmd}: content: ${content}`); }
     let value = await contentValue(args, content);
+    if (value === undefined) { return undefined; }
     if (debug) { console.log(`commandvariable.${debugCmd}: content to value: ${value}`); }
     let result = "Unknown";
     if (value) { result = value; }

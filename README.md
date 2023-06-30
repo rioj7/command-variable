@@ -662,6 +662,11 @@ If you want to pick a file and use it in your `launch.json` or `tasks.json` you 
 
 This command uses [`vscode.workspace.findFiles`](https://code.visualstudio.com/api/references/vscode-api#workspace.findFiles) to get a list of files to show in a Quick Pick selection box.
 
+Specify the start directory path with the `fromWorkspace` or `fromFolder` property.  
+The `include` Glob Pattern can contain a path relative to the start directory.
+
+If you don't specify `fromWorkspace` or `fromFolder` the search will be done over all workspaces.
+
 You can set the following properties to this command:
 
 * `include` : a [Glob Pattern](https://code.visualstudio.com/api/references/vscode-api#GlobPattern) that defines the files to search for (default: `"**/*"`)
@@ -681,13 +686,13 @@ You can set the following properties to this command:
 * `acceptIfOneFile` : [ `true` | `false` ] If `true`: if only one file is shown in the pickList accept this file. (default: `false`)
 * `display` : How do you want to see the files displayed (default: `"relativePath"`)
     * `"fullpath"` : show the file full path, if path is big it can be clipped by the selection box
-    * `"relativePath"` : show the file path relative to the chosen folder (`fromFolder`) followed by the path of the chosen folder, that is relative to a possible workspace, the Fuzzy Search is now on the relative file path.
+    * `"relativePath"` : show the file path relative to the chosen folder (`fromWorkspace`, `fromFolder`) followed by the path of the chosen folder, that is relative to a possible workspace, the Fuzzy Search is now on the relative file path.
     * `"fileName"` : show the file name followed by the directory path of the file, the Fuzzy Search is now only on the file name and file extension.
 * `fromWorkspace` : [ <code>"<em>name</em>"</code> | `true` | `false` ] - limit the `include` pattern relative to a workspace (default: `false`)
     * if <code>"<em>name</em>"</code>: find the workspace with that name
-    * If `true`: show a Pick List of Workspaces to choose from
+    * if `true`: show a Pick List of Workspaces to choose from
 * `fromFolder` : (Optional) Object with the properties (Filepaths support [variables](#variables)):
-    * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace.  
+    * `predefined` : (Optional) An array with file system paths of directories to limit the `include` pattern relative to that directory.  
     Each entry can be a string or an object with properties:
 
       * `path` : file system path of directory
@@ -702,7 +707,7 @@ You can set the following properties to this command:
 
       An example would be: `"labelTransform": ["useLabel", "removeWorkspacePath", "clipMiddle"]`
 
-    * `fixed` : (Optional) A string with a file system directory path to limit the `include` pattern relative to that directory. Do not enter folder paths that are root folders in this workspace. You do not get a pick list. On Windows it is not possible to specify a directory path in the `include` Glob Pattern.
+    * `fixed` : (Optional) A string with a file system directory path to limit the `include` pattern relative to that directory.
 
     Show a Pick list of folders specified in the property `predefined` and 2 additional entries
 

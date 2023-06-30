@@ -18,20 +18,26 @@ class FilePickItem {
   fromURI(uri, display, folderPath) {
     this.uri = uri;
     this.label = uri.fsPath;
+    this.value = uri.fsPath;
     if (display === 'fileName') {
       this.description = ' $(folder) ' + path.dirname(this.label);
       this.label = path.basename(this.label);
     }
     if (display === 'relativePath') {
-      let description = folderPath.fsPath;
-      let workspace = vscode.workspace.getWorkspaceFolder(folderPath);
-      if (workspace) {
-        description = `\${ws:${workspace.name}}` + description.substring(workspace.uri.fsPath.length);
+      let description = '';
+      let workspace = vscode.workspace.getWorkspaceFolder(uri);
+      if (!folderPath && workspace) { // we searched over all workspaces
+        folderPath = workspace.uri;
+      }
+      if (folderPath) {
+        description = folderPath.fsPath;
+        if (workspace) {
+          description = `\${ws:${workspace.name}}` + description.substring(workspace.uri.fsPath.length);
+        }
+        this.label = this.label.substring(folderPath.fsPath.length + 1);
       }
       this.description = ' $(folder) ' + description;
-      this.label = this.label.substring(folderPath.fsPath.length + 1);
     }
-    this.value = uri.fsPath;
     return this;
   }
   empty() {

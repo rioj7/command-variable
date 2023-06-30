@@ -1,10 +1,12 @@
 # Change Log
 
-## [1.54.0] 2023-06-30
+## [1.54.1] 2023-06-30
 ### Added
 - `pickFile`: `"display: "relativePath"`, and it is now the default
 ### Modified
 - README update for <code>&dollar;{configExpression:<em>name</em>}</code>: `configVariable` must contain a `section` part (at least 1 `.`) : `sectionX.configY`
+### Fixed
+- `file.content`: fix error message if you escape a UI element due to variables, pass the escape forward
 
 ## [1.53.0] 2023-05-13
 ### Added

@@ -738,6 +738,18 @@ function activate(context) {
       if (!args) { args = {}; }
       let command = getProperty(args, 'command');
       if (!command) { return; }
+      let when = getProperty(args, 'when');
+      if (when) {
+        let fileExists = 'file.exists ';
+        if (when.startsWith(fileExists)) {
+          let filePath = await variableSubstitution(when.substring(fileExists.length), args);
+          try {
+            await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+          } catch (error) {
+            return;
+          }
+        }
+      }
       let cmdArgs = getProperty(args, 'args');
       let result = await vscode.commands.executeCommand(command, cmdArgs);
       if (!isString(result)) { return; }

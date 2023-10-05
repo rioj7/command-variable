@@ -1,6 +1,10 @@
 # Change Log
 
-## [1.55.1] 2023-07-25
+## [1.55.1] 2023-10-05
+### Added
+- `file.content`, `config.expression`: `"debug": true`, show debug log messages in Developer Tools Console
+
+## [1.55.0] 2023-07-25
 ### Added
 - `inTerminal`: `"when": "file.exists path"`
 

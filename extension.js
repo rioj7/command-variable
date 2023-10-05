@@ -488,7 +488,7 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.file.content: readFileContent: read file before utf8 conversion`); }
     return utf8_to_str(contentUTF8);
   };
-  async function contentValue(args, content) {
+  async function contentValue(args, content, debug, debugCmd) {
     let expr = undefined;
     let parsedContent = undefined;
     if (args.json) {
@@ -499,7 +499,9 @@ function activate(context) {
       parsedContent = YAML.parse(content);
     }
     if (expr) {
+      if (debug) { console.log(`commandvariable.${debugCmd}: expression: ${expr}`); }
       expr = await variableSubstitution(expr, args);
+      if (debug) { console.log(`commandvariable.${debugCmd}: expression: after variable substitution: ${expr}`); }
       if (expr === undefined) { return undefined; }
       let value = getExpressionFunction(expr, 'commandvariable.file.content')(parsedContent);
       if (value === undefined) { return null; }
@@ -523,14 +525,15 @@ function activate(context) {
     let content = await getContentFunc(args, debug);
     if (content === undefined) { return undefined; }
     if (debug) { console.log(`commandvariable.${debugCmd}: content: ${content}`); }
-    let value = await contentValue(args, content);
-    if (value === undefined) { return undefined; }
+    let value = await contentValue(args, content, debug, debugCmd);
     if (debug) { console.log(`commandvariable.${debugCmd}: content to value: ${value}`); }
+    if (value === undefined) { return undefined; }
     let result = "Unknown";
     if (value) { result = value; }
     else {
       if (args.default) { result = args.default; }
     }
+    if (debug) { console.log(`commandvariable.${debugCmd}: result: ${result}`); }
     let keyRemember = getProperty(args, 'keyRemember', keyRememberDflt);
     storeStringRemember({key: keyRemember}, result);
     return result;

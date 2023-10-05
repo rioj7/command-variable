@@ -226,6 +226,7 @@ The supported arguments:
 
 * `fileName` : specifies the file to read. Supports [variables](#variables), like `${workspaceFolder}`, <code>&dollar;{workspaceFolder:<em>name</em>}</code>, <code>&dollar;{pickFile:<em>name</em>}</code> and <code>&dollar;{remember:<em>key</em>}</code>
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
+* `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
 
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
@@ -272,6 +273,7 @@ The supported arguments:
 * `key` : specifies for which key you want the value. Can contain [variables](#variables).
 * `default` : (Optional) If the key is not found and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
+* `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
 
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
@@ -335,6 +337,7 @@ The supported arguments:
 * `json` : specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed JSON file. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}`
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
+* `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
 
 The JSON file can be an array and you can address the elements with: `content[3]`
 
@@ -400,6 +403,7 @@ The supported arguments:
 * `yaml` : specifies a JavaScript expression that gets the property you want from the variable `content`. The variable `content` is the parsed YAML file. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}`
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"fileContent"`)
+* `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
 
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
@@ -409,7 +413,7 @@ See [File Content JSON Property](#file-content-json-property) for examples.
 
 If the file contains multiple key-values or properties you want in your task or launch you can remember the picked file and use the same path in another `extension.commandvariable.file.content` use.
 
-You have the follwing configuration files in your workspace:
+You have the following configuration files in your workspace:
 
 **`server1-config.json`**
 
@@ -556,6 +560,7 @@ The supported arguments:
 * `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
+* `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
 
 If the `configVariable` is an array you can address the elements with: `content[3]`
 

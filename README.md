@@ -31,6 +31,7 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
 * [promptStringRemember](#promptstringremember)
 * [Multicursor and text](#multicursor-and-text)
 * [inTerminal](#interminal)
+* [getClipboard](#getclipboard)
 * [setClipboard](#setclipboard)
 * [Transform](#transform)
 * [Variables](#variables)
@@ -129,6 +130,7 @@ This extension provides a number of commands that give a result based on the cur
 * `extension.commandvariable.UUID` : (**Web**) generate a UUID v4 (from random numbers) with different output formats, see [example](#uuid)
 * `extension.commandvariable.UUIDInEditor` : (**Web**) generate a UUID v4 (from random numbers) to be used for keybindings
 * `extension.commandvariable.inTerminal` : type the string result of a command in the terminal (optional with Carriage Return), see [example](#interminal).
+* `extension.commandvariable.getClipboard` : (**Web**) get the content of the clipboard, see [example](#getclipboard).
 * `extension.commandvariable.setClipboard` : (**Web**) set the content of the clipboard, see [example](#setclipboard).
 
 We can give an extension command arguments with `input variables`, but for single numeric arguments putting the argument in the command name is simpler.
@@ -1687,6 +1689,19 @@ If you want to use the value of a standard variable in the terminal you have to 
       "command": "extension.commandvariable.transform",
       "args": { "text": "${relativeFile}" }
     }
+  }
+```
+
+## getClipboard
+
+The command `extension.commandvariable.getClipboard` gets the content of the clipboard.
+
+VSC has a task/launch variable `${CLIPBOARD}` but it returns an empty string in my version of VSC.
+
+```json
+  {
+    "key": "ctrl+i f5",  // or any other combo
+    "command": "extension.commandvariable.getClipboard"
   }
 ```
 

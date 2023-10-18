@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.56.0] 2023-10-18
+### Added
+- `extension.commandvariable.getClipboard`: get the content of the clipboard
+
 ## [1.55.1] 2023-10-05
 ### Added
 - `file.content`, `config.expression`: `"debug": true`, show debug log messages in Developer Tools Console

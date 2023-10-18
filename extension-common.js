@@ -558,6 +558,9 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('extension.commandvariable.setClipboard', args => vscode.env.clipboard.writeText(args.text).then(v=>v, v=>null) )
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.getClipboard', async args => await vscode.env.clipboard.readText() )
+  );
   function getRandomIntInclusive(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }

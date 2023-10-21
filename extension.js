@@ -200,6 +200,7 @@ function activate(context) {
   async function command(args) {
     let command = getProperty(args, 'command');
     if (!command) { return 'Unknown'; }
+    command = await variableSubstitution(command, args);
     let command_args = getProperty(args, 'args');
     if (utils.getProperty(args, "variableSubstArgs")) {
       command_args = await dataStructSubstitution(command_args, args, (s, args) => variableSubstitution(s, args));

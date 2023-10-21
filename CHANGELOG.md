@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.57.0] 2023-10-21
+### Added
+- <code>&dollar;{command:<em>name</em>}</code>: property `command` can contain variables
+
 ## [1.56.0] 2023-10-18
 ### Added
 - `extension.commandvariable.getClipboard`: get the content of the clipboard

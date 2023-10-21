@@ -2123,7 +2123,7 @@ If the command uses arguments you have to put these in the arguments of the pare
 
 The named arguments have the following properties:
 
-* `command` : the commandID to execute
+* `command` : the commandID to execute, can contain variables (see example [Construct commandID](#construct-commandid))
 * `args` : the arguments for this commandID
 * `variableSubstArgs` : if `true`, [variables](#variables) will be expanded within the `args` prior to the command being executed (default: `false`)
 
@@ -2268,6 +2268,48 @@ A realistic example is the execution of different bazel targets and option to us
   }
 ]
 ```
+
+#### Construct commandID
+
+Sometimes you want to construct the commandID to execute.
+
+Example based on [StackOverflow question](https://stackoverflow.com/q/77335284/9938317).
+
+If you want to launch a particular configuration based on the file name of the current editor you can redefine the `F5` keybinding:
+
+```json
+  {
+    "key": "f5",
+    "command": "extension.commandvariable.transform",
+    "when": "debuggersAvailable && debugState == 'inactive'",
+    "args": {
+      "text": "${command:launchCommand}",
+      "command": {
+        "launchCommand": {
+          "command": "${transform:launchCommand}",
+          "transform": {
+            "launchCommand": {
+              "text": "${command:launchCommand}",
+              "command": {
+                "launchCommand": {
+                  "command": "extension.commandvariable.file.fileAsKey",
+                  "args": {
+                    "app.py": "launches.Streamlit",
+                    "@default": "launches.OtherPython"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+```
+
+The `command` property can't contain a <code>&dollar;{command:<em>name</em>}</code> variable, so we have to insert a <code>&dollar;{transform:<em>name</em>}</code> variable.
+
+This key binding uses the [Launch Configs](https://marketplace.visualstudio.com/items?itemName=ArturoDent.launch-config) extention by ArturoDent.
 
 ### Variable `transform`
 

@@ -14,11 +14,12 @@ class FilePickItem {
     this.value = undefined;
     this.label = '***';
   }
-  /** @param {vscode.Uri} uri @param {string} [display] @param {vscode.Uri} [folderPath] */
-  fromURI(uri, display, folderPath) {
+  /** @param {vscode.Uri} uri @param {string} [display] @param {vscode.Uri} [folderPath] @param {Object} [args] @param {Object} [transform] */
+  async fromURI(uri, display, folderPath, args, transform) {
     this.uri = uri;
     this.label = uri.fsPath;
     this.value = uri.fsPath;
+    this.description = undefined;
     if (display === 'fileName') {
       this.description = ' $(folder) ' + path.dirname(this.label);
       this.label = path.basename(this.label);
@@ -37,6 +38,23 @@ class FilePickItem {
         this.label = this.label.substring(folderPath.fsPath.length + 1);
       }
       this.description = ' $(folder) ' + description;
+    }
+    if (display === 'transform') {
+      args = utils.dblQuest(args, {});
+      async function applyTransform(uri, args, property, defaultValue, level=0) {
+        if (level === 4) { return defaultValue; }
+        let transformArgs = utils.getProperty(args, property);
+        if (transformArgs) {
+          if (utils.isString(transformArgs)) {
+            return applyTransform(uri, args, transformArgs, defaultValue, level+1);
+          }
+          return await transform(transformArgs, '${file}', uri);
+        }
+        return defaultValue;
+      }
+      this.value = await applyTransform(uri, args, 'valueTransform', this.value);
+      this.label = await applyTransform(uri, args, 'labelTransform', this.label);
+      this.description = await applyTransform(uri, args, 'descriptionTransform', this.description);
     }
     return this;
   }
@@ -166,7 +184,7 @@ function activate(context) {
   async function transformResult(args, result, textDefault, uriKey) {
     let transformArgs = getProperty(args, 'transform');
     if (transformArgs) {
-      args['__result'] = result;
+      transformArgs['__result'] = result;
       result = await transform(transformArgs, textDefault, getRememberKey(uriKey+PostfixURI, '__undefined'));
     }
     return result;
@@ -575,12 +593,27 @@ function activate(context) {
     })
   );
   /** @param {vscode.Uri[]} uriList @param {Object} args */
-  function constructFilePickList(uriList, args, folderPath) {
+  async function constructFilePickList(uriList, args, folderPath) {
     let addEmpty    = getProperty(args, 'addEmpty', false);
     let addAsk      = getProperty(args, 'addAsk', false);
     let display     = getProperty(args, 'display', "relativePath");
 
-    let pickList = uriList.map(u => new FilePickItem().fromURI(u, display, folderPath));
+    let pickList = [];
+    for (const u of uriList) {
+      pickList.push(await new FilePickItem().fromURI(u, display, folderPath, args, transform));
+    }
+    if (display === 'transform') {
+      let unique = new Set();
+      let pickListUnique = [];
+      // using pickList.forEach() works but the type of picklist will be any[] and that generates a type error
+      for (const fpi of pickList) {
+        if (!unique.has(fpi.value)) {
+          unique.add(fpi.value);
+          pickListUnique.push(fpi);
+        }
+      }
+      pickList = pickListUnique;
+    }
     if (addAsk) { pickList.unshift(new FilePickItem().ask()); }
     if (addEmpty) { pickList.unshift(new FilePickItem().empty()); }
     return pickList;

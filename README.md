@@ -695,6 +695,11 @@ You can set the following properties to this command:
     * `"fullpath"` : show the file full path, if path is big it can be clipped by the selection box
     * `"relativePath"` : show the file path relative to the chosen folder (`fromWorkspace`, `fromFolder`) followed by the path of the chosen folder, that is relative to a possible workspace, the Fuzzy Search is now on the relative file path.
     * `"fileName"` : show the file name followed by the directory path of the file, the Fuzzy Search is now only on the file name and file extension.
+    * `"transform"` : use the properties `valueTransform`, `labelTransform` and `descriptionTransform` to construct the text for the QuickPickItem properties `value`, `label` and `description`. Only items with unique `value` texts are shown.
+* `valueTransform` : (Optional) [ `string` | `object` ] If an object it has the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`. Only used if `"display": "transform"`. The resulting text is the `value` property of the QuickPickItem.  
+If a string it uses the transform with the given name: [`valueTransform` | `labelTransform` | `descriptionTransform`] (max redirections 4)
+* `labelTransform` : (Optional) [ `string` | `object` ] see `valueTransform`. The resulting text is the `label` property of the QuickPickItem.
+* `descriptionTransform` : (Optional) [ `string` | `object` ] see `valueTransform`. The resulting text is the `description` property of the QuickPickItem.
 * `fromWorkspace` : [ <code>"<em>name</em>"</code> | `true` | `false` ] - limit the `include` pattern relative to a workspace (default: `false`)
     * if <code>"<em>name</em>"</code>: find the workspace with that name
     * if `true`: show a Pick List of Workspaces to choose from
@@ -731,7 +736,7 @@ You can set the following properties to this command:
     ```
 * `showDirs` : [ `true` | `false` ] If `true`: Show the directories that contain files that are found. The result of the pick is a directory path. (default: `false`)
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
-* `transform`: (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
+* `transform` : (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
 * `empty` : (Optional) [ `true` | `false` ] The full file path is saved for the given `keyRemember`. If `true`: result of command is the empty string. Can be used with [`remember:transform`](#remember) command or variable. This is the last test of the command (it overrules a possible `transform`). (default: `false`)
 
 Example:
@@ -798,6 +803,70 @@ If you want the directory name of the picked file but using forward slash (on Wi
     }
   ]
 }
+```
+
+If your project contains file paths like:
+
+`testType1/LOG/testName1/src/test.c`
+
+and you only want to show the Type and the Name but return the full path use the following `input` element
+
+```json
+    {
+      "id": "filePickCTests",
+      "type": "command",
+      "command": "extension.commandvariable.file.pickFile",
+      "args": {
+        "display": "transform",
+        "description": " Select one test to open",
+        "include": "**/test.c",
+        "labelTransform": {
+          "text": "${relativeFile}",
+          "apply": [
+            {
+              "find": "\\\\",
+              "replace": "/",
+              "flags": "g"
+            },
+            {
+              "find": "(.*)/LOG/(.*)/src/.*",
+              "replace": "$1/$2"
+            }
+          ]
+        }
+      }
+    }
+```
+
+If using the same file paths as the previous example but you want to show and return the test type folders that have a `LOG` subdirectory
+
+```json
+    {
+      "id": "filePickCTests",
+      "type": "command",
+      "command": "extension.commandvariable.file.pickFile",
+      "args": {
+        "display": "transform",
+        "ydisplay": "relativePath",
+        "description": "[my_tests] Select one test to open it",
+        "include": "my_tests/**/test.c",
+        "labelTransform": "valueTransform",
+        "valueTransform": {
+          "text": "${relativeFile}",
+          "apply": [
+            {
+              "find": "\\\\",
+              "replace": "/",
+              "flags": "g"
+            },
+            {
+              "find": "(.*/LOG)/.*",
+              "replace": "$1"
+            }
+          ]
+        }
+      }
+    }
 ```
 
 ## number
@@ -1852,7 +1921,11 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
 * <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
-* <code>&dollar;{result}</code> : a special variable used in the [`remember:transform:text`](#remember) property. It contains the string stored for the given `key`. In all other cases it is the empty string.
+* <code>&dollar;{result}</code> : a special variable used in:
+  * the [`remember:transform:text`](#remember) property. It contains the string stored for the given `key`.
+  * the [`pickFile:transform:text`](#pick-file) property. It contains the string that is the value of the picked item.
+
+  In all other cases it is the empty string.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 

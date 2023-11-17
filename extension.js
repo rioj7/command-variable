@@ -344,14 +344,24 @@ function activate(context) {
       result = result.replace(/\$\{relativeFileDirname\}/g, relativeFileDirname);
       return result;
     };
+    let stringSubstitutionDepthN = async (text) => {
+      if (!isString(text)) { return text; }
+      while (text.indexOf('${') >= 0) {
+        let newText = await stringSubstitution(text);
+        if (newText === undefined) { return undefined; }
+        if (newText === text) { break; }
+        text = newText;
+      }
+      return text;
+    };
     if (Array.isArray(text)) {
       let result = [];
       for (let i = 0; i < text.length; i++) {
-        result.push(await stringSubstitution(text[i]));
+        result.push(await stringSubstitutionDepthN(text[i]));
       }
       return result;
     }
-    return await stringSubstitution(text);
+    return await stringSubstitutionDepthN(text);
   };
   const nonPosixPathRegEx = new RegExp('^/([a-zA-Z]):/');
   var lowerCaseDriveLetter = p => p.replace(nonPosixPathRegEx, match => match.toLowerCase() );

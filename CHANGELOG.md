@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.59.0] 2023-11-xx
+### Modified
+- `variableSubstitution`: Apply `variableSubstitution` to the text until it no longer changes
+
 ## [1.58.0] 2023-11-08
 ### Added
 - `pickFile`: `"display": "transform"`, use `transform` command to manipilate `value`, `label` and `description` of QuickPick list items

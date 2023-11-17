@@ -544,12 +544,12 @@ Add to **`.vscode/settings.json`**
 Add to **`keybindings.json`**
 
 ```json
-{
+  {
     "key": "F1", // or any other key combo
     "command": "extension.multiCommand.execute",
     "args": { "command": "multiCommand.insertTimestamp" },
     "when": "editorTextFocus"
-}
+  }
 ```
 
 ## Config Expression
@@ -567,6 +567,10 @@ The supported arguments:
 If the `configVariable` is an array you can address the elements with: `content[3]`
 
 If the `configVariable` is an object you can address a property with: `content.inputDir`
+
+If the `configVariable` is a single data type (string, number, boolean) set the `expression` property to `content`
+
+If you want the value of the `configVariable` as a JSON string **don't set** the `expression` property.
 
 Any expression is allowed that does not have a function call. All arithmetic operators, comparison operators, ...
 

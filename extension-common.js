@@ -31,6 +31,8 @@ function setAsDesktopExtension() {
   gWebExtension = false;
 }
 
+const PostfixURI = '@URI@';
+
 let numberStore = {};
 
 let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined };
@@ -56,19 +58,38 @@ function storeStringRemember(args, result) {
   }
   return result !== undefined ? result : utils.getDefaultProperty(args);
 }
-/** @param {object} args has 'key' and ['default'] property @param {any} result undefined, kv-object, single value */
+/** @param {string} key @param {any} value string or edit action object */
+function rememberStoreUpdate(key, value) {
+  if (utils.isObject(value) && !key.endsWith(PostfixURI)) {
+    let actionObj = value;
+    let text = utils.getProperty(actionObj, 'text', '');
+    value = text;
+    let action = utils.getProperty(actionObj, 'action', 'store');
+    let delimiter = utils.getProperty(actionObj, 'delimiter', '');
+    if (action !== 'store') {
+      let currentValue = getRememberKey(key, 'empty');
+      if (currentValue === '') { delimiter = ''; }
+      if (action === 'append') { value = currentValue + delimiter + text; }
+      if (action === 'prepend') { value = text + delimiter + currentValue; }
+    }
+  }
+  if (key !== '__undefined' && key !== 'empty') {
+    rememberStore[key] = value;
+  }
+}
+/** @param {object} args has 'key' and ['default'] property @param {any} result undefined, key-value-object, value (value can be string or edit action object) */
 function storeStringRemember2(args, result, defaultFromArgs) {
   if (result !== undefined) {
     let argkey = utils.getProperty(args, 'key', '__unknown');
-    if (utils.isObject(result)) {
+    if (utils.isObject(result) && utils.getProperty(result, 'text', undefined) === undefined) {
       for (const vkey in result) {
         if (result.hasOwnProperty(vkey)) {
-          rememberStore[vkey] = result[vkey];
+          rememberStoreUpdate(vkey, result[vkey]);
         }
       }
       return getRememberKey(argkey);
     }
-    rememberStore[argkey] = result;
+    rememberStoreUpdate(argkey, result);
   }
   if (defaultFromArgs === undefined) { defaultFromArgs = true; }
   return result !== undefined ? result : (defaultFromArgs ? utils.getDefaultProperty(args) : undefined);
@@ -632,6 +653,7 @@ module.exports = {
   getRememberStore,
   rememberCommand,
   getRememberKey,
+  PostfixURI,
   checkEscapedUI,
   storeEscapedUI,
   gRememberPropertyCheckEscapedUI,

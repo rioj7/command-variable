@@ -986,9 +986,18 @@ The stored value is retrieved with a command or a [variable](#variables). In the
 
 The command `extension.commandvariable.remember` is used to retreive a value for a particular key or store _key_-_value_ pair(s).
 
+`text` is not a valid _`key`_. It is a property of a string manipulation object and used to determine if an object is a string manipulation object or an object with _key_-_value_ pair(s).
+
 The `args` property of this command is an object with the properties:
 
-* `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.
+* `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.  
+  The _value_ can be a string or a **string manipulation object**. With a string manipulation object you can modify the current value that is stored for the given _key_. If the key is not in the store it has a current value of the empty string. The possible properties of this object are:
+  * `text`: a string used to modify the current value
+  * `delimiter`: (Optional) if we need to concatenate strings use this as delimiter string, if current value is the empty string `delimiter` is also empty string (default: `""`).
+  * `action`: (Optional) what to do with the _`text`_ string (default: `store`). Possible values:
+    * `store`: replace current value with _`text`_.
+    * `append`: append `text` to current value and use given _`delimiter`_
+    * `prepend`: prepend `text` to current value and use given _`delimiter`_
 * `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables). (default: `"empty"`)  
    To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
@@ -996,9 +1005,27 @@ The `args` property of this command is an object with the properties:
 
 If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command or the `transform` property.
 
+If the stored value contains variables and you want them substituted you have to set the `transform` property. An empty object is enough.
+
+```jsonc
+{
+  // .....
+  "inputs": [
+    {
+      "id": "remember.path",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "path", "transform": { } }
+    }
+  ]
+}
+```
+
 The default content of the remember store:
 
 * `empty` : `""`, the empty string, useful if you want to store the value(s) but not return some string in `pickStringRemember`
+
+The command [pickStringRemember](#pickstringremember) also supports string manipulation objects.
 
 The example is a bit contrived but it shows how you can store _key_-_value_ pair(s) in a launch config or task without using a stored value, the result of the `${input:rememberConfig}` is the empty string. This enables you to store values in a launch config to be used in a `prelaunchTask` in `tasks.json`.
 
@@ -1078,6 +1105,33 @@ If you have picked a file, the `key` used is `sourceFile`, and you don't want th
 }
 ```
 
+An example of a string manipulation object. If you have a remembered _`key`_ `buildArgs` and want to add an argument to get a release build:
+
+```jsonc
+{
+  "version": "2.0.0",
+  "tasks": [
+    // .....
+  ],
+  "inputs": [
+    {
+      "id": "addReleaseArgument",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": {
+        "store": {
+          "buildArgs": {
+            "text": "-c release",
+            "action": "append",
+            "delimiter": " "
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
 ## pickStringRemember
 
 The command `extension.commandvariable.pickStringRemember` look a lot like the [Input variable `pickString`](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables).
@@ -1103,8 +1157,9 @@ The command has the following configuration attributes:
       It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
     * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on an item it controls if the value of the item is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
 
-  The _`value`_ can be an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
-  If you only want to store some key-value pairs you can set the `key` argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).
+  The _`value`_ can be a string, a [**string manipulation object**](#remember) or an object with _key_-_value_ pair(s). The _`value`_ of a _key_-_value_ pair can be a string or a string manipulation object. Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
+  If you only want to store some _key_-_value_ pairs you can set the _`key`_ argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).  
+  A special _`key`_ is `__undefined`. If used any selected option that uses a _key_-_value_ pair(s) object will return `undefined`. This will abort the current task/launch/command, but the remember store is updated.
 * `optionGroups` : An array that contains groups of options with constraint checks. If `optionGroups` is defined the property `options` is ignored.  
   If a group has a constraint the `pickStringRemember` is not accepted until all constraints are met.  
   An option group is an object with the properties:
@@ -1336,6 +1391,64 @@ An example task that stores multiple values:
   ]
 }
 ```
+
+Using a string manipulation object you can modify an existing variable:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build project",
+      "type": "process",
+      "command": "build ${input:buildArgsConstruct}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "buildArgsConstruct",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Construct buildArgs:",
+        "key": "__undefined",
+        "options": [
+          { "label": "Current value",
+            "description": "${remember:buildArgs}",
+            "value": "${remember:buildArgs}"
+          },
+          { "label": "reset", "value": { "buildArgs": "" } },
+          { "label": "append: -c release",
+            "value": {
+              "buildArgs": {
+                "text": "-c release",
+                "action": "append",
+                "delimiter": " "
+              }
+            }
+          },
+          { "label": "prepend: -path ${ workspaceFolder}",
+            "value": {
+              "buildArgs": {
+                "text": "-path ${workspaceFolder}",
+                "action": "prepend",
+                "delimiter": " "
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+If we use `"key": "__undefined"` any selected option that uses a _key_-_value_ pair(s) object will return `undefined`. This will abort the current task. The remember store is updated.
+
+When you choose the option **Current value** pickStringRemember returns the value for a given _`key`_.
+
+----
 
 If you have a `src` directory with a lot of subdirs and you want to run `cpplint` on all or only on a subdir you can add a `pickFile` variable as the value of a `pickString`:
 

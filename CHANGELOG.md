@@ -1,6 +1,8 @@
 # Change Log
 
-## [1.59.0] 2023-11-xx
+## [1.59.0] 2023-11-19
+### Added
+- `remember`: when storing you can manipulate (append, prepend) an existing remembered value
 ### Modified
 - `variableSubstitution`: Apply `variableSubstitution` to the text until it no longer changes
 

@@ -5,7 +5,6 @@ const common = require('./out/extension-common');
 const utils = require('./utils');
 const YAML = require('./yaml.js');
 
-const PostfixURI = '@URI@';
 let gRememberStorePersistentFSPath = undefined;
 
 class FilePickItem {
@@ -185,7 +184,7 @@ function activate(context) {
     let transformArgs = getProperty(args, 'transform');
     if (transformArgs) {
       transformArgs['__result'] = result;
-      result = await transform(transformArgs, textDefault, getRememberKey(uriKey+PostfixURI, '__undefined'));
+      result = await transform(transformArgs, textDefault, getRememberKey(uriKey+common.PostfixURI, '__undefined'));
     }
     return result;
   }
@@ -227,7 +226,7 @@ function activate(context) {
     return vscode.commands.executeCommand(command, command_args);
   }
   async function remember(args) { // make it async so it can be used with asyncVariable
-    let result = common.rememberCommand(args, variableSubstitution);
+    let result = await common.rememberCommand(args, variableSubstitution);
     return transformResult(args, result, '${result}', args.key);
   }
   async function pickStringRemember(args) { // pass variableSubstitution
@@ -725,7 +724,7 @@ function activate(context) {
         if (picked.value === undefined) { return undefined; }
         let kvPairs = {};
         kvPairs[keyRemember] = picked.value;
-        kvPairs[keyRemember+PostfixURI] = picked.uri;
+        kvPairs[keyRemember+common.PostfixURI] = picked.uri;
         let result = storeStringRemember2({key: keyRemember}, kvPairs);
         result = await transformResult(args, result, '${file}', keyRemember);
         return getProperty(args, 'empty', false) ? '' : result;

@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.60.0] 2023-11-24
+### Added
+- `variableSubstitution`: pass variable result to 1 or more filters (`regexEscape`, `upperCase`, `lowerCase`), use `|`
+### Modified
+- `variableSubstitution`: `|` is not allowed in a property separator in a variable
+
 ## [1.59.0] 2023-11-19
 ### Added
 - `remember`: when storing you can manipulate (append, prepend) an existing remembered value

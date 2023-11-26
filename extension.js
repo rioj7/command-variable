@@ -7,6 +7,11 @@ const YAML = require('./yaml.js');
 
 let gRememberStorePersistentFSPath = undefined;
 
+/** @param {string} text */
+function regexpEscape(text) {
+  return text.replace(/[[\]*|(){}\\.?^$+]/g, m => `\\${m}`);
+}
+
 class FilePickItem {
   constructor() {
     this.uri = undefined;
@@ -146,6 +151,7 @@ function activate(context) {
   const getRememberKey = common.getRememberKey;
   const getConfig = () => vscode.workspace.getConfiguration("commandvariable", null);
   const getExpressionFunction = common.getExpressionFunction;
+  const filterRegex = '((?:\\|\\w+(?:\\([^)]+\\))?)*)';
 
   common.setAsDesktopExtension();
   common.activate(context);
@@ -153,17 +159,17 @@ function activate(context) {
   readRememberPersistent(getConfig, variableSubstitutionSync_1);
 
   var replaceVariableWithProperties = (text, varName, args, replaceFunc) => {
-    var fieldRegex = new RegExp(`\\$\\{${varName}(\\}|([^a-zA-Z{}]+)(.+?)\\2\\})`, 'g');
-    var replaceFuncNewArgs = (m,hasParams,sep,params) => {
+    var fieldRegex = new RegExp(`\\$\\{${varName}(?:([^a-zA-Z{}|]+)(.+?)\\1)?${filterRegex}\\}`, 'g');
+    var replaceFuncNewArgs = (m,sep,params,filter) => {
       var _args = {...args};
-      if (hasParams !== '}') {
+      if (sep !== undefined) {
         params.split(sep).forEach(p => {
           let eq = p.indexOf('=');
           if (eq === -1) { return; }
           _args[p.substring(0, eq).trim()] = p.substring(eq+1);
         });
       }
-      return replaceFunc(_args);
+      return applyFilter(replaceFunc(_args), filter);
     };
     return text.replace(fieldRegex, replaceFuncNewArgs);
   };
@@ -232,11 +238,37 @@ function activate(context) {
   async function pickStringRemember(args) { // pass variableSubstitution
     return common.pickStringRemember(args, variableSubstitution);
   }
-  var asyncVariable = async (text, args, func) => {
+  /** @param {string} text @param {string} filter */
+  function applyFilter(text, filter) {
+    if (filter.length === 0) { return text; }
+    for (const f of filter.split('|')) {
+      if (f.length === 0) { continue; }
+      if (f === 'regexEscape') { text = regexpEscape(text); continue; }
+      if (f === 'upperCase') { text = text.toUpperCase(); continue; }
+      if (f === 'lowerCase') { text = text.toLowerCase(); continue; }
+    }
+    return text;
+  }
+  /** @callback ReplaceCB */
+  /** @param {string} text @param {string} variableRegex @param {number} capGroupCount @param {string | ReplaceCB} replacement */
+  function variableReplaceAndFilter(text, variableRegex, capGroupCount, replacement) {
+    let varRE = new RegExp(`\\$\\{${variableRegex}${filterRegex}\\}`, 'g');
+    text = text.replace(varRE, (m, ...ppp) => {
+      ppp.splice(capGroupCount+1); // only retain capture groups - remove arguments: offset, string, groups
+      let filter = ppp.pop();
+      ppp.unshift(m); // replacement funcs want 'm' as first argument
+      // let _replacement = isString(replacement) ? replacement : replacement(...ppp);
+      // typescript generates some vague errors so we have to rewrite
+      let _replacement = typeof replacement === 'string' ? replacement : replacement.apply(null, ppp);
+      return applyFilter(_replacement, filter);
+    });
+    return text;
+  }
+  var asyncVariable = async (text, args, uri, func) => {
     if (text === undefined) { return undefined; }  // escaped a UI element
     let asyncArgs = [];
-    let varRE = new RegExp(`\\$\\{${func.name}:(.+?)\\}`, 'g');
-    text = text.replace(varRE, (m, p1) => {
+    let varRE = new RegExp(`\\$\\{${func.name}:(.+?)${filterRegex}\\}`, 'g');
+    text = text.replace(varRE, (m, p1, filter) => {
       let deflt = undefined;
       if (func.name === 'command') { deflt = { command: p1 }; }
       if (func.name === 'remember') {
@@ -249,35 +281,43 @@ function activate(context) {
       }
       let nameArgs = getProperty(getProperty(args, func.name, {}), p1, deflt);
       if (!nameArgs) { return 'Unknown'; }
+      if (isString(filter) && filter.length > 0) {
+        nameArgs['__filter'] = filter;
+      }
       asyncArgs.push(nameArgs);
       return m;
     });
     for (let i = 0; i < asyncArgs.length; i++) {
+      let filter = asyncArgs[i]['__filter'];
+      delete asyncArgs[i]['__filter'];
       asyncArgs[i] = await func(asyncArgs[i]);
+      if (filter) {
+        asyncArgs[i] = await variableSubstitution(asyncArgs[i], args, uri);
+      }
       if (asyncArgs[i] === undefined) { return undefined; }
     }
-    text = text.replace(varRE, (m, p1) => {
-      return asyncArgs.shift();
+    text = text.replace(varRE, (m, p1, filter) => {
+      return applyFilter(asyncArgs.shift(), filter);
     });
     return text;
   };
   function variableSubstitutionSync_1(result, uri) {
-    result = result.replace(/\$\{pathSeparator\}/g, process.platform === 'win32' ? '\\' : '/');
-    result = result.replace(/\$\{userHome\}/g, process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}');
-    result = result.replace(/\$\{env:([^}]+)\}/g, (m, p1) => {
+    result = variableReplaceAndFilter(result, 'pathSeparator', 0, process.platform === 'win32' ? '\\' : '/');
+    result = variableReplaceAndFilter(result, 'userHome', 0, m => variableSubstitutionSync_1(process.platform === 'win32' ? '${env:HOMEDRIVE}${env:HOMEPATH}' : '${env:HOME}', uri));
+    result = variableReplaceAndFilter(result, 'env:(.+?)', 1, (m, p1) => {
       return getProperty(process.env, p1, '');
     } );
-    result = result.replace(/\$\{workspaceFolder\}/g, m => {
+    result = variableReplaceAndFilter(result, 'workspaceFolder', 0, m => {
       return URIWorkspaceFolder(uri, workspaceFolder => {
         return workspaceFolder.uri.fsPath;
       });
     });
-    result = result.replace(/\$\{workspaceFolder:(.+?)\}/g, (m, p1) => {
+    result = variableReplaceAndFilter(result, 'workspaceFolder:(.+?)', 1, (m, p1) => {
       let wsf = common.getNamedWorkspaceFolder(p1);
       if (!wsf) { return 'Unknown'; }
       return wsf.uri.fsPath;
     });
-    result = result.replace(/\$\{workspaceFolderBasename\}/g, m => {
+    result = variableReplaceAndFilter(result, 'workspaceFolderBasename', 0, m => {
       return URIWorkspaceFolder(uri, workspaceFolder => {
         return path.basename(workspaceFolder.uri.fsPath);
       });
@@ -287,23 +327,26 @@ function activate(context) {
   var variableSubstitution = async (text, args, uri) => {
     args = dblQuest(args, {});
     let stringSubstitution = async (text) => {
+      if (!isString(text)) { return text; }
       const editor = vscode.window.activeTextEditor;
       if (!uri && editor) { uri = editor.document.uri; }
-      if (!isString(text)) { return text; }
       var result = text;
-      result = result.replace(/\$\{result\}/g, getProperty(args, '__result', ''));
+      if (new RegExp(/\$\{result[}|]/).test(result)) {
+        let __result = await variableSubstitution(getProperty(args, '__result', ''), args, uri);
+        result = variableReplaceAndFilter(result, 'result', 0, __result);
+      }
       if (editor) {
         result = replaceVariableWithProperties(result, 'selectedText', args, _args => common.concatMapSelections(_args, common.getEditorSelection) );
       }
       result = variableSubstitutionSync_1(result, uri);
-      result = await asyncVariable(result, args, transform);
-      result = await asyncVariable(result, args, command);
-      result = await asyncVariable(result, args, pickStringRemember);
-      result = await asyncVariable(result, args, common.promptStringRemember);
-      result = await asyncVariable(result, args, pickFile);
-      result = await asyncVariable(result, args, fileContent);
-      result = await asyncVariable(result, args, configExpression);
-      result = await asyncVariable(result, args, remember);
+      result = await asyncVariable(result, args, uri, transform);
+      result = await asyncVariable(result, args, uri, command);
+      result = await asyncVariable(result, args, uri, pickStringRemember);
+      result = await asyncVariable(result, args, uri, common.promptStringRemember);
+      result = await asyncVariable(result, args, uri, pickFile);
+      result = await asyncVariable(result, args, uri, fileContent);
+      result = await asyncVariable(result, args, uri, configExpression);
+      result = await asyncVariable(result, args, uri, remember);
       // TODO Deprecated 2021-10
       if (result !== undefined) {
         result = result.replace(/\$\{rememberPick:(.+?)\}/g, (m, p1) => {
@@ -315,7 +358,7 @@ function activate(context) {
 
       if (!uri) { return result; }
       const fileFSPath = uri.fsPath;
-      result = result.replace(/\$\{file\}/g, fileFSPath);
+      result = variableReplaceAndFilter(result, 'file', 0, fileFSPath);
       const relativeFile = URIWorkspaceFolder(uri, workspaceFolder => {
         const wsfFSPath = workspaceFolder.uri.fsPath;
         if (fileFSPath.startsWith(wsfFSPath)) {
@@ -323,24 +366,24 @@ function activate(context) {
         }
         return 'Unknown';
       });
-      result = result.replace(/\$\{relativeFile\}/g, relativeFile);
+      result = variableReplaceAndFilter(result, 'relativeFile', 0, relativeFile);
       const filePath = uri.path;
       const lastSep = filePath.lastIndexOf('/');
       if (lastSep === -1) { return result; }
       const fileBasename = filePath.substring(lastSep+1);
-      result = result.replace(/\$\{fileBasename\}/g, fileBasename);
+      result = variableReplaceAndFilter(result, 'fileBasename', 0, fileBasename);
       const lastDot = fileBasename.lastIndexOf('.');
       const fileBasenameNoExtension = lastDot >= 0 ? fileBasename.substring(0, lastDot) : fileBasename;
-      result = result.replace(/\$\{fileBasenameNoExtension\}/g, fileBasenameNoExtension);
+      result = variableReplaceAndFilter(result, 'fileBasenameNoExtension', 0, fileBasenameNoExtension);
       const fileExtname = lastDot >= 0 ? fileBasename.substring(lastDot) : '';
-      result = result.replace(/\$\{fileExtname\}/g, fileExtname);
+      result = variableReplaceAndFilter(result, 'fileExtname', 0, fileExtname);
       let fileDirname = fileFSPath.substring(0, fileFSPath.length-(fileBasename.length+1));
-      result = result.replace(/\$\{fileDirname\}/g, fileDirname);
+      result = variableReplaceAndFilter(result, 'fileDirname', 0, fileDirname);
       let relativeFileDirname = relativeFile;
       if (relativeFile.endsWith(fileBasename)) {
         relativeFileDirname = relativeFile.substring(0, relativeFile.length-(fileBasename.length+1));
       }
-      result = result.replace(/\$\{relativeFileDirname\}/g, relativeFileDirname);
+      result = variableReplaceAndFilter(result, 'relativeFileDirname', 0, relativeFileDirname);
       return result;
     };
     let stringSubstitutionDepthN = async (text) => {

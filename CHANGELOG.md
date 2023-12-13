@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.60.1] 2023-12-13
+### Modified
+- README: <code>&vert;</code> is interpreted by Marketplace as a table character in `pickFile` `valueTransform`
+
 ## [1.60.0] 2023-11-24
 ### Added
 - `variableSubstitution`: pass variable result to 1 or more filters (`regexEscape`, `upperCase`, `lowerCase`), use `|`

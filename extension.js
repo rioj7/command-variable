@@ -344,6 +344,8 @@ function activate(context) {
       result = await asyncVariable(result, args, uri, pickStringRemember);
       result = await asyncVariable(result, args, uri, common.promptStringRemember);
       result = await asyncVariable(result, args, uri, pickFile);
+      result = await asyncVariable(result, args, uri, openDialog);
+      result = await asyncVariable(result, args, uri, saveDialog);
       result = await asyncVariable(result, args, uri, fileContent);
       result = await asyncVariable(result, args, uri, configExpression);
       result = await asyncVariable(result, args, uri, remember);
@@ -684,7 +686,6 @@ function activate(context) {
     let fromFolder  = getProperty(args, 'fromFolder');
     let fromWorkspace = getProperty(args, 'fromWorkspace', false);
     let placeHolder = getProperty(args, 'description', 'Select a file');
-    let keyRemember = getProperty(args, 'keyRemember', 'pickFile');
     let showDirs = getProperty(args, 'showDirs', false);
     let acceptIfOneFile = getProperty(args, 'acceptIfOneFile', false);
     if (globExclude === 'undefined') globExclude = undefined;
@@ -744,7 +745,7 @@ function activate(context) {
       globInclude = new vscode.RelativePattern(workspace, globInclude);
     }
 
-    return vscode.workspace.findFiles(globInclude, globExclude, maxResults)
+    let picked = await vscode.workspace.findFiles(globInclude, globExclude, maxResults)
       .then( uriList => {
         if (showDirs) {
           let unique = new Set();
@@ -755,23 +756,26 @@ function activate(context) {
           return new FilePickItem().fromURI(uriList[0]);
         }
         return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args, folderPath), {placeHolder});
-      })
-      .then(async picked => {
-        if (!picked) { return undefined; }
-        if (picked.askValue) {
-          picked.value = await vscode.window.showInputBox(ignoreFocusOut);
-          if (picked.value !== undefined && picked.value.length > 0) {
-            picked.uri = vscode.Uri.file(picked.value);
-          }
-        }
-        if (picked.value === undefined) { return undefined; }
-        let kvPairs = {};
-        kvPairs[keyRemember] = picked.value;
-        kvPairs[keyRemember+common.PostfixURI] = picked.uri;
-        let result = storeStringRemember2({key: keyRemember}, kvPairs);
-        result = await transformResult(args, result, '${file}', keyRemember);
-        return getProperty(args, 'empty', false) ? '' : result;
       });
+    return savePickedURI(picked, args, 'pickFile')
+  }
+  async function savePickedURI(picked, args, keyRememberDefault) {
+    if (!picked) { return undefined; }
+    if (picked.askValue) {
+      let ignoreFocusOut = {ignoreFocusOut:true};
+      picked.value = await vscode.window.showInputBox(ignoreFocusOut);
+      if (picked.value !== undefined && picked.value.length > 0) {
+        picked.uri = vscode.Uri.file(picked.value);
+      }
+    }
+    if (picked.value === undefined) { return undefined; }
+    let keyRemember = getProperty(args, 'keyRemember', keyRememberDefault);
+    let kvPairs = {};
+    kvPairs[keyRemember] = picked.value;
+    kvPairs[keyRemember+common.PostfixURI] = picked.uri;
+    let result = storeStringRemember2({key: keyRemember}, kvPairs);
+    result = await transformResult(args, result, '${file}', keyRemember);
+    return getProperty(args, 'empty', false) ? '' : result;
   }
   async function pickFile(args) {
     args = dblQuest(args, {});
@@ -779,6 +783,48 @@ function activate(context) {
     return common.storeEscapedUI(await _pickFile(args));
   }
   context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.pickFile', pickFile));
+
+  async function _osFileDialog(mode, args, dialogCB) {
+    let options = {};
+    let canSelect = getProperty(args, 'canSelect', 'files');
+    options['canSelectFiles'] = canSelect == 'files';
+    options['canSelectFolders'] = canSelect == 'folders';
+    let canSelectMany = getProperty(args, 'canSelectMany');
+    canSelectMany = false;
+    options['canSelectMany'] = canSelectMany;
+    let defaultUri = getProperty(args, 'defaultUri');
+    if (defaultUri !== undefined) {
+      defaultUri = vscode.Uri.file(await variableSubstitution(defaultUri, args));
+    }
+    options['defaultUri'] = defaultUri;
+    options['filters'] = getProperty(args, 'filters');
+    let labelProp = `${mode}Label`;
+    options[labelProp] = getProperty(args, labelProp);
+    options['title'] = getProperty(args, 'title');
+    let picked = undefined;
+    let resultDialog = await dialogCB(options);
+    if (resultDialog) {
+      let uri = undefined;
+      if (utils.isArray(resultDialog)) {
+        uri = resultDialog[0];
+      } else {
+        uri = resultDialog;
+      }
+      if (uri) {
+        picked = {value: uri.fsPath, uri};
+      }
+    }
+    return savePickedURI(picked, args, `${mode}Dialog`);
+  }
+  async function osFileDialog(mode, args, dialogCB) {
+    args = dblQuest(args, {});
+    if (common.checkEscapedUI(args)) { return undefined; }
+    return common.storeEscapedUI(await _osFileDialog(mode, args, dialogCB));
+  }
+  async function openDialog(args) { return await osFileDialog('open', args, vscode.window.showOpenDialog); }
+  async function saveDialog(args) { return await osFileDialog('save', args, vscode.window.showSaveDialog); }
+  context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.openDialog', openDialog));
+  context.subscriptions.push(vscode.commands.registerCommand('extension.commandvariable.file.saveDialog', saveDialog));
   context.subscriptions.push(
     // TODO Deprecated 2022-03
     vscode.commands.registerCommand('extension.commandvariable.workspace.workspaceFolderPosix', args => { return workspaceFolderNUp(0, true, args); })

@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.61.0] 2023-12-19
+### Added
+- `openDialog`: get file path from the OS File/Directory open dialog
+- `saveDialog`: get file path from the OS File save dialog
+- <code>&dollar;{openDialog}</code> variable
+- <code>&dollar;{saveDialog}</code> variable
+
 ## [1.60.1] 2023-12-13
 ### Modified
 - README: <code>&vert;</code> is interpreted by Marketplace as a table character in `pickFile` `valueTransform`

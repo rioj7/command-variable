@@ -25,6 +25,8 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
 * [File Content in Editor](#file-content-in-editor)
 * [Config Expression](#config-expression)
 * [Pick File](#pick-file)
+* [Open Dialog](#open-dialog)
+* [Save Dialog](#save-dialog)
 * [number](#number)
 * [remember](#remember)
 * [pickStringRemember](#pickstringremember)
@@ -42,6 +44,8 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
   * [`${pickStringRemember}`](#variable-pickstringremember)
   * [`${promptStringRemember}`](#variable-promptstringremember)
   * [`${pickFile}`](#variable-pickfile)
+  * [`${openDialog}`](#variable-opendialog)
+  * [`${saveDialog}`](#variable-savedialog)
   * [`${command}`](#variable-command)
   * [`${transform}`](#variable-transform)
   * [`${remember}`](#variable-remember)
@@ -670,6 +674,10 @@ If you want to select the server from a pick list you can change the `inputs` pa
 
 ## Pick File
 
+See also:
+* [Open Dialog](#open-dialog)
+* [Save Dialog](#save-dialog)
+
 If you want to pick a file and use it in your `launch.json` or `tasks.json` you can use the `extension.commandvariable.file.pickFile` command.
 
 This command uses [`vscode.workspace.findFiles`](https://code.visualstudio.com/api/references/vscode-api#workspace.findFiles) to get a list of files to show in a Quick Pick selection box.
@@ -872,6 +880,108 @@ If using the same file paths as the previous example but you want to show and re
         }
       }
     }
+```
+
+## Open Dialog
+
+See also: [Pick File](#pick-file)
+
+If you want to select a file or directory/folder you can use the command: `extension.commandvariable.file.openDialog`. It uses the [`vscode.window.showOpenDialog`](https://code.visualstudio.com/api/references/vscode-api#window.showOpenDialog) function of the VSC API.
+
+You can set the following properties to this command:
+
+* `canSelect`: specify if you want to select a file or a directory (default: `files`)  
+  Possible values are:  
+  * `files`: select a file
+  * `folders`: select a directory/folder
+* `defaultUri`: a OS file path where the dialog will open. You can use [variables](#variables) to construct a file path, like `${workspaceFolder}${pathSeparator}configs`
+* `filters`: set of file filters. Use `"` as string separator because this is here specified in a JSON file. See [`vscode.OpenDialogOptions.filters`](https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions.filters)
+* `openLabel`: label of the accept button. See [`vscode.OpenDialogOptions.openLabel`](https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions.openLabel)
+* `title`: title of the dialog. See [`vscode.OpenDialogOptions.title`](https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions.title)
+* `keyRemember` : (Optional) If you want to [remember](#remember) the filepath for later use. (default: `"openDialog"`)
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+* `transform` : (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
+* `empty` : (Optional) [ `true` | `false` ] The full file path is saved for the given `keyRemember`. If `true`: result of command is the empty string. Can be used with [`remember:transform`](#remember) command or variable. This is the last test of the command (it overrules a possible `transform`). (default: `false`)
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Open Dialog",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:openDialog}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openDialog",
+      "type": "command",
+      "command": "extension.commandvariable.file.openDialog",
+      "args": {
+        "canSelect": "files",
+        "defaultUri": "${workspaceFolder}",
+        "filters": {
+          "Images": ["png", "jpg"],
+          "TypeScript": ["ts", "tsx"]
+        }
+      }
+    }
+  ]
+}
+```
+
+## Save Dialog
+
+See also: [Pick File](#pick-file)
+
+If you want to select a file to save some results (it can be a new file name) you can use the command: `extension.commandvariable.file.saveDialog`. It uses the [`vscode.window.showSaveDialog`](https://code.visualstudio.com/api/references/vscode-api#window.showSaveDialog) function of the VSC API.
+
+You can set the following properties to this command:
+
+* `defaultUri`: a OS file path where the dialog will open. You can use [variables](#variables) to construct a file path, like `${workspaceFolder}${pathSeparator}configs`
+* `filters`: set of file filters. Use `"` as string separator because this is here specified in a JSON file. See [`vscode.SaveDialogOptions.filters`](https://code.visualstudio.com/api/references/vscode-api#SaveDialogOptions.filters)
+* `saveLabel`: label of the accept button. See [`vscode.SaveDialogOptions.saveLabel`](https://code.visualstudio.com/api/references/vscode-api#SaveDialogOptions.saveLabel)
+* `title`: title of the dialog. See [`vscode.SaveDialogOptions.title`](https://code.visualstudio.com/api/references/vscode-api#SaveDialogOptions.title)
+* `keyRemember` : (Optional) If you want to [remember](#remember) the filepath for later use. (default: `"saveDialog"`)
+* [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+* `transform` : (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
+* `empty` : (Optional) [ `true` | `false` ] The full file path is saved for the given `keyRemember`. If `true`: result of command is the empty string. Can be used with [`remember:transform`](#remember) command or variable. This is the last test of the command (it overrules a possible `transform`). (default: `false`)
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "echo Save Dialog",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "${input:saveDialog}"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "saveDialog",
+      "type": "command",
+      "command": "extension.commandvariable.file.saveDialog",
+      "args": {
+        "defaultUri": "${workspaceFolder}",
+        "saveLabel": "Save",
+        "filters": {
+          "Images": ["png", "jpg"],
+          "TypeScript": ["ts", "tsx"]
+        }
+      }
+    }
+  ]
+}
 ```
 
 ## number
@@ -2034,6 +2144,8 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
   You can add the [`checkEscapedUI`](#checkescapedui) property to the _`key`_ name if it is not a _named argument object_ like <code>&dollar;{remember:<em>key</em>__checkEscapedUI}</code>.  
   See a few [examples of the `${remember}` variable](#variable-remember).
 * <code>&dollar;{pickFile:<em>name</em>}</code> : use the [`pickFile`](#pick-file) command as a variable, arguments are part of the [`pickFile` property of the (parent) command](#variable-pickfile)
+* <code>&dollar;{openDialog:<em>name</em>}</code> : use the [`openDialog`](#open-dialog) command as a variable, arguments are part of the [`openDialog` property of the (parent) command](#variable-opendialog)
+* <code>&dollar;{saveDialog:<em>name</em>}</code> : use the [`saveDialog`](#save-dialog) command as a variable, arguments are part of the [`saveDialog` property of the (parent) command](#variable-savedialog)
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{config:<em>name</em>}</code> : use the variable <code>&dollar;{configExpression:<em>name</em>}</code> (!!_name_ is not the name of the config variable!!)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
@@ -2363,6 +2475,28 @@ An example: you have a number of key-value files and you want to select which en
   ]
 }
 ```
+
+### Variable `openDialog`
+
+The `openDialog` variable works the same as the [`pickStringRemember` variable](#variable-pickstringremember).
+If you want a file path use the variable: <code>&dollar;{openDialog:<em>name</em>}</code>
+
+_`name`_ is the property name of the `openDialog` property of the `args` object of the command.
+
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `openDialog` have to be part of the arguments of the command.
+
+See the command [`extension.commandvariable.openDialog`](#open-dialog) for the arguments you can use.
+
+### Variable `saveDialog`
+
+The `saveDialog` variable works the same as the [`pickStringRemember` variable](#variable-pickstringremember).
+If you want a file path use the variable: <code>&dollar;{saveDialog:<em>name</em>}</code>
+
+_`name`_ is the property name of the `saveDialog` property of the `args` object of the command.
+
+Because the command has no way to determine if it is called from which workspace `tasks.json` or `launch.json` file or from a key binding the arguments for `saveDialog` have to be part of the arguments of the command.
+
+See the command [`extension.commandvariable.saveDialog`](#save-dialog) for the arguments you can use.
 
 ### Variable `command`
 

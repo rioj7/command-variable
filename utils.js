@@ -10,9 +10,14 @@ function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8
   return decodeURIComponent(s);
 }
 
+let showErrMsg = true;
+function setShowErrMsg(b) { showErrMsg = b; }
+function getShowErrMsg() { return showErrMsg; }
 function getProperty(obj, prop, deflt) { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; }
 function getDefaultProperty(obj, deflt) { return getProperty(obj, 'default', deflt); }
-function errorMessage(msg, noObject) { vscode.window.showErrorMessage(msg); return noObject ? noObject : "Unknown";}
+function errorMessage(msg, noObject) {
+  if (getShowErrMsg()) { vscode.window.showErrorMessage(msg); }
+  return noObject ? noObject : "Unknown";}
 function fileNotInFolderError(noObject) { return errorMessage('File not in Multi-root Workspace', noObject); }
 function isString(obj) { return typeof obj === 'string';}
 function isArray(obj) { return Array.isArray(obj);}
@@ -22,5 +27,5 @@ function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
 function nUp(i) { return i===0 ? '' : i.toString()+'Up'; }
 
 module.exports = {
-  getProperty, getDefaultProperty, errorMessage, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str
+  getProperty, getDefaultProperty, errorMessage, setShowErrMsg, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str
 }

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.61.1] 2024-01-30
+### Added
+- <code>&dollar;{workspaceFolder:<em>name</em>:nomsg}</code>: option to suppress error message
+
 ## [1.61.0] 2023-12-19
 ### Added
 - `openDialog`: get file path from the OS File/Directory open dialog

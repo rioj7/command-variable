@@ -31,6 +31,8 @@ function setAsDesktopExtension() {
   gWebExtension = false;
 }
 
+function setShowErrMsg(b) { utils.setShowErrMsg(b); }
+
 const PostfixURI = '@URI@';
 
 let numberStore = {};
@@ -646,6 +648,7 @@ module.exports = {
   activate,
   deactivate,
   showDeprecationMessage,
+  setShowErrMsg,
   gDeprecationRememberPickVariable,
   gDeprecationRememberPickCommand,
   storeStringRemember,

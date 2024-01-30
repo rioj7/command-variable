@@ -2123,6 +2123,7 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{userHome}</code> : the path of the user's home folder
 * `${workspaceFolder}` : the path of the workspace folder opened in VS Code containing the current file.
 * <code>&dollar;{workspaceFolder:<em>name</em>}</code> : the path of the workspace folder with the specified _name_ opened in VS Code
+* <code>&dollar;{workspaceFolder:<em>name</em>:nomsg}</code> : same as <code>&dollar;{workspaceFolder:<em>name</em>}</code> but there will be no ErrorMessage shown.
 * `${workspaceFolderBasename}` : the name of the workspace folder opened in VS Code containing the current file without any slashes
 * `${file}` : the current opened file (the file system path)
 * `${relativeFile}` : the current opened file relative to workspaceFolder

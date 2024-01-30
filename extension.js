@@ -312,8 +312,10 @@ function activate(context) {
         return workspaceFolder.uri.fsPath;
       });
     });
-    result = variableReplaceAndFilter(result, 'workspaceFolder:(.+?)', 1, (m, p1) => {
+    result = variableReplaceAndFilter(result, 'workspaceFolder:(.+?)(:nomsg)?', 2, (m, p1, p2) => {
+      if (p2) { common.setShowErrMsg(false); }
       let wsf = common.getNamedWorkspaceFolder(p1);
+      if (p2) { common.setShowErrMsg(true); }
       if (!wsf) { return 'Unknown'; }
       return wsf.uri.fsPath;
     });

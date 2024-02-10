@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.61.2] 2024-02-10
+### Fixed
+- `file.content`: result of the expression/value and `default` property can be the empty string
+
 ## [1.61.1] 2024-01-30
 ### Added
 - <code>&dollar;{workspaceFolder:<em>name</em>:nomsg}</code>: option to suppress error message

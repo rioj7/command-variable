@@ -604,9 +604,9 @@ function activate(context) {
     if (debug) { console.log(`commandvariable.${debugCmd}: content to value: ${value}`); }
     if (value === undefined) { return undefined; }
     let result = "Unknown";
-    if (value) { result = value; }
+    if (!(value === null || value === undefined)) { result = value; }
     else {
-      if (args.default) { result = args.default; }
+      if (args.default !== undefined) { result = args.default; }
     }
     if (debug) { console.log(`commandvariable.${debugCmd}: result: ${result}`); }
     let keyRemember = getProperty(args, 'keyRemember', keyRememberDflt);

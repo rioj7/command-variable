@@ -629,8 +629,8 @@ function activate(context) {
     })
   );
   const getConfigVariable = async (args, debug) => {
+    if (!isString(args.configVariable)) { args.configVariable = "editor.fontSize"; }
     if (debug) { console.log(`commandvariable.config.expression: getConfigVariable: from: ${args.configVariable}`); }
-    if (!isString(args.configVariable)) return "Unknown";
     // variables are not substituted by VSC
     args.configVariable = await variableSubstitution(args.configVariable, args);
     if (debug) { console.log(`commandvariable.config.expression: getConfigVariable: after variable substitution: ${args.configVariable}`); }

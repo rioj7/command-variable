@@ -38,6 +38,7 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
 * [Transform](#transform)
 * [Variables](#variables)
   * [Variable Filters](#variable-filters)
+  * [Variables in Javascript expression](#variables-in-javascript-expression)
   * [`${workspaceFolder}`](#variable-workspacefolder)
   * [`${workspaceFolderBasename}`](#variable-workspacefolderbasename)
   * [`${selectedText}`](#variable-selectedtext)
@@ -561,9 +562,11 @@ Add to **`keybindings.json`**
 
 If you have an array or object as configuration variable content (`settings.json`) and you want a particular element of the array or the value for a given object property you can use the command `extension.commandvariable.config.expression`.
 
+Can be used to have a [JavaScript expression containing variables](#variables-in-javascript-expression).
+
 The supported arguments:
 
-* `configVariable` : specifies the settings variable to read. Must contain a `section` part (at least 1 `.`) : `sectionX.configY`. Supports [variables](#variables).
+* `configVariable` : (Optional) specifies the settings variable to read. Must contain a `section` part (at least 1 `.`) : `sectionX.configY`. Supports [variables](#variables) (default: `"editor.fontSize"`).
 * `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
@@ -2277,6 +2280,23 @@ The following filters are defined:
 >   ]
 > }
 > ```
+
+### Variables in Javascript expression
+
+User [`dvirtz`](https://github.com/rioj7/command-variable/issues/78#issuecomment-1918957939) has found a nice way to use the result of variables in a JavaScript expression and have that as a result.
+
+```json
+{
+  "id": "uniqueFolder",
+  "type": "command",
+  "command": "extension.commandvariable.config.expression",
+  "args": {
+    "expression": "['${workspaceFolder:b.1:nomsg}', '${workspaceFolder:b.2:nomsg}', '${workspaceFolder:b.3:nomsg}'].find(folder => folder != 'Unknown')"
+  }
+}
+```
+
+You don't have to specify the `configVariable` property.
 
 ### Variable `workspaceFolder`
 

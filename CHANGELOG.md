@@ -3,6 +3,9 @@
 ## [1.61.2] 2024-02-10
 ### Fixed
 - `file.content`: result of the expression/value and `default` property can be the empty string
+### Modified
+- `config.expression`: `configVariable` is optional, evaluate JS expression without a config value
+- `README`: example variables in  JS expression
 
 ## [1.61.1] 2024-01-30
 ### Added

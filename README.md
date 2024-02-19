@@ -24,6 +24,7 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
 * [File Content Multiple Key-Values/Properties](#file-content-multiple-key-valuesproperties)
 * [File Content in Editor](#file-content-in-editor)
 * [Config Expression](#config-expression)
+* [JavaScript Expression](#javascript-expression)
 * [Pick File](#pick-file)
 * [Open Dialog](#open-dialog)
 * [Save Dialog](#save-dialog)
@@ -582,7 +583,7 @@ If you want the value of the `configVariable` as a JSON string **don't set** the
 
 Any expression is allowed that does not have a function call. All arithmetic operators, comparison operators, ...
 
-Can be used as [variable](#variables) <code>&dollar;{configExpression:<em>name</em>}</code>
+Can be used as [variable](#variables): <code>&dollar;{configExpression:<em>name</em>}</code>
 
 ### Example
 
@@ -674,6 +675,13 @@ If you want to select the server from a pick list you can change the `inputs` pa
   ]
 }
 ```
+## JavaScript Expression
+
+The command `extension.commandvariable.js.expression` is an alias of [`extension.commandvariable.config.expression`](#config-expression).
+
+You can use it to perform an expression with [variables](#variables).
+
+Can be used as [variable](#variables): <code>&dollar;{jsExpression:<em>name</em>}</code>
 
 ## Pick File
 
@@ -701,8 +709,11 @@ You can set the following properties to this command:
 
     **Known problem**: `exclude` is not working as expected under Windows. Excluded files are put at the end of the list.
 
-* `keyRemember` : (Optional) If you want to [remember](#remember) the filepath for later use. (default: `"pickFile"`)
-* `description` : (Optional) A text shown in the pick list box. (default: `"Select a file"`)
+* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. (default: `false`)
+* `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the URI's are transformed (`transform`) and then joined with this string. Also the filepaths remembered with `keyRemember` use this separator. (default: `" "`)
+* `canPickMany` : alias for `multiPick`
+* `keyRemember` : (Optional) If you want to [remember](#remember) the filepath(s) for later use. (default: `"pickFile"`)
+* `description` : (Optional) A text shown in the pick list box. (default: `"Select a file"`, `"Select 1 or more files"`)
 * `maxResults` : Limit the number of files to choose from. Must be a number (no `"` characters). (default: no limits)
 * `addEmpty` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Empty ***`) that will return an empty string when selected. (default: `false`)
 * `addAsk` : [ `true` | `false` ] If `true`: add an entry to the list (`*** Ask ***`) that will open an Input Box where you enter the path to be returned. (default: `false`)
@@ -897,6 +908,7 @@ You can set the following properties to this command:
   Possible values are:  
   * `files`: select a file
   * `folders`: select a directory/folder
+* `canSelectMany`: (Optional) can we select multiple files. (default: `false`)
 * `defaultUri`: a OS file path where the dialog will open. You can use [variables](#variables) to construct a file path, like `${workspaceFolder}${pathSeparator}configs`
 * `filters`: set of file filters. Use `"` as string separator because this is here specified in a JSON file. See [`vscode.OpenDialogOptions.filters`](https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions.filters)
 * `openLabel`: label of the accept button. See [`vscode.OpenDialogOptions.openLabel`](https://code.visualstudio.com/api/references/vscode-api#OpenDialogOptions.openLabel)
@@ -904,6 +916,7 @@ You can set the following properties to this command:
 * `keyRemember` : (Optional) If you want to [remember](#remember) the filepath for later use. (default: `"openDialog"`)
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 * `transform` : (Optional) an object with the same properties as the [`transform`](#transform) command. It allows to extract part of the picked file URI by using a [variable](#variables) and perform a find-replace operation. The default value of the `text` property is `${file}`.
+* `separator`: (Optional) If you have picked multiple files the URI's are transformed and then joined with this string. (default: `" "`)
 * `empty` : (Optional) [ `true` | `false` ] The full file path is saved for the given `keyRemember`. If `true`: result of command is the empty string. Can be used with [`remember:transform`](#remember) command or variable. This is the last test of the command (it overrules a possible `transform`). (default: `false`)
 
 ```json
@@ -1116,6 +1129,7 @@ The `args` property of this command is an object with the properties:
    To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 * `transform`: (Optional) (**Not in Web**) an object with the same properties as the [`transform`](#transform) command. It allows to find and replace in the string or to extract part of the [`file.pickFile`](#pick-file) picked file URI by using a [variable](#variables). The default value of the `text` property is `${result}`. This is the value stored in the remember store for the given `key`.
+* `separator`: (Optional) (**Not in Web**) If you have picked multiple files ([`pickFile`](#pick-file), [openDialog](#open-dialog)) the URI's are transformed and then joined with this string. (default: `" "`)
 
 If you need to construct a new string with the value you can use the [variable](#variables): <code>&dollar;{remember:<em>key</em>}</code>. This can only be used in `args` properties of commands in this extension. The `inputs` list of `launch.json` and `tasks.json` or in `keybindings` or extensions that call commands with arguments ([Multi Command](https://marketplace.visualstudio.com/items?itemName=ryuta46.multi-command)). You can modify the value with the [`transform`](#transform) command or the `transform` property.
 
@@ -2045,6 +2059,29 @@ The command can be used with the `${input:}` variable and has the following argu
     * `numSel` : number of selections (or cursors)
 
     The `index` is 0-based to make (modulo) calculations easier. The first `index` is 0.
+* `indexName` : (Optional) the name of the index when used to transform a multi file pick ([`remember`](#remember), [`pickFile`](#pick-file), [`openDialog`](#open-dialog)), default (`""`)
+
+  If you want to construct a sequence number with an offset of 31 and a fixed length of 4 digits and separate the individual paths with `***` you can use these properties with the commands that have the `transform` property.
+
+  ```jsonc
+  {
+    // other properties
+    "key": "someKey",
+    "separator": "***",
+    "transform": {
+      "text": "${jsExpression:offset}:${relativeFile}",
+      "find": "\\\\",
+      "replace": "/",
+      "flags": "g",
+      "indexName": "open",
+      "jsExpression": {
+        "offset": {
+          "expression": "(${index:open}+31).toString().padStart(4,'0')"
+        }
+      }
+    }
+  }
+  ```
 
 Example:
 
@@ -2153,13 +2190,25 @@ VSC does not perform [variable substitution](https://code.visualstudio.com/docs/
 * <code>&dollar;{fileContent:<em>name</em>}</code> : use the [`file.content`](#file-content) command ([File Content Key Value pairs](#file-content-key-value-pairs), [File Content JSON Property](#file-content-json-property) ) as a variable, arguments are part of the `fileContent` property of the (parent) command. (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{config:<em>name</em>}</code> : use the variable <code>&dollar;{configExpression:<em>name</em>}</code> (!!_name_ is not the name of the config variable!!)
 * <code>&dollar;{configExpression:<em>name</em>}</code> : use the [`config.expression`](#config-expression) command as a variable, arguments are part of the `configExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
+* <code>&dollar;{jsExpression:<em>name</em>}</code> : use the [`js.expression`](#javascript-expression) command as a variable, arguments are part of the `jsExpression` property of the (parent) command (works the same as <code>&dollar;{pickStringRemember:<em>name</em>}</code>)
 * <code>&dollar;{command:<em>name</em>}</code> : use the result of a command as a variable. `name` can be a commandID or a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`command` property of the (parent) command](#variable-command)
 * <code>&dollar;{transform:<em>name</em>}</code> : use the result of a transform as a variable. `name` is a _named argument object property_ (like `pickStringRemember`), arguments are part of the [`transform` property of the (parent) command](#variable-transform). You can transform strings that are the result of a transform.
 * <code>&dollar;{result}</code> : a special variable used in:
   * the [`remember:transform:text`](#remember) property. It contains the string stored for the given `key`.
   * the [`pickFile:transform:text`](#pick-file) property. It contains the string that is the value of the picked item.
+  * the [`openDialog:transform:text`](#open-dialog) property. It contains the string that is the value of the picked item.
+  * the [`saveDialog:transform:text`](#save-dialog) property. It contains the string that is the value of the picked item.
 
   In all other cases it is the empty string.
+* <code>&dollar;{index}</code>  
+  <code>&dollar;{index:<em>name</em>}</code> : a special variable used in:
+  * the [`remember:transform:text`](#remember) property.
+  * the [`pickFile:transform:text`](#pick-file) property.
+  * the [`openDialog:transform:text`](#open-dialog) property.
+
+  Or any variable that is in the `text` property.
+
+  If you have picked multiple files this is the 0-based index of the picked file. You can use it to add a sequence number to the joined result or use it in a JavaScript expression. If using nested transforms you need to name the index variable of the transform using the `indexName` property.
 
 The variables are processed in the order mentioned. This means that if the selected text contains variable descriptions they are handled as if typed in the text.
 

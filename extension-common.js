@@ -37,7 +37,7 @@ const PostfixURI = '@URI@';
 
 let numberStore = {};
 
-let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined };
+let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined, "__zero": '0' };
 
 function getRememberStore() {
   return rememberStore;
@@ -75,7 +75,7 @@ function rememberStoreUpdate(key, value) {
       if (action === 'prepend') { value = text + delimiter + currentValue; }
     }
   }
-  if (key !== '__undefined' && key !== 'empty') {
+  if (key !== '__undefined' && key !== 'empty' && key !== '__zero') {
     rememberStore[key] = value;
   }
 }

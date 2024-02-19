@@ -19,7 +19,9 @@ function errorMessage(msg, noObject) {
   if (getShowErrMsg()) { vscode.window.showErrorMessage(msg); }
   return noObject ? noObject : "Unknown";}
 function fileNotInFolderError(noObject) { return errorMessage('File not in Multi-root Workspace', noObject); }
+/** @param {any} obj @returns {obj is string} */
 function isString(obj) { return typeof obj === 'string';}
+/** @param {any} obj @returns {obj is any[]} */
 function isArray(obj) { return Array.isArray(obj);}
 function isObject(obj) { return (typeof obj === 'object') && !isArray(obj);}
 function range(size, startAt = 0) { return [...Array(size).keys()].map(i => i + startAt); }  // https://stackoverflow.com/a/10050831/9938317

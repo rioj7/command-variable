@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.62.0] 2024-02-19
+### Added
+- `pickFile`: select multiple files
+- `openDialog`: select multiple files
+- `js.expression`: alias for `config.expression`
+- <code>&dollar;{jsExpression:<em>name</em>}</code>
+- <code>&dollar;{index}</code>, <code>&dollar;{index:<em>name</em>}</code>: set when transforming multiple selected file URIs.
+
 ## [1.61.2] 2024-02-10
 ### Fixed
 - `file.content`: result of the expression/value and `default` property can be the empty string

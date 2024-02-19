@@ -186,13 +186,32 @@ function activate(context) {
     }
     return action(wsf);
   }
+  /** @param {object} args @param {string[] | string} result @param {string} textDefault @param {string} uriKey @returns {Promise<string>} */
   async function transformResult(args, result, textDefault, uriKey) {
     let transformArgs = getProperty(args, 'transform');
     if (transformArgs) {
-      transformArgs['__result'] = result;
-      result = await transform(transformArgs, textDefault, getRememberKey(uriKey+common.PostfixURI, '__undefined'));
+      let numTransfoms = 1; // in case there are no URIs transform string
+      let indexName = getProperty(transformArgs, 'indexName', '');
+      let uris = getRememberKey(uriKey+common.PostfixURI, '__undefined');
+      let getURI = idx => undefined;
+      let getResult = idx => result;
+      if (utils.isArray(result)) {
+        if (!(utils.isArray(uris) && result.length === uris.length)) { return 'ArraysDoNotMatch'; }
+        getResult = idx => result[idx];
+      }
+      if (utils.isArray(uris)) {
+        getURI = idx => uris[idx];
+        numTransfoms = uris.length;
+      }
+      let __result = [];
+      for (let index = 0; index < numTransfoms; ++index) {
+        transformArgs['__result'] = getResult(index);
+        storeStringRemember2({key: `__index__${indexName}`}, index.toString());
+        __result.push(await transform(transformArgs, textDefault, getURI(index)));
+      }
+      result = __result;
     }
-    return result;
+    return utils.isArray(result) ? result.join(getProperty(args, 'separator', ' ')) : result;
   }
   async function dataStructSubstitution(v, cbData, callback) {
     if (isString(v)) {
@@ -333,6 +352,10 @@ function activate(context) {
       const editor = vscode.window.activeTextEditor;
       if (!uri && editor) { uri = editor.document.uri; }
       var result = text;
+      result = result.replace('${index}', getRememberKey('__index__', '__zero'));
+      result = result.replace(/\$\{index:(.+?)\}/g, (m, p1) => {
+        return getRememberKey(`__index__${p1}`, '__zero');
+      });
       if (new RegExp(/\$\{result[}|]/).test(result)) {
         let __result = await variableSubstitution(getProperty(args, '__result', ''), args, uri);
         result = variableReplaceAndFilter(result, 'result', 0, __result);
@@ -350,6 +373,7 @@ function activate(context) {
       result = await asyncVariable(result, args, uri, saveDialog);
       result = await asyncVariable(result, args, uri, fileContent);
       result = await asyncVariable(result, args, uri, configExpression);
+      result = await asyncVariable(result, args, uri, jsExpression);
       result = await asyncVariable(result, args, uri, remember);
       // TODO Deprecated 2021-10
       if (result !== undefined) {
@@ -648,6 +672,14 @@ function activate(context) {
       return await configExpression(args);
     })
   );
+  const jsExpression = async (args) => {
+    return configExpression(args);
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.js.expression', async (args) => {
+      return jsExpression(args);
+    })
+  );
   /** @param {vscode.Uri[]} uriList @param {Object} args */
   async function constructFilePickList(uriList, args, folderPath) {
     let addEmpty    = getProperty(args, 'addEmpty', false);
@@ -687,7 +719,8 @@ function activate(context) {
     let maxResults  = getProperty(args, 'maxResults', undefined);
     let fromFolder  = getProperty(args, 'fromFolder');
     let fromWorkspace = getProperty(args, 'fromWorkspace', false);
-    let placeHolder = getProperty(args, 'description', 'Select a file');
+    let canPickMany = getProperty(args, 'multiPick', false) || getProperty(args, 'canPickMany', false);
+    let placeHolder = getProperty(args, 'description', canPickMany ? 'Select 1 or more files' : 'Select a file');
     let showDirs = getProperty(args, 'showDirs', false);
     let acceptIfOneFile = getProperty(args, 'acceptIfOneFile', false);
     if (globExclude === 'undefined') globExclude = undefined;
@@ -748,6 +781,7 @@ function activate(context) {
     }
 
     let picked = await vscode.workspace.findFiles(globInclude, globExclude, maxResults)
+      // @ts-ignore
       .then( uriList => {
         if (showDirs) {
           let unique = new Set();
@@ -757,26 +791,32 @@ function activate(context) {
         if (acceptIfOneFile && uriList.length === 1) {
           return new FilePickItem().fromURI(uriList[0]);
         }
-        return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args, folderPath), {placeHolder});
+        return vscode.window.showQuickPick(constructFilePickList(uriList.sort( (a,b) => a.path<b.path?-1:(b.path<a.path?1:0) ), args, folderPath), {placeHolder, canPickMany});
       });
+    if (picked !== undefined && !canPickMany) { picked = [ picked ]; }
     return savePickedURI(picked, args, 'pickFile')
   }
+  /** @param {any[]} picked @param {object} args @param {string} keyRememberDefault */
   async function savePickedURI(picked, args, keyRememberDefault) {
     if (!picked) { return undefined; }
-    if (picked.askValue) {
-      let ignoreFocusOut = {ignoreFocusOut:true};
-      picked.value = await vscode.window.showInputBox(ignoreFocusOut);
-      if (picked.value !== undefined && picked.value.length > 0) {
-        picked.uri = vscode.Uri.file(picked.value);
+    for (let pck of picked) {
+      if (pck.askValue) {
+        let ignoreFocusOut = {ignoreFocusOut:true};
+        pck.value = await vscode.window.showInputBox(ignoreFocusOut);
+        if (pck.value !== undefined && pck.value.length > 0) {
+          pck.uri = vscode.Uri.file(pck.value);
+        }
       }
+      if (pck.value === undefined) { return undefined; }
     }
-    if (picked.value === undefined) { return undefined; }
+    let separator = getProperty(args, 'separator', ' ');
+    let values = picked.map(pck => pck.value);
     let keyRemember = getProperty(args, 'keyRemember', keyRememberDefault);
     let kvPairs = {};
-    kvPairs[keyRemember] = picked.value;
-    kvPairs[keyRemember+common.PostfixURI] = picked.uri;
-    let result = storeStringRemember2({key: keyRemember}, kvPairs);
-    result = await transformResult(args, result, '${file}', keyRemember);
+    kvPairs[keyRemember] = values.join(separator);
+    kvPairs[keyRemember+common.PostfixURI] = picked.map(pck => pck.uri);
+    storeStringRemember2({key: keyRemember}, kvPairs);
+    let result = await transformResult(args, values, '${file}', keyRemember);
     return getProperty(args, 'empty', false) ? '' : result;
   }
   async function pickFile(args) {
@@ -791,9 +831,7 @@ function activate(context) {
     let canSelect = getProperty(args, 'canSelect', 'files');
     options['canSelectFiles'] = canSelect == 'files';
     options['canSelectFolders'] = canSelect == 'folders';
-    let canSelectMany = getProperty(args, 'canSelectMany');
-    canSelectMany = false;
-    options['canSelectMany'] = canSelectMany;
+    options['canSelectMany'] = getProperty(args, 'canSelectMany');
     let defaultUri = getProperty(args, 'defaultUri');
     if (defaultUri !== undefined) {
       defaultUri = vscode.Uri.file(await variableSubstitution(defaultUri, args));
@@ -806,15 +844,10 @@ function activate(context) {
     let picked = undefined;
     let resultDialog = await dialogCB(options);
     if (resultDialog) {
-      let uri = undefined;
-      if (utils.isArray(resultDialog)) {
-        uri = resultDialog[0];
-      } else {
-        uri = resultDialog;
+      if (!utils.isArray(resultDialog)) {
+        resultDialog = [ resultDialog ]
       }
-      if (uri) {
-        picked = {value: uri.fsPath, uri};
-      }
+      picked = resultDialog.map(uri => { return {value: uri.fsPath, uri}; });
     }
     return savePickedURI(picked, args, `${mode}Dialog`);
   }

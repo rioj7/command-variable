@@ -885,8 +885,10 @@ function activate(context) {
     let flags   = getProperty(args, 'flags', "");
     let key     = getProperty(args, 'key', 'transform');
     let apply   = getProperty(args, 'apply');
+    let saveToFile = getProperty(args, 'saveToFile');
     text = await variableSubstitution(text, args, uri);
     key = await variableSubstitution(key, args, uri);
+    saveToFile = await variableSubstitution(saveToFile, args, uri);
     if (!apply) {
       apply = [ {find, replace, flags} ]
     }
@@ -900,6 +902,11 @@ function activate(context) {
         regex.lastIndex = 0;
         text = text.replace(regex, replace);
       }
+    }
+    if (saveToFile) {
+      let uri = vscode.Uri.file(saveToFile);
+      await vscode.workspace.fs.writeFile(uri, new Uint8Array(utils.str_to_utf8_array(text)));
+      return savePickedURI([{value: uri.fsPath, uri}], args, key);
     }
     return storeStringRemember2({ key }, text);
   }

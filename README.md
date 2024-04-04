@@ -37,6 +37,7 @@ If you want persistent storage have a look at the [`commandvariable.remember.per
 * [getClipboard](#getclipboard)
 * [setClipboard](#setclipboard)
 * [Transform](#transform)
+* [Transform::saveToFile](#save-to-file)
 * [Variables](#variables)
   * [Variable Filters](#variable-filters)
   * [Variables in Javascript expression](#variables-in-javascript-expression)
@@ -2082,6 +2083,8 @@ The command can be used with the `${input:}` variable and has the following argu
     }
   }
   ```
+* `saveToFile` : (Optional) a file path where to store the result of the transform in UTF-8 format. Can contain [variables](#variables). The string returned is the file path. The file path is also stored under the `key`. (default: undefined )
+* `empty` : (Optional) [ `true` | `false` ] valid when `saveToFile` is defined. If `true`: result of command is the empty string. This is the last test of the command. (default: `false`)
 
 Example:
 
@@ -2148,6 +2151,35 @@ We can use this command to construct custom variables by setting the `text` argu
   ]
 }
 ```
+
+### Save to file
+
+If you want to store the result of a `transform`, `pickStringRemember`, `promptStringRemember`, or any other command to a file and pass the path of the file as the result.
+
+You have to wrap the command with a `transform` command that can save to a file.
+
+You can use an `input` like:
+
+```json
+    {
+      "id": "saveToFile",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "saveToFile": "${workspaceFolder}/.vscode/temp-text.txt",
+        "text": "${promptStringRemember:getContent}",
+        "key": "tmpfile",
+        "promptStringRemember": {
+          "getContent": {
+              "description": "What to store in the file",
+              "key": "fileContent"
+          }
+        }
+      }
+    }
+```
+
+In the task or launch config you use `${input:saveToFile}`. You can use [`remember`](#remember) with the keys `tmpfile` for file path, `fileContent` for the file content. Or the [`${remember}`](#variables) variable.
 
 ## Variables
 

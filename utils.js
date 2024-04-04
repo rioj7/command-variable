@@ -10,6 +10,35 @@ function utf8_to_str (src, off, lim) {  // https://github.com/quicbit-js/qb-utf8
   return decodeURIComponent(s);
 }
 
+function str_to_utf8_array(str) {  // https://gist.github.com/lihnux/2aa4a6f5a9170974f6aa
+  let utf8 = [];
+  for (let i = 0; i < str.length; ++i) {
+      let charcode = str.charCodeAt(i);
+      if (charcode < 0x80) utf8.push(charcode);
+      else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+                    0x80 | (charcode & 0x3f));
+      }
+      else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+                    0x80 | ((charcode>>6) & 0x3f),
+                    0x80 | (charcode & 0x3f));
+      }
+      else { // surrogate pair
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10) | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+                    0x80 | ((charcode>>12) & 0x3f),
+                    0x80 | ((charcode>>6) & 0x3f),
+                    0x80 | (charcode & 0x3f));
+      }
+  }
+  return utf8;
+}
+
 let showErrMsg = true;
 function setShowErrMsg(b) { showErrMsg = b; }
 function getShowErrMsg() { return showErrMsg; }
@@ -29,5 +58,5 @@ function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
 function nUp(i) { return i===0 ? '' : i.toString()+'Up'; }
 
 module.exports = {
-  getProperty, getDefaultProperty, errorMessage, setShowErrMsg, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str
+  getProperty, getDefaultProperty, errorMessage, setShowErrMsg, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str, str_to_utf8_array
 }

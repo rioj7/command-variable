@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.63.0] 2024-04-04
+### Added
+- `transform`: `saveToFile` - file path property - save result to a file and return the file path
+- `transform`: `empty` - store in remember store or file but return empty sting
+
 ## [1.62.0] 2024-02-19
 ### Added
 - `pickFile`: select multiple files

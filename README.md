@@ -1557,7 +1557,7 @@ Using a string manipulation object you can modify an existing variable:
               }
             }
           },
-          { "label": "prepend: -path ${ workspaceFolder}",
+          { "label": "prepend: -path ${workspaceFolder}",
             "value": {
               "buildArgs": {
                 "text": "-path ${workspaceFolder}",
@@ -1659,7 +1659,7 @@ Possibilities for the `Use previous directory` are:
         "options": [
           { "label": "Use previous directory",
             "description": "${remember:lintPath}",
-            "value": "${remember:lintPath}" }
+            "value": "${remember:lintPath}" },
           { "label": "All", "value": "all" },
           { "label": "Pick directory", "value": "${pickFile:srcSubDir}" }
         ],

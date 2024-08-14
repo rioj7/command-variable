@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.64.0] 2024-08-14
+### Added
+- `pickStringRemember`: `addLabelToTop` reorder the list and put a particular label on top (previous pick?)
+
 ## [1.63.0] 2024-04-04
 ### Added
 - `transform`: `saveToFile` - file path property - save result to a file and return the file path
@@ -18,7 +22,7 @@
 - `file.content`: result of the expression/value and `default` property can be the empty string
 ### Modified
 - `config.expression`: `configVariable` is optional, evaluate JS expression without a config value
-- `README`: example variables in  JS expression
+- `README`: example variables in JS expression
 
 ## [1.61.1] 2024-01-30
 ### Added

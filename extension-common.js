@@ -343,6 +343,15 @@ async function pickStringRemember(args, processPick) {
         }
       }
     }
+    let addLabelToTop = utils.getProperty(args, "addLabelToTop");
+    if (addLabelToTop !== undefined) {
+      if (processPick) { addLabelToTop = await processPick(addLabelToTop, args); }
+      let itemIdx = qpItems.findIndex(item => item.label === addLabelToTop);
+      if (itemIdx > 0) {
+        let qpItem = qpItems.splice(itemIdx, 1)[0];
+        qpItems.unshift(qpItem);
+      }
+    }
     result = await vscode.window.showQuickPick(qpItems, {
       placeHolder: utils.getProperty(args, 'description', 'Choose:'),
       canPickMany: multiPick

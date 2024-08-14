@@ -1299,6 +1299,7 @@ The command has the following configuration attributes:
   * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
     It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
   * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
+* `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will put on top. If needed add an extra remember item (see example).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
@@ -1673,6 +1674,62 @@ Possibilities for the `Use previous directory` are:
             "keyRemember": "srcSubDir"
           }
         }
+      }
+    }
+  ]
+}
+```
+
+If you have a list of choices and you want to easy select the previous choice you can use the `addLabelToTop` property:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    .....
+  ],
+  "inputs": [
+    {
+      "id": "robot",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "key": "robot",
+        "description": "Robot type:",
+        "addLabelToTop": "${remember:robot}",
+        "options": [
+          "standard",
+          "hero",
+          "sentry"
+        ]
+      }
+    }
+  ]
+}
+```
+
+If your labels are different from the `value` add an extra remember item:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    .....
+  ],
+  "inputs": [
+    {
+      "id": "robot",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "key": "robot",
+        "description": "Robot type:",
+        "addLabelToTop": "${remember:robotLabel}",
+        "options": [
+          {"label": "Option 1", "value": {"robot":"standard", "robotLabel":"Option 1"} },
+          {"label": "Option 2", "value": {"robot":"hero", "robotLabel":"Option 2"} },
+          {"label": "Option 3", "value": {"robot":"sentry", "robotLabel":"Option 3"} }
+        ]
       }
     }
   ]

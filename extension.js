@@ -948,23 +948,37 @@ function activate(context) {
         let options = getProperty(args, 'options', []);
         if (fileFormat === 'pattern') {
           let pattern = getProperty(args, 'pattern', {});
-          let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'));
+          let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'), getProperty(pattern, 'flags', ''));
           let labelRepl = getProperty(pattern, 'label', '$1');
-          if (!labelRepl) { return 'Unknown'; }
           let valueRepl = getProperty(pattern, 'value', labelRepl);
           let jsonRepl = getProperty(pattern, 'json');
-          const getValue = line => {
-            if (jsonRepl) {
-              let capture = line.replace(regexp, jsonRepl);
-              if (capture) {
-                return JSON.parse(capture);
-              }
+          let option = getProperty(pattern, 'option', {label: labelRepl, value: valueRepl, json: jsonRepl});
+          let patternMatch = getProperty(pattern, 'match', 'line');
+          const convertString = (s, cbData) => cbData.line.replace(cbData.regexp, s);
+          const resolveOption = async (option, cbData) => {
+            option = await dataStructSubstitution(option, cbData, convertString);
+            if (option.json !== undefined && isString(option.json) && option.json.length > 0) {
+              option.value = JSON.parse(option.json);
             }
-            return line.replace(regexp, valueRepl);
+            return option;
           };
-          for (const line of content.split(/\r?\n/)) {
+          let optionStrings = [];
+          if (patternMatch === 'line') {
+            optionStrings = content.split(/\r?\n/);
+          } else {
+            let match;
+            while ((match = regexp.exec(content)) !== null) {
+              optionStrings.push(match[0]);
+            }
+          }
+          for (const line of optionStrings) {
+            regexp.lastIndex = 0;
             if (!line.match(regexp)) { continue; }
-            options.push( [line.replace(regexp, labelRepl), getValue(line)] );
+            try {
+              options.push(await resolveOption(option, {line, regexp}));
+            } catch (e) {
+              break;
+            }
           }
         }
         if (fileFormat === 'json') {

@@ -327,13 +327,18 @@ async function pickStringRemember(args, processPick) {
           let label = utils.getProperty(option, "label");
           if (label === undefined) { label = toString(value); }
           if (processPick) { label = await processPick(label, args); }
-          let description = utils.getProperty(option, "description");
-          if (description !== undefined && processPick) {
-            description = await processPick(description, args);
-          }
+          let processProperty = async name => {
+            let prop = utils.getProperty(option, name);
+            if (prop !== undefined && processPick) {
+              prop = await processPick(prop, args);
+            }
+            return prop;
+          };
+          let description = await processProperty("description");
+          let detail = await processProperty("detail");
           let name = utils.getProperty(option, 'name');
           let dependsOn = utils.getProperty(option, 'dependsOn');
-          qpItem = {value, label, description, name, dependsOn};
+          qpItem = {value, label, description, detail, name, dependsOn};
         }
         if (qpItem) {
           // @ts-ignore

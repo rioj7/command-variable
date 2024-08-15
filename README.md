@@ -1282,6 +1282,8 @@ The command has the following configuration attributes:
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
     * `description`: (Optional) The description to be used for the item in the pick list.  
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
+    * `detail`: (Optional) The detail to be used for the item in the pick list.  
+      (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
     * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
       It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
     * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on an item it controls if the value of the item is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
@@ -1314,9 +1316,17 @@ The command has the following configuration attributes:
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
   The object has the following attributes:
   * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_ and _value_ for the option. (default: `^(.*)$` )
+  * `flags` : (Optional) The flags to be used in the regular expression, like `gimsy`, default (`""`)
   * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
-  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `{}` )
+  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string.
+  * `match`: (Optional) How should the `regexp` be applied. (default: `"line"` )  
+    Possible values:  
+    * `line` : the file content is parsed line by line and the `regexp` is used to create an option if a match is found.
+    * `find` : the file content is searched for all matches of `regexp` and any match is used to create an option. You have to use the `g` flag otherwise only 1 match is found. To be used for multi line options.
+  * `option`: (Optional) In the `options` array you can specify an option in multiple ways. The `option` property can be any of those alternatives but the strings contain capture group references <code>&dollar;<em>n</em></code> (like `$1`) as found by searching the `regexp`. If `option` specified the properties `label`, `value` and `json` are ignored.  
+  A possible attribute of `option` is `json`. If specified and the resulting string is non empty, the string is parsed as a JSON object string and the result is set as the property `value`.  
+  See a [complete example where you select an SSH server](#select-server-from-pattern).
 * `jsonOption` : (**Not in Web**) In the `options` array you can specify an option in multiple ways. The `jsonOption` property can be any of those alternatives but the strings are JavaScript expressions that gets the value you want from the variable `content`. The variable `content` is the parsed JSON file. You can even use the _`value`_ as object with _key_-_value_ pair(s). The expressions **must** use the variable `__itemIdx__` to address an item in some array of the JSON file. The expression can manipulate the retieved data in any way.  
   As an example you can concatenate multiple items from different arrays:  
       `content.Array1[__itemIdx__].p1+'-'+content.Array2[__itemIdx__].p2`  
@@ -1945,6 +1955,62 @@ In **tasks.json**:
   ]
 }
 ```
+
+#### Select server from pattern
+
+If you have a configuration file where the pick item properties are specified on multiple lines you can construct a Regular Expression that matches each item. You have to use at least the `g` or `y` flag.
+
+You have a file **`ssh-config.txt`** in the root of the workspace where you specify a number of hosts you can use:
+
+```txt
+Host 1.1.2.3
+    HostName Computer1
+Host 1.2.2.3
+    HostName Computer2
+Host 1.3.2.3
+    HostName Computer3
+```
+
+Maybe there are other attributes specified for each IP address.
+
+In **tasks.json**:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Get server progress",
+      "type": "shell",
+      "command": "progress --server ${input:selectServer}"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectServer",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which server?",
+        "key": "server-ip",
+        "fileName": "${workspaceFolder}/ssh-config.txt",
+        "pattern": {
+          "regexp": "Host (\\S+?)\\n.*?HostName (\\S+?)(?:\\n|$)",
+          "flags": "g",
+          "match": "find",
+          "option": {
+            "label": "$2",
+            "value": "$1",
+            "description": "$1"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+You can make the `value` property as complex as you want, like in the previous example.
 
 ## promptStringRemember
 

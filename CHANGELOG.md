@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.65.0] 2024-08-15
+### Added
+- `pickStringRemember`: options from file: use multi line regex, capture possible `description` and `detail`
+
 ## [1.64.0] 2024-08-14
 ### Added
 - `pickStringRemember`: `addLabelToTop` reorder the list and put a particular label on top (previous pick?)

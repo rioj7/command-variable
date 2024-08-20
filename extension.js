@@ -954,6 +954,9 @@ function activate(context) {
           let jsonRepl = getProperty(pattern, 'json');
           let option = getProperty(pattern, 'option', {label: labelRepl, value: valueRepl, json: jsonRepl});
           let patternMatch = getProperty(pattern, 'match', 'line');
+          let splitRegexp = getProperty(pattern, 'split-regexp');
+          let splitFlags = getProperty(pattern, 'split-flags', 'gm');
+          if (splitRegexp !== undefined) { patternMatch = 'split'; }
           const convertString = (s, cbData) => cbData.line.replace(cbData.regexp, s);
           const resolveOption = async (option, cbData) => {
             option = await dataStructSubstitution(option, cbData, convertString);
@@ -965,6 +968,15 @@ function activate(context) {
           let optionStrings = [];
           if (patternMatch === 'line') {
             optionStrings = content.split(/\r?\n/);
+          } else if (patternMatch === 'split') {
+            let regexp = new RegExp(splitRegexp, splitFlags);
+            let prevIndex = 0;
+            let match;
+            while ((match = regexp.exec(content)) !== null) {
+              optionStrings.push(content.slice(prevIndex, match.index));
+              prevIndex = match.index;
+            }
+            optionStrings.push(content.slice(prevIndex));
           } else {
             let match;
             while ((match = regexp.exec(content)) !== null) {

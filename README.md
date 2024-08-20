@@ -1315,7 +1315,7 @@ The command has the following configuration attributes:
   * `json` : use the `jsonOption` property
 * `pattern` : (**Not in Web**) An object describing a line to match in the file containing the _label_ and optional _value_ of the option. Optional if all attributes have the default value.  
   The object has the following attributes:
-  * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_ and _value_ for the option. (default: `^(.*)$` )
+  * `regexp` : (Optional) A regular expression describing a line with capture groups for the _label_, _value_ and _option_ strings for the option. (default: `^(.*)$` )
   * `flags` : (Optional) The flags to be used in the regular expression, like `gimsy`, default (`""`)
   * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
@@ -1324,6 +1324,9 @@ The command has the following configuration attributes:
     Possible values:  
     * `line` : the file content is parsed line by line and the `regexp` is used to create an option if a match is found.
     * `find` : the file content is searched for all matches of `regexp` and any match is used to create an option. You have to use the `g` flag otherwise only 1 match is found. To be used for multi line options.
+    * `split` : the file content is split using `split-regexp`. Every split that has a match for `regexp` is used to create an option. To be used for multi line options.
+  * `split-regexp` : (Optional) A regular expression describing where to split the file content. The start of a match is used to split the file content. The matched text is part of the next split. You have to use the `g` flag otherwise only 1 match is found. If you use `^` and/or `$` you have to use the `m` flag. If set `match` is set to `split`. If you split with `/^/gm` you get an infinite loop, use `"match": "line"`.
+  * `split-flags` : (Optional) The flags to be used in `split-regexp`, like `gimsy`, default (`"gm"`)
   * `option`: (Optional) In the `options` array you can specify an option in multiple ways. The `option` property can be any of those alternatives but the strings contain capture group references <code>&dollar;<em>n</em></code> (like `$1`) as found by searching the `regexp`. If `option` specified the properties `label`, `value` and `json` are ignored.  
   A possible attribute of `option` is `json`. If specified and the resulting string is non empty, the string is parsed as a JSON object string and the result is set as the property `value`.  
   See a [complete example where you select an SSH server](#select-server-from-pattern).
@@ -1960,18 +1963,20 @@ In **tasks.json**:
 
 If you have a configuration file where the pick item properties are specified on multiple lines you can construct a Regular Expression that matches each item. You have to use at least the `g` or `y` flag.
 
-You have a file **`ssh-config.txt`** in the root of the workspace where you specify a number of hosts you can use:
+You have a file [**`~/.ssh/config`**](https://www.man7.org/linux/man-pages/man5/ssh_config.5.html) in your home directory where you specify a number of hosts you can use:
 
-```txt
-Host 1.1.2.3
-    HostName Computer1
-Host 1.2.2.3
-    HostName Computer2
-Host 1.3.2.3
-    HostName Computer3
+```ssh-config
+Host server1
+    HostName 1.1.1.1
+Host server2
+    HostName 2.2.2.2
+Host server3
+    HostName 3.3.3.3
 ```
 
-Maybe there are other attributes specified for each IP address.
+Maybe there are other attributes specified for each `Host`.
+
+A totorial for [ssh config files](https://linuxize.com/post/using-the-ssh-config-file/).
 
 In **tasks.json**:
 
@@ -1993,15 +1998,15 @@ In **tasks.json**:
       "args": {
         "description": "Which server?",
         "key": "server-ip",
-        "fileName": "${workspaceFolder}/ssh-config.txt",
+        "fileName": "${env:HOME}/.ssh/config",
         "pattern": {
-          "regexp": "Host (\\S+?)\\n.*?HostName (\\S+?)(?:\\n|$)",
-          "flags": "g",
+          "regexp": "Host (\\S+).*?HostName (\\S+)",
+          "flags": "gs",
           "match": "find",
           "option": {
-            "label": "$2",
-            "value": "$1",
-            "description": "$1"
+            "label": "$1",
+            "value": "$2",
+            "description": "$2"
           }
         }
       }
@@ -2011,6 +2016,39 @@ In **tasks.json**:
 ```
 
 You can make the `value` property as complex as you want, like in the previous example.
+
+If you have `Host` sections that don't contain a `HostName` property you have to use the `split-regex` to prevent using a `HostName` of a next `Host` section:
+
+```ssh-config
+Host server1
+    Port 2322
+    HostName 1.1.1.1
+Host server2
+    User daenerys
+    HostName 2.2.2.2
+Host server3
+    HostName 3.3.3.3
+Host *
+    LogLevel INFO
+Host server4
+    HostName 4.4.4.4
+```
+
+```json
+        "pattern": {
+          "regexp": "Host (\\S+).*?HostName (\\S+)",
+          "flags": "gs",
+          "split-regexp": "^Host ",
+          "split-flags": "gm",
+          "option": {
+            "label": "$1",
+            "value": "$2",
+            "description": "$2"
+          }
+        }
+```
+
+The `match` property is set to `split`.
 
 ## promptStringRemember
 

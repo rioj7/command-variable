@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.65.1] 2024-08-20
+### Modified
+- `pickStringRemember`: options from file: define a 'split' regex/flags
+
 ## [1.65.0] 2024-08-15
 ### Added
 - `pickStringRemember`: options from file: use multi line regex, capture possible `description` and `detail`

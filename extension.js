@@ -221,7 +221,7 @@ function activate(context) {
       let result = [];
       for (const v1 of v) {
         let v1a = await dataStructSubstitution(v1, cbData, callback);
-        if (v1a === undefined) { return undefined; }
+        if (v1 !== undefined && v1a === undefined) { return undefined; }
         result.push(v1a);
       }
       return result;
@@ -231,7 +231,7 @@ function activate(context) {
       for (const key in v) {
         if (v.hasOwnProperty(key)) {
           let v1a = await dataStructSubstitution(v[key], cbData, callback);
-          if (v1a === undefined) { return undefined; }
+          if (v[key] !== undefined && v1a === undefined) { return undefined; }
           result[key] = v1a;
         }
       }

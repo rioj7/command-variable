@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.65.3] 2024-08-30
+### Modified
+- `pickStringRemember`: options from file: fix bug with handling `json` in `pattern` object
+
 ## [1.65.1] 2024-08-20
 ### Modified
 - `pickStringRemember`: options from file: define a 'split' regex/flags

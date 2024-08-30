@@ -1319,7 +1319,7 @@ The command has the following configuration attributes:
   * `flags` : (Optional) The flags to be used in the regular expression, like `gimsy`, default (`""`)
   * `label`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _label_ in the pickList. (default: `$1` )
   * `value`: (Optional) A string containing capture group references <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ in the pickList. (default: the same as `label`)
-  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string.
+  * `json`: (Optional) A string containing a capture group reference <code>&dollar;<em>n</em></code> (like `$1`) that makes up the _value_ object in the pickList. You have to write the `regexp` to recognize a possible JSON object string. (default: `""`)
   * `match`: (Optional) How should the `regexp` be applied. (default: `"line"` )  
     Possible values:  
     * `line` : the file content is parsed line by line and the `regexp` is used to create an option if a match is found.

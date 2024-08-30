@@ -951,7 +951,7 @@ function activate(context) {
           let regexp = new RegExp(getProperty(pattern, 'regexp', '^(.*)$'), getProperty(pattern, 'flags', ''));
           let labelRepl = getProperty(pattern, 'label', '$1');
           let valueRepl = getProperty(pattern, 'value', labelRepl);
-          let jsonRepl = getProperty(pattern, 'json');
+          let jsonRepl = getProperty(pattern, 'json', '');
           let option = getProperty(pattern, 'option', {label: labelRepl, value: valueRepl, json: jsonRepl});
           let patternMatch = getProperty(pattern, 'match', 'line');
           let splitRegexp = getProperty(pattern, 'split-regexp');

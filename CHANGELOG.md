@@ -1,7 +1,11 @@
 # Change Log
 
+## [1.65.4] 2024-09-05
+### Fixed
+- `pickStringRemember`: options from file: when `pattern`: also set `description` when `option` not defined, like v1.64
+
 ## [1.65.3] 2024-08-30
-### Modified
+### Fixed
 - `pickStringRemember`: options from file: fix bug with handling `json` in `pattern` object
 
 ## [1.65.1] 2024-08-20

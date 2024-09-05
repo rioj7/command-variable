@@ -952,7 +952,8 @@ function activate(context) {
           let labelRepl = getProperty(pattern, 'label', '$1');
           let valueRepl = getProperty(pattern, 'value', labelRepl);
           let jsonRepl = getProperty(pattern, 'json');
-          let option = getProperty(pattern, 'option', {label: labelRepl, value: valueRepl, json: jsonRepl});
+          let descRepl = valueRepl !== labelRepl ? valueRepl : undefined;
+          let option = getProperty(pattern, 'option', {label: labelRepl, value: valueRepl, description: descRepl, json: jsonRepl});
           let patternMatch = getProperty(pattern, 'match', 'line');
           let splitRegexp = getProperty(pattern, 'split-regexp');
           let splitFlags = getProperty(pattern, 'split-flags', 'gm');

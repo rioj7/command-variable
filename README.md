@@ -1129,6 +1129,7 @@ The `args` property of this command is an object with the properties:
 * `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables). (default: `"empty"`)  
    To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
+* `default`: (Optional) If the given key is not found in the remember store: if there is a property `default` use this value, otherwise use a string with value `I don't remember`.
 * `transform`: (Optional) (**Not in Web**) an object with the same properties as the [`transform`](#transform) command. It allows to find and replace in the string or to extract part of the [`file.pickFile`](#pick-file) picked file URI by using a [variable](#variables). The default value of the `text` property is `${result}`. This is the value stored in the remember store for the given `key`.
 * `separator`: (Optional) (**Not in Web**) If you have picked multiple files ([`pickFile`](#pick-file), [openDialog](#open-dialog)) the URI's are transformed and then joined with this string. (default: `" "`)
 

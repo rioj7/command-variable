@@ -81,6 +81,11 @@ function rememberStoreUpdate(key, value) {
 }
 /** @param {object} args has 'key' and ['default'] property @param {any} result undefined, key-value-object, value (value can be string or edit action object) */
 function storeStringRemember2(args, result, defaultFromArgs) {
+  if (defaultFromArgs === undefined) { defaultFromArgs = true; }
+  let defaultValue = undefined;
+  if (defaultFromArgs) {
+    defaultValue = utils.getDefaultProperty(args);
+  }
   if (result !== undefined) {
     let argkey = utils.getProperty(args, 'key', '__unknown');
     if (utils.isObject(result) && utils.getProperty(result, 'text', undefined) === undefined) {
@@ -89,22 +94,24 @@ function storeStringRemember2(args, result, defaultFromArgs) {
           rememberStoreUpdate(vkey, result[vkey]);
         }
       }
-      return getRememberKey(argkey);
+      return getRememberKey(argkey, undefined, defaultValue);
     }
     rememberStoreUpdate(argkey, result);
   }
-  if (defaultFromArgs === undefined) { defaultFromArgs = true; }
-  return result !== undefined ? result : (defaultFromArgs ? utils.getDefaultProperty(args) : undefined);
+  return result !== undefined ? result : defaultValue;
 }
 
-function getRememberKey(key, defaultKey) {
+function getRememberKey(key, defaultKey, defaultValue) {
   const numberPrefix = 'number-';
   if (key.startsWith(numberPrefix)) {
     let numberConfig = utils.getProperty(numberStore, key.slice(numberPrefix.length), [0]);
     return numberConfig[numberConfig.length-1].toString();
   }
-  defaultKey = utils.dblQuest(defaultKey, '__not_yet');
-  return utils.getProperty(rememberStore, key, rememberStore[defaultKey]);
+  if (defaultValue === undefined) {
+    defaultKey = utils.dblQuest(defaultKey, '__not_yet');
+    defaultValue = rememberStore[defaultKey];
+  }
+  return utils.getProperty(rememberStore, key, defaultValue);
 }
 
 let gRememberKeyEscapedUI = '__escapedUI';

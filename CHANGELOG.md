@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.65.5] 2024-10-04
+### Added
+- `remember`: `default` property in case key is not found
+
 ## [1.65.4] 2024-09-05
 ### Fixed
 - `pickStringRemember`: options from file: when `pattern`: also set `description` when `option` not defined, like v1.64

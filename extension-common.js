@@ -287,7 +287,13 @@ async function pickStringRemember(args, processPick) {
   let multiPickStorage = utils.getProperty(args, 'multiPickStorage') === 'global' ? extensionContext.globalState : extensionContext.workspaceState;
   let multiPickLabelSeparator = '@zyx@';
   let multiPickLabelKey = 'commandvariable:pickStringMultiPick@@' + args.key;
-  let previousPicked = multiPickStorage.get(multiPickLabelKey, '').split(multiPickLabelSeparator);
+  if (utils.getProperty(args, 'clearStorage')) {
+    await multiPickStorage.update(multiPickLabelKey, undefined);
+  }
+  let previousPicked = multiPickStorage.get(multiPickLabelKey);
+  if (previousPicked !== undefined) {
+    previousPicked = previousPicked.split(multiPickLabelSeparator);
+  }
   let optionGroups = utils.getProperty(args, 'optionGroups');
   if (!optionGroups) {
     optionGroups = [ {options: utils.getProperty(args, 'options', ['item1', 'item2'])} ];
@@ -344,12 +350,15 @@ async function pickStringRemember(args, processPick) {
           let description = await processProperty("description");
           let detail = await processProperty("detail");
           let name = utils.getProperty(option, 'name');
+          let picked = utils.getProperty(option, 'picked');
           let dependsOn = utils.getProperty(option, 'dependsOn');
-          qpItem = {value, label, description, detail, name, dependsOn};
+          qpItem = {value, label, description, detail, name, dependsOn, picked};
         }
         if (qpItem) {
-          // @ts-ignore
-          qpItem.picked = previousPicked.includes(qpItem.label);
+          if (previousPicked !== undefined) {
+            // @ts-ignore
+            qpItem.picked = previousPicked.includes(qpItem.label);
+          }
           qpItems.push(qpItem);
           group.addItem(qpItem);
         }
@@ -375,6 +384,7 @@ async function pickStringRemember(args, processPick) {
       }
       return storeEscapedUI(result);
     }
+    previousPicked = [];
     if (multiPick) {
       previousPicked = result.map(e => e.label);
       let definedNames = groups.flatMap(g => g.collectNames());

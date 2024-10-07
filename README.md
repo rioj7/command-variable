@@ -1285,6 +1285,7 @@ The command has the following configuration attributes:
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
     * `detail`: (Optional) The detail to be used for the item in the pick list.  
       (**Not in Web**) Any [variables](#variables) are resolved when pick list is constructed.
+    * `picked`: [_boolean_] (Optional) Used in multi pick list. In the **first** show of the list should this item have a check mark (is picked) (default: `false`).
     * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
       It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
     * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on an item it controls if the value of the item is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
@@ -1302,7 +1303,7 @@ The command has the following configuration attributes:
   * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
     It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
   * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
-* `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will put on top. If needed add an extra remember item (see example).
+* `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will be put on top. If needed add an extra remember item (see example).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)

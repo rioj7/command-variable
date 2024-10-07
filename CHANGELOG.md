@@ -1,8 +1,9 @@
 # Change Log
 
-## [1.65.5] 2024-10-04
+## [1.65.6] 2024-10-07
 ### Added
 - `remember`: `default` property in case key is not found
+- `pickStringRemember`: `picked` item property of option, initial picked item
 
 ## [1.65.4] 2024-09-05
 ### Fixed

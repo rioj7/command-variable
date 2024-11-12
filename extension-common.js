@@ -91,6 +91,10 @@ function storeStringRemember2(args, result, defaultFromArgs) {
     if (utils.isObject(result) && utils.getProperty(result, 'text', undefined) === undefined) {
       for (const vkey in result) {
         if (result.hasOwnProperty(vkey)) {
+          if (vkey === '__key') {
+            argkey = result[vkey];
+            continue;
+          }
           rememberStoreUpdate(vkey, result[vkey]);
         }
       }
@@ -404,7 +408,14 @@ async function pickStringRemember(args, processPick) {
     if (newStored !== prevStored) {
       multiPickStorage.update(multiPickLabelKey, newStored);
     }
-    result = { value: result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label))).map(e => e.value).join(utils.getProperty(args, 'separator', ' '))};
+    let separator = utils.getProperty(args, 'separator', ' ');
+    let picked = result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label))).map(e => e.value);
+    result = { value: picked.map(value => {
+      if (utils.isObject(value)) {
+        value = storeStringRemember2(args, value);
+      }
+      return value;
+    }).join(separator)};
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
   // @ts-ignore

@@ -1290,7 +1290,7 @@ The command has the following configuration attributes:
       It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
     * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on an item it controls if the value of the item is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
 
-  The _`value`_ can be a string, a [**string manipulation object**](#remember) or an object with _key_-_value_ pair(s). The _`value`_ of a _key_-_value_ pair can be a string or a string manipulation object. Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see example).  
+  The _`value`_ can be a string, a [**string manipulation object**](#remember) or an object with _key_-_value_ pair(s). The _`value`_ of a _key_-_value_ pair can be a string or a string manipulation object. Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see Example 4). You can override the `key` argument by using a special key in the object. If the object contains the key `__key` its value is used as the key to get a value from the `remember` storage for this object, also when `multiPick` is true (see Example 11).  
   If you only want to store some _key_-_value_ pairs you can set the _`key`_ argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).  
   A special _`key`_ is `__undefined`. If used any selected option that uses a _key_-_value_ pair(s) object will return `undefined`. This will abort the current task/launch/command, but the remember store is updated.
 * `optionGroups` : An array that contains groups of options with constraint checks. If `optionGroups` is defined the property `options` is ignored.  
@@ -1303,7 +1303,7 @@ The command has the following configuration attributes:
   * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
     It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
   * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
-* `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will be put on top. If needed add an extra remember item (see example).
+* `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will be put on top. If needed add an extra remember item (see Example 7).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
@@ -1365,6 +1365,8 @@ If groupA has a `dependsOn` with referring to groupB that has a `dependsOn` on _
 
 ### Examples
 
+**Example 1**
+
 ```json
 {
   "version": "2.0.0",
@@ -1409,6 +1411,8 @@ If groupA has a `dependsOn` with referring to groupB that has a `dependsOn` on _
 }
 ```
 
+**Example 2**
+
 An example of choosing a port number in a launch configuration:
 
 ```json
@@ -1443,6 +1447,8 @@ An example of choosing a port number in a launch configuration:
   ]
 }
 ```
+
+**Example 3**
 
 If you have additional options in a file:
 
@@ -1481,6 +1487,8 @@ If you have additional options in a file:
   ]
 }
 ```
+
+**Example 4**
 
 An example task that stores multiple values:
 
@@ -1536,6 +1544,8 @@ An example task that stores multiple values:
   ]
 }
 ```
+
+**Example 5**
 
 Using a string manipulation object you can modify an existing variable:
 
@@ -1594,6 +1604,8 @@ If we use `"key": "__undefined"` any selected option that uses a _key_-_value_ p
 When you choose the option **Current value** pickStringRemember returns the value for a given _`key`_.
 
 ----
+
+**Example 6**
 
 If you have a `src` directory with a lot of subdirs and you want to run `cpplint` on all or only on a subdir you can add a `pickFile` variable as the value of a `pickString`:
 
@@ -1695,6 +1707,8 @@ Possibilities for the `Use previous directory` are:
 }
 ```
 
+**Example 7**
+
 If you have a list of choices and you want to easy select the previous choice you can use the `addLabelToTop` property:
 
 ```json
@@ -1750,6 +1764,8 @@ If your labels are different from the `value` add an extra remember item:
   ]
 }
 ```
+
+**Example 8**
 
 If you have a C++ build task that has many options and you sometimes have to select 1 or more items in a group:
 
@@ -1875,6 +1891,8 @@ An example of using `dependsOn` to select the arguments for an application:
 }
 ```
 
+**Example 9**
+
 #### Select server from JSON
 
 When you have a JSON file that specifies a list of servers you can use and you want to pick one of the servers and pass some attributes to a task.
@@ -1960,6 +1978,8 @@ In **tasks.json**:
   ]
 }
 ```
+
+**Example 10**
 
 #### Select server from pattern
 
@@ -2051,6 +2071,36 @@ Host server4
 ```
 
 The `match` property is set to `split`.
+
+**Example 11**
+
+If the picked value is an object you can override the key used to get a value from the remember storage.
+
+```json
+  "inputs": [
+    {
+      "id": "pickOptions",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Multi Pick Option Select:",
+        "key": "myOptions",
+        "multiPick": true,
+        "options": [
+          {"label": "opt1", "value": "O1"},
+          {"label": "opt2", "value": {"keyA": "O2-a", "keyB": "O2-b", "keyC": "O2-c", "__key": "keyC"}},
+          {"label": "opt3", "value": "O3"},
+          {"label": "opt4", "value": "O4"}
+        ]
+      }
+    }
+  ]
+```
+
+If `opt2` and `opt3` are selected the remember storage contains
+
+* the key `myOptions` with value: `O2-c O3`
+* the key's `keyA`, `keyB` and `keyC` with there values.
 
 ## promptStringRemember
 

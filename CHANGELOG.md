@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.66.0] 2024-11-12
+### Modified
+- `pickStringRemember`: multi pick: if a picked value is an object its key-value pairs are put in the remember storage.
+### Added
+- `pickStringRemember`: if a picked value is an object you can override the key used to pick a value from the remember storage: use `__key` in the object
+
 ## [1.65.6] 2024-10-07
 ### Added
 - `remember`: `default` property in case key is not found

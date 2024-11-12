@@ -410,12 +410,28 @@ async function pickStringRemember(args, processPick) {
     }
     let separator = utils.getProperty(args, 'separator', ' ');
     let picked = result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label))).map(e => e.value);
-    result = { value: picked.map(value => {
-      if (utils.isObject(value)) {
-        value = storeStringRemember2(args, value);
+    if (picked.length > 0 && utils.getProperty(args, 'joinByKey')) {
+      let keys = new Set();
+      for (const p of picked) {
+        if (!utils.isObject(p)) { continue; }
+        for (const vkey in p) {
+          if (p.hasOwnProperty(vkey)) {
+            keys.add(vkey);
+          }
+        }
       }
-      return value;
-    }).join(separator)};
+      result = { value: {} };
+      for (const vkey of keys) {
+        result.value[vkey] = picked.filter(p => utils.isObject(p) && (utils.getProperty(p, vkey) !== undefined)).map(p => p[vkey]).join(separator);
+      }
+    } else {
+      result = { value: picked.map(value => {
+        if (utils.isObject(value)) {
+          value = storeStringRemember2(args, value);
+        }
+        return value;
+      }).join(separator)};
+    }
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
   // @ts-ignore

@@ -1307,7 +1307,8 @@ The command has the following configuration attributes:
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
 * `separator` : [_string_] (Optional) If multiple items are picked (`multiPick`) the values are concatenated with this string (default: `" "`)
-* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are concatenated with the property `separator` string. The selected items are remembered persistent, `multiPickStorage` (default: `false`)
+* `multiPick` : [ `true` | `false` ] (Optional) If `true` you can pick multiple items. The values of the items are joined (concatenated) with the property `separator` string. The selected items are remembered persistent, `multiPickStorage`. (default: `false`)
+* `joinByKey` : [ `true` | `false` ] (Optional) If `multiPick` is `true` you can determine what happens if the values are objects with key-value pairs. If `false` each objects key-value pairs are put in the remember storage and the value for this picked item is determined by `key` (or `__key` in the object). If `true` the objects are joined (concatenated) by key with the property `separator` string. And these new key-value pairs are put in the remember storage. See Example 12. (default: `false`)
 * `multiPickStorage` : [ `"global"` | `"workspace"` ] (Optional) If `multiPick` is `true` the picked items are remembered and stored persistent. This property determines if that is done global or for the current workspace. Using the property `key`. (default: `"workspace"`)
 * `rememberTransformed` : (**Not in Web**) if _`value`_ contains variables they are transformed in the result of the command. If `true` we store the transformed string. If `false` we store the _`value`_ string as given in the `options` property. (default: `false` )
 * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains additional options. The options in the file are appended to the already specified `options`. The file is assumed to have an UTF-8 encoding. The format of the file is determined by the `fileFormat` property.
@@ -1336,7 +1337,7 @@ The command has the following configuration attributes:
   As an example you can concatenate multiple items from different arrays:  
       `content.Array1[__itemIdx__].p1+'-'+content.Array2[__itemIdx__].p2`  
   The maximum number of items read is 10000. To prevent an infinite loop if expressions contain an error.  
-  See a [complete example where you select a server](#select-server-from-json).
+  See a [complete example where you select a server](#select-server-from-json) and Example 12 for a usage in a multi pick list.
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
@@ -2101,6 +2102,69 @@ If `opt2` and `opt3` are selected the remember storage contains
 
 * the key `myOptions` with value: `O2-c O3`
 * the key's `keyA`, `keyB` and `keyC` with there values.
+
+**Example 12**
+
+If the picked values are key-value pair objects and you want a result joined by key you have to set the `joinByKey` property.
+
+You use a JSON file to construct some of the pick items.
+
+In the workspaceFolder there is a file: `myconfig.json`
+
+```json
+[
+  {
+    "name": "name1",
+    "some": "some1",
+    "other": "other1"
+  },
+  {
+    "name": "name2",
+    "some": "some2",
+    "other": "other2"
+  },
+  {
+    "name": "name3",
+    "some": "some3",
+    "other": "other3"
+  }
+]
+```
+
+And in `tasks.json`:
+
+```json
+  "inputs": [
+    {
+      "id": "set-v1-v2",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Multi Pick v1 - v2",
+        "key": "v2",
+        "multiPick": true,
+        "joinByKey": true,
+        "separator": " ",
+        "fileName": "${workspaceFolder}${pathSeparator}myconfig.json",
+        "fileFormat": "json",
+        "jsonOption": {
+          "label": "content[__itemIdx__].name",
+          "value": {
+            "v1": "content[__itemIdx__].some",
+            "v2": "content[__itemIdx__].other"
+          }
+        }
+      }
+    }
+  ]
+```
+
+If `name1` and `name3` are selected the remember storage contains
+
+* the key `v1` with value: `some1 some3`
+* the key `v2` with value: `other1 other3`
+
+and `${input:set-v1-v2}` returns the value for key `v2`: `other1 other3`
 
 ## promptStringRemember
 

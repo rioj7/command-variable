@@ -3,6 +3,7 @@
 ## [1.66.0] 2024-11-12
 ### Modified
 - `pickStringRemember`: multi pick: if a picked value is an object its key-value pairs are put in the remember storage.
+- `config.expression`: if value is a string do not `JSON.stringify()`
 ### Added
 - `pickStringRemember`: if a picked value is an object you can override the key used to pick a value from the remember storage: use `__key` in the object
 - `pickStringRemember`: property `joinByKey`: the picked value objects are joined by key using the separator into a single object.

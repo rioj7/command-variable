@@ -659,8 +659,10 @@ function activate(context) {
     args.configVariable = await variableSubstitution(args.configVariable, args);
     if (debug) { console.log(`commandvariable.config.expression: getConfigVariable: after variable substitution: ${args.configVariable}`); }
     let configSplit = args.configVariable.split('.');
-    configSplit = [configSplit[0], configSplit.slice(1).join('.')]
-    return JSON.stringify(vscode.workspace.getConfiguration(configSplit[0], null).get(configSplit[1]));
+    configSplit = [configSplit[0], configSplit.slice(1).join('.')];
+    let configValue = vscode.workspace.getConfiguration(configSplit[0], null).get(configSplit[1]);
+    if (isString(configValue)) { return configValue; }
+    return JSON.stringify(configValue);
   };
   const configExpression = async (args) => {
     args = dblQuest(args, {});

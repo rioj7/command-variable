@@ -875,7 +875,6 @@ If using the same file paths as the previous example but you want to show and re
       "command": "extension.commandvariable.file.pickFile",
       "args": {
         "display": "transform",
-        "ydisplay": "relativePath",
         "description": "[my_tests] Select one test to open it",
         "include": "my_tests/**/test.c",
         "labelTransform": "valueTransform",

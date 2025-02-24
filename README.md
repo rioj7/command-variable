@@ -569,7 +569,7 @@ Can be used to have a [JavaScript expression containing variables](#variables-in
 The supported arguments:
 
 * `configVariable` : (Optional) specifies the settings variable to read. Must contain a `section` part (at least 1 `.`) : `sectionX.configY`. Supports [variables](#variables) (default: `"editor.fontSize"`).
-* `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like `${remember:foobar}` or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
+* `expression` : specifies a JavaScript expression that has the value of the `configVariable` in the variable `content`. The JavaScript expression can contain [variables](#variables) like <code>&dollar;{remember:<em>foobar</em>}</code> or <code>&dollar;{pickStringRemember:<em>name</em>}</code>
 * `default` : (Optional) If the JavaScript expression fails and you have defined `default` that string is returned else `"Unknown"` is returned.
 * `keyRemember` : (Optional) If you want to [remember](#remember) the value for later use. (default: `"configExpression"`)
 * `debug` : (Optional) [ `true` | `false` ] Show debug log messages in **Developer Tools Console**. (default: `false`)
@@ -578,7 +578,7 @@ If the `configVariable` is an array you can address the elements with: `content[
 
 If the `configVariable` is an object you can address a property with: `content.inputDir`
 
-If the `configVariable` is a single data type (string, number, boolean) set the `expression` property to `content`
+If the `configVariable` is a single data type (string, number, boolean) **don't set** the `expression` property. Strings are returned without `"` separator characters.
 
 If you want the value of the `configVariable` as a JSON string **don't set** the `expression` property.
 

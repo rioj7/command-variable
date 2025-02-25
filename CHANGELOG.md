@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.6x.x] 2025-02-xx
+### Fixed
+- `pickStringRemember`: `dependsOn` for groups
+
 ## [1.66.0] 2024-11-12
 ### Modified
 - `pickStringRemember`: multi pick: if a picked value is an object its key-value pairs are put in the remember storage.

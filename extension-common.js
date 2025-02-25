@@ -208,7 +208,7 @@ class PickStringMulti {
     this.name = name;
     this.label = label;
     this.dependsOn = dependsOn ? dependsOn : 'true';
-    this.dependsOnFunc = x => false;  // pass checkConstraint for non multi pick
+    this.dependsOnFunc = x => true;  // pass checkConstraint for non multi pick
     this.pickCount = 0;
   }
   collectNames() {
@@ -272,7 +272,10 @@ class PickStringGroup extends PickStringMulti {
     return this.items.some(i => i.allowedLabel(pickContext, label));
   }
   checkConstraint(pickContext) {
-    if (!this.dependsOnFunc(pickContext)) { return true; }
+    if (!this.dependsOnFunc(pickContext)) {
+      utils.errorMessage(`Constraint violation in group ${this.name} dependsOn: ${this.dependsOn}`);
+      return false;
+    }
     let violation = false;
     if (this.minCount && (this.pickCount < this.minCount)) { violation = true; }
     if (this.maxCount && (this.pickCount > this.maxCount)) { violation = true; }
@@ -398,7 +401,7 @@ async function pickStringRemember(args, processPick) {
       pickContext = {};
       groups.forEach(g => g.updatePickContext(pickContext));
     }
-    if (groups.every(g => g.checkConstraint(previousPicked))) {
+    if (groups.every(g => g.checkConstraint(pickContext))) {
       break;
     }
   }

@@ -1302,6 +1302,7 @@ The command has the following configuration attributes:
   * `name`: [_string_] (Optional) Used in multi pick list. They are the variables used in the `dependsOn` expressions.  
     It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
   * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
+  * `key`, `separator`, `joinByKey` : (Optional) If you want to remember the picked items of a group in a different remember store item define these properties in the group. They have the same meaning as for the top `args`  property. They are not inherited from the top `args` property (see Example 13).
 * `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will be put on top. If needed add an extra remember item (see Example 7).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
@@ -2164,6 +2165,105 @@ If `name1` and `name3` are selected the remember storage contains
 * the key `v2` with value: `other1 other3`
 
 and `${input:set-v1-v2}` returns the value for key `v2`: `other1 other3`
+
+**Example 13**
+
+Next feature is by Axel Le Bourhis ([issue 108](https://github.com/rioj7/command-variable/issues/108))
+
+Sometimes you also want to use the items selected in a group. Or have the group selected items saved in individual remember keys and use 1 multipick instead of multiple `pickStringRemember` calls for each group.
+
+You specify for the particular groups a `key`. If you want a particular `separator` you can.  
+You can add the property `joinByKey` to a group if the option values are objects with key-value pairs.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Grovery List",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:groceryList}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "groceryList",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Select groceries",
+        "key": "groceries",
+        "multiPick": true,
+        "optionGroups": [
+          {
+            "label": "Fruit",
+            "minCount": 1,
+            "maxCount": 3,
+            "options": ["apple", "orange", "banana", "lychee"],
+            "key": "category-fruit",
+            "separator": "##"
+          },
+          {
+            "label": "Vegetable",
+            "minCount": 1,
+            "maxCount": 3,
+            "options": ["kousenband", "artichoke", "sopropo", "lettuce"],
+            "key": "category-veg",
+            "separator": "%%"
+          }
+        ]
+      }
+    },
+    { "id": "category-fruit", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-fruit" } },
+    { "id": "category-veg", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-veg" } }
+  ]
+}
+```
+
+You can use this also for a single pick list. Groups that do not have an item selected are stored in the remember store as an empty string.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Food Item",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:fooditem}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "fooditem",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Select a food item",
+        "key": "food-item",
+        "optionGroups": [
+          {
+            "label": "Fruit",
+            "options": ["apple", "orange", "banana", "lychee"],
+            "name": "fruit",
+            "key": "category-fruit",
+            "dependsOn": "fruit + veg === 1"
+          },
+          {
+            "label": "Vegetable",
+            "options": ["kousenband", "artichoke", "sopropo", "lettuce"],
+            "name": "veg",
+            "key": "category-veg"
+          }
+        ]
+      }
+    },
+    { "id": "category-fruit", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-fruit" } },
+    { "id": "category-veg", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-veg" } }
+  ]
+}
+```
 
 ## promptStringRemember
 

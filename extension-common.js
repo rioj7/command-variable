@@ -245,6 +245,7 @@ class PickStringGroup extends PickStringMulti {
     this.minCount = minCount;
     this.maxCount = maxCount;
     this.items = [];
+    this.key = undefined;
   }
   addItem(qpItem) {
     let label = utils.getProperty(qpItem, 'label');
@@ -332,6 +333,10 @@ async function pickStringRemember(args, processPick) {
       name = name ? name : `group-${groups.length + 1}`;
       groupLabel = groupLabel ? groupLabel : name;
       let group = new PickStringGroup(name, groupLabel, minCount, maxCount, dependsOn);
+      for (const p of ['key', 'separator', 'joinByKey']) {
+        let v = utils.getProperty(optionGroup, p);
+        if (v !== undefined) { group[p] = v; }
+      }
       groups.push(group);
       for (const option of utils.getProperty(optionGroup, 'options', ['item1', 'item2'])) {
         let qpItem = undefined;
@@ -411,30 +416,41 @@ async function pickStringRemember(args, processPick) {
     if (newStored !== prevStored) {
       multiPickStorage.update(multiPickLabelKey, newStored);
     }
-    let separator = utils.getProperty(args, 'separator', ' ');
-    let picked = result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label))).map(e => e.value);
-    if (picked.length > 0 && utils.getProperty(args, 'joinByKey')) {
-      let keys = new Set();
-      for (const p of picked) {
-        if (!utils.isObject(p)) { continue; }
-        for (const vkey in p) {
-          if (p.hasOwnProperty(vkey)) {
-            keys.add(vkey);
+    const resultFor = (picked, args) => {
+      let result;
+      let separator = utils.getProperty(args, 'separator', ' ');
+      picked = picked.map(e => e.value);
+      if (picked.length > 0 && utils.getProperty(args, 'joinByKey')) {
+        let keys = new Set();
+        for (const p of picked) {
+          if (!utils.isObject(p)) { continue; }
+          for (const vkey in p) {
+            if (p.hasOwnProperty(vkey)) {
+              keys.add(vkey);
+            }
           }
         }
-      }
-      result = { value: {} };
-      for (const vkey of keys) {
-        result.value[vkey] = picked.filter(p => utils.isObject(p) && (utils.getProperty(p, vkey) !== undefined)).map(p => p[vkey]).join(separator);
-      }
-    } else {
-      result = { value: picked.map(value => {
-        if (utils.isObject(value)) {
-          value = storeStringRemember2(args, value);
+        result = { value: {} };
+        for (const vkey of keys) {
+          result.value[vkey] = picked.filter(p => utils.isObject(p) && (utils.getProperty(p, vkey) !== undefined)).map(p => p[vkey]).join(separator);
         }
-        return value;
-      }).join(separator)};
-    }
+      } else {
+        result = { value: picked.map(value => {
+          if (utils.isObject(value)) {
+            value = storeStringRemember2(args, value);
+          }
+          return value;
+        }).join(separator)};
+      }
+      return result;
+    };
+    let resultAllowed = result.filter(e => groups.some(g => g.allowedLabel(pickContext, e.label)));
+    groups.filter(g => g.key).forEach(g => {
+      let picked = resultAllowed.filter(e => g.allowedLabel(pickContext, e.label));
+      let result = resultFor(picked, g);
+      storeStringRemember2(g, result.value);
+    });
+    result = resultFor(resultAllowed, args);
   }
   let rememberTransformed = utils.getProperty(args, 'rememberTransformed', false);
   // @ts-ignore

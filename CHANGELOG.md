@@ -1,6 +1,8 @@
 # Change Log
 
-## [1.6x.x] 2025-02-xx
+## [1.67.0] 2025-02-26
+### Added
+- `pickStringRemember`: save the picked items of a group in a separate remember key.
 ### Fixed
 - `pickStringRemember`: `dependsOn` for groups
 

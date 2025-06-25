@@ -1,5 +1,8 @@
 # Change Log
 
+### Modified
+- `README`: `remember` command: prompt-only-once example
+
 ## [1.67.0] 2025-02-26
 ### Added
 - `pickStringRemember`: save the picked items of a group in a separate remember key.

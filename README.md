@@ -1150,6 +1150,35 @@ If the stored value contains variables and you want them substituted you have to
 }
 ```
 
+The Prompt-only-once was requested by [shato](https://github.com/rioj7/command-variable/issues/113).
+
+If you need a Prompt-only-once or Pick-only-once in this session you can use the `default` property of the `remember` command that specifies a `${promptStringRemember}` or `${pickStringRemember}` variable. Then use the `transform` property of the `remember` command to expand the variable. You have to put the named arguments **in** the `transform` property.
+
+```jsonc
+{
+  // .....
+  "inputs": [
+    {
+      "id": "prompt-password-once",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": {
+        "key": "myPassword",
+        "default": "${promptStringRemember:password}",
+        "transform": {
+          "promptStringRemember": {
+            "password": {
+              "key": "myPassword",
+              "description": "Enter password"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
 The default content of the remember store:
 
 * `empty` : `""`, the empty string, useful if you want to store the value(s) but not return some string in `pickStringRemember`

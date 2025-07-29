@@ -351,6 +351,12 @@ The supported arguments:
 
 The JSON file can be an array and you can address the elements with: `content[3]`
 
+If the property in the JSON file contains non-identifier characters you have to use the string-index method to get the property.
+
+```json
+"json": "content['server-root'].port"
+```
+
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
 ### Example

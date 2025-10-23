@@ -357,6 +357,15 @@ If the property in the JSON file contains non-identifier characters you have to 
 "json": "content['server-root'].port"
 ```
 
+The JSON file can contain comments and trailing commas
+
+```jsonc
+{ // test servers
+  "server1": "cloud-251-abc:23000",
+  "server2": "cloud-333-xyz:44111",
+}
+```
+
 Can be used as [variable](#variables) <code>&dollar;{fileContent:<em>name</em>}</code>
 
 ### Example
@@ -1372,6 +1381,7 @@ The command has the following configuration attributes:
   As an example you can concatenate multiple items from different arrays:  
       `content.Array1[__itemIdx__].p1+'-'+content.Array2[__itemIdx__].p2`  
   The maximum number of items read is 10000. To prevent an infinite loop if expressions contain an error.  
+  The JSON file can contain comments and trailing commas.  
   See a [complete example where you select a server](#select-server-from-json) and Example 12 for a usage in a multi pick list.
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 

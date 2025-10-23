@@ -1,7 +1,11 @@
 # Change Log
 
+## [1.68.0] 2025-10-23
+### Added
+- JSON files: allow comments and trailing commas
 ### Modified
 - `README`: `remember` command: prompt-only-once example
+- `README`: `fileContent` json property with illegal identifier chars: use string-index method
 
 ## [1.67.0] 2025-02-26
 ### Added

@@ -39,6 +39,45 @@ function str_to_utf8_array(str) {  // https://gist.github.com/lihnux/2aa4a6f5a91
   return utf8;
 }
 
+/**
+ * Remove comments and trailing comma
+ * @param {string} text
+ * @returns {string}
+ */
+function cleanJSONString(text) {
+  let result = '';
+  let comment = false;
+  let comma = false;
+  let strRegex = new RegExp('"(\\\\.|[^"])*"', 'g');
+  let length = text.length;
+  for (let index = 0; index < length; ++index) {
+    const chr = text[index];
+    if (comment) {
+      if (chr === '\n' || chr === '\r') {
+        comment = false;
+      }
+      continue;
+    }
+    if (chr === '/') { comment = true; continue; }
+    if (chr === '\n' || chr === '\r') { continue; }
+    if (chr === ' '  || chr === '\t') { continue; }
+    if (comma) {
+      if (chr === ']' || chr === '}') { }
+      else { result += ','; }
+      comma = false;
+    }
+    if (chr === ',') { comma = true; continue; }
+    if (chr === '"') {
+      strRegex.lastIndex = index;
+      result += strRegex.exec(text)[0];  // it is valid JSON so will always match
+      index = strRegex.lastIndex - 1;
+      continue;
+    }
+    result += chr;
+  }
+  return result;
+}
+
 let showErrMsg = true;
 function setShowErrMsg(b) { showErrMsg = b; }
 function getShowErrMsg() { return showErrMsg; }
@@ -58,5 +97,5 @@ function dblQuest(value, deflt) { return value !== undefined ? value : deflt; }
 function nUp(i) { return i===0 ? '' : i.toString()+'Up'; }
 
 module.exports = {
-  getProperty, getDefaultProperty, errorMessage, setShowErrMsg, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str, str_to_utf8_array
+  getProperty, getDefaultProperty, errorMessage, setShowErrMsg, fileNotInFolderError, isString, isArray, isObject, range, dblQuest, nUp, utf8_to_str, str_to_utf8_array, cleanJSONString
 }

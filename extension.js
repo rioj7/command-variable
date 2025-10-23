@@ -592,7 +592,7 @@ function activate(context) {
     let parsedContent = undefined;
     if (args.json) {
       expr = args.json;
-      parsedContent = JSON.parse(content);
+      parsedContent = JSON.parse(utils.cleanJSONString(content));
     } else if (args.yaml) {
       expr = args.yaml;
       parsedContent = YAML.parse(content);
@@ -964,7 +964,7 @@ function activate(context) {
           const resolveOption = async (option, cbData) => {
             option = await dataStructSubstitution(option, cbData, convertString);
             if (option.json !== undefined && isString(option.json) && option.json.length > 0) {
-              option.value = JSON.parse(option.json);
+              option.value = JSON.parse(utils.cleanJSONString(option.json));
             }
             return option;
           };
@@ -998,7 +998,7 @@ function activate(context) {
         }
         if (fileFormat === 'json') {
           const jsonOption = getProperty(args, 'jsonOption', {});
-          const data = JSON.parse(content);
+          const data = JSON.parse(utils.cleanJSONString(content));
           const convertString = (s, cbData) => {
             s = s.replace(/(__itemIdx__)/g, 'contentExt.$1');
             let func = getExpressionFunction(s, 'commandvariable.pickStringRemember');

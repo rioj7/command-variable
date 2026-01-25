@@ -938,11 +938,27 @@ function activate(context) {
       }
     })
   );
-  // ***** An extended version for desktop
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', async args => {
-      args = common.checkIfArgsIsLaunchConfig(args);
-      if (!args) { args = {}; }
+  async function expandJSON(property, args, resultArray, content) {
+    const objectTemplate = getProperty(args, property, {});
+    const data = JSON.parse(utils.cleanJSONString(content));
+    const convertString = (s, cbData) => {
+      s = s.replace(/(__itemIdx__)/g, 'contentExt.$1');
+      let func = getExpressionFunction(s, 'commandvariable.pickStringRemember');
+      if (func === undefined) {
+        throw new Error("Illegal expression");
+      }
+      return func(cbData.data, { __itemIdx__: cbData.index });
+    };
+    for (let index = 0; index < 10000; index++) {
+      try {
+        resultArray.push(await dataStructSubstitution(objectTemplate, {data, index}, convertString));
+      } catch (e) {
+        break;
+      }
+    }
+    return resultArray;
+  }
+  async function readOptionsFromFile(args) {
       let fileName = getProperty(args, 'fileName');
       if (fileName) {
         let fileFormat = getProperty(args, 'fileFormat', 'pattern');
@@ -997,26 +1013,37 @@ function activate(context) {
           }
         }
         if (fileFormat === 'json') {
-          const jsonOption = getProperty(args, 'jsonOption', {});
-          const data = JSON.parse(utils.cleanJSONString(content));
-          const convertString = (s, cbData) => {
-            s = s.replace(/(__itemIdx__)/g, 'contentExt.$1');
-            let func = getExpressionFunction(s, 'commandvariable.pickStringRemember');
-            if (func === undefined) {
-              throw new Error("Illegal expression");
-            }
-            return func(cbData.data, { __itemIdx__: cbData.index });
-          };
-          for (let index = 0; index < 10000; index++) {
-            try {
-              options.push(await dataStructSubstitution(jsonOption, {data, index}, convertString));
-            } catch (e) {
-              break;
-            }
-          }
+          options = await expandJSON('jsonOption', args, options, content);
         }
         args.options = options;
       }
+  }
+  async function readOptionGroupsFromFile(args) {
+    let optionGroups = getProperty(args, 'optionGroups');
+    if (optionGroups) {
+      if (utils.isObject(optionGroups)) {
+        // let fileName = getProperty(optionGroups, 'fileName');
+        let content = await readFileContent(optionGroups, getProperty(optionGroups, 'debug'));
+        let fileFormat = getProperty(optionGroups, 'fileFormat', 'json');
+        if (fileFormat === 'load') {  // do we load all groups from file
+          optionGroups = JSON.parse(utils.cleanJSONString(content));
+        } else {
+          optionGroups = await expandJSON('jsonOptionGroup', optionGroups, [], content);
+        }
+      }
+      for (const group of optionGroups) {
+        await readOptionsFromFile(group);
+      }
+      args.optionGroups = optionGroups;
+    }
+  }
+  // ***** An extended version for desktop
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', async args => {
+      args = common.checkIfArgsIsLaunchConfig(args);
+      if (!args) { args = {}; }
+      await readOptionsFromFile(args);
+      await readOptionGroupsFromFile(args);
       return common.pickStringRemember(args, variableSubstitution);
     })
   );

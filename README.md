@@ -1336,7 +1336,8 @@ The command has the following configuration attributes:
   The _`value`_ can be a string, a [**string manipulation object**](#remember) or an object with _key_-_value_ pair(s). The _`value`_ of a _key_-_value_ pair can be a string or a string manipulation object. Every _key_-_value_ is stored in the `remember` storage. `pickStringRemember` returns the value from the `remember` storage for the `key` argument of the command (see Example 4). You can override the `key` argument by using a special key in the object. If the object contains the key `__key` its value is used as the key to get a value from the `remember` storage for this object, also when `multiPick` is true (see Example 11).  
   If you only want to store some _key_-_value_ pairs you can set the _`key`_ argument of the command to `"empty"`. The command will then return an empty string (see [`remember`](#remember) command).  
   A special _`key`_ is `__undefined`. If used any selected option that uses a _key_-_value_ pair(s) object will return `undefined`. This will abort the current task/launch/command, but the remember store is updated.
-* `optionGroups` : An array that contains groups of options with constraint checks. If `optionGroups` is defined the property `options` is ignored.  
+* `optionGroups` : (Optional) It can be an array or an object. If `optionGroups` is defined the property `options` is ignored.  
+  Is it an array it contains option groups with constraint checks.  
   If a group has a constraint the `pickStringRemember` is not accepted until all constraints are met.  
   An option group is an object with the properties:
   * `label` : (Optional) A description of the group shown in the top right of the group (below separator line)
@@ -1347,6 +1348,21 @@ The command has the following configuration attributes:
     It must be a [valid JavaScript variable name](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#variables).
   * `dependsOn`: [_string_] (Optional) Used in multi pick list. It must be a [valid JavaScript expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) that has a boolean ([ `true` | `false` ]) result. The variables allowed in the expression are the `name`s of items or groups. Here defined on a group it controls if the group validation is performed and if the value of the group items is part of the result when it is picked. See [`dependsOn`](#`dependson`). (default: `true`)
   * `key`, `separator`, `joinByKey` : (Optional) If you want to remember the picked items of a group in a different remember store item define these properties in the group. They have the same meaning as for the top `args`  property. They are not inherited from the top `args` property (see Example 13).
+  * `fileName` : (**Not in Web**) Identical to the `fileName` property of the `args` attribute.
+  * `fileFormat` : (**Not in Web**) Identical to the `fileFormat` property of the `args` attribute.
+  * `pattern` : (**Not in Web**) Identical to the `pattern` property of the `args` attribute.
+  * `jsonOption` : (**Not in Web**) Identical to the `jsonOption` property of the `args` attribute.
+
+  Is it an object it will construct the array of option groups the same way it loads `options` from a file. (see Example 14)  
+  It can have the following properties:
+  * `fileName` : (**Not in Web**) A string, with possible [variables](#variables), specifying a file path that contains option groups. The file is assumed to have an UTF-8 encoding. The format of the file is determined by the `fileFormat` property.
+  * `fileFormat` : (**Not in Web**) [_string_] (Optional) How should the file content be processed. (default: `json` )  
+    Possible values:
+    * `load` : the file content is an array in JSON format that contains option groups.
+    * `json` : use the `jsonOptionGroup` property
+  * `jsonOptionGroup` : (**Not in Web**) (Optional) An object that is a template for an option group but the values of the properties can be taken from the `fileName` with JavaScript expressions. This constructs the `optionGroups` property array with as many entries as there are in the target array of the file. It works the same as the `jsonOption` property of the `args` attribute.
+
+  The loaded or constructed option groups can contain `fileName`, ... properties to load options from a file.
 * `addLabelToTop` : [_string_] (Optional) Any [variables](#variables) are resolved. The pickItem with the identical label will be put on top. If needed add an extra remember item (see Example 7).
 * `key` : (Optional) Used to store and retrieve a particular pick. (default: `pickString` )  
   The value can later be retrieved with the [`remember`](#remember) command or [`${remember}`](#variable-remember) variable.
@@ -2306,6 +2322,78 @@ You can use this also for a single pick list. Groups that do not have an item se
     },
     { "id": "category-fruit", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-fruit" } },
     { "id": "category-veg", "type": "command", "command": "extension.commandvariable.remember", "args": { "key": "category-veg" } }
+  ]
+}
+```
+
+**Example 14**
+
+If there are a lot of options in a group or they are dynamic or the option groups are dynamic you can load them from a file.
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:extra_options}", "${input:remember_sample}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "extra_options",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Select extra options",
+        "key": "extra-options",
+        "multiPick": true,
+        "optionGroups": [
+          {
+            "label": "Sample",
+            "minCount": 1,
+            "maxCount": 1,
+            "fileName": "${workspaceFolder}${pathSeparator}samples.json",
+            "fileFormat": "json",
+            "jsonOption": {
+              "label": "content.Samples[__itemIdx__].label",
+              "value": "content.Samples[__itemIdx__].value"
+            }
+          }
+        ]
+      }
+    },
+    { "id": "remember_sample", "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "sample-name" }
+    }
+  ]
+}
+```
+
+**`samples.json`**
+
+```json
+{
+  "Samples": [
+    {
+      "label": "sample1",
+      "value": {
+        "value": "path/to/sample1",
+        "sample-name": "sample1",
+        "__key": "value"
+      }
+    },
+    {
+      "label": "sample2",
+      "value": {
+        "value": "path/to/sample2",
+        "sample-name": "sample2",
+        "__key": "value"
+      }
+    }
   ]
 }
 ```

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.69.0] 2026-01-24
+### Added
+- `pickStringRemember`: optionGroups from file (json format) or its options
+
 ## [1.68.0] 2025-10-23
 ### Added
 - JSON files: allow comments and trailing commas

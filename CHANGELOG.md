@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.70.0] 2026-04-04
+### Added
+- `remember`: 'forget' a key
+
 ## [1.69.0] 2026-01-24
 ### Added
 - `pickStringRemember`: optionGroups from file (json format) or its options

@@ -39,6 +39,10 @@ let numberStore = {};
 
 let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined, "__zero": '0' };
 
+function rememberKeepKey(key) {
+  return key === 'empty' || key.startsWith('__');
+}
+
 function getRememberStore() {
   return rememberStore;
 }
@@ -62,11 +66,16 @@ function storeStringRemember(args, result) {
 }
 /** @param {string} key @param {any} value string or edit action object */
 function rememberStoreUpdate(key, value) {
+  if (rememberKeepKey(key)) { return; }
   if (utils.isObject(value) && !key.endsWith(PostfixURI)) {
     let actionObj = value;
     let text = utils.getProperty(actionObj, 'text', '');
     value = text;
     let action = utils.getProperty(actionObj, 'action', 'store');
+    if (action === 'forget') {
+      delete rememberStore[key];
+      return;
+    }
     let delimiter = utils.getProperty(actionObj, 'delimiter', '');
     if (action !== 'store') {
       let currentValue = getRememberKey(key, 'empty');
@@ -75,9 +84,7 @@ function rememberStoreUpdate(key, value) {
       if (action === 'prepend') { value = text + delimiter + currentValue; }
     }
   }
-  if (key !== '__undefined' && key !== 'empty' && key !== '__zero') {
-    rememberStore[key] = value;
-  }
+  rememberStore[key] = value;
 }
 /** @param {object} args has 'key' and ['default'] property @param {any} result undefined, key-value-object, value (value can be string or edit action object) */
 function storeStringRemember2(args, result, defaultFromArgs) {

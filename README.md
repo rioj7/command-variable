@@ -1133,13 +1133,14 @@ The command `extension.commandvariable.remember` is used to retreive a value for
 The `args` property of this command is an object with the properties:
 
 * `store` : (Optional) an object with _key_-_value_ pair(s). Every _key_-_value_ is stored in the `remember` storage.  
-  The _value_ can be a string or a **string manipulation object**. With a string manipulation object you can modify the current value that is stored for the given _key_. If the key is not in the store it has a current value of the empty string. The possible properties of this object are:
-  * `text`: a string used to modify the current value
+  The _value_ can be a string or a **string manipulation object**. With a string manipulation object you can modify the current value that is stored for the given _key_ or remove/forget the given _key_. If the key is not in the store it has a current value of the empty string. The possible properties of this object are:
+  * `text`: a string used to modify the current value (default: `""`)
   * `delimiter`: (Optional) if we need to concatenate strings use this as delimiter string, if current value is the empty string `delimiter` is also empty string (default: `""`).
   * `action`: (Optional) what to do with the _`text`_ string (default: `store`). Possible values:
     * `store`: replace current value with _`text`_.
     * `append`: append `text` to current value and use given _`delimiter`_
     * `prepend`: prepend `text` to current value and use given _`delimiter`_
+    * `forget`: remove the given _key_ from the remember store
 * `key` : (Optional) the name of the key to retreive from the remember store. The `key` can contain [variables](#variables). (default: `"empty"`)  
    To get the value of a named [number](#number) use the key format: <code>number-<em>name</em></code>
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)

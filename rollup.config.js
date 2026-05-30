@@ -6,13 +6,13 @@ const production = process.env.BUILD === 'production';
 
 function finalExport(options) {
   let moduleStr = `module.exports = ${options.moduleName};`;
-  let varStr = `var ${options.moduleName} = {`;
-  let varReplaceStr = `module.exports = {`;
+  let varStr = `var ${options.moduleName} = /*@__PURE__*/getDefaultExportFromCjs(${options.moduleName}Exports);`;
+  let varReplaceStr = `module.exports = ${options.moduleName}Exports;`;
   return {
     name: 'final-export',
     renderChunk (code, chunk, options) {
-      if (code.indexOf(moduleStr) === -1) return null;
-      code = code.replace(moduleStr, '');
+      if (code.indexOf(varStr) === -1) return null;
+      // code = code.replace(moduleStr, '');
       return code.replace(varStr, varReplaceStr);
     }
   };
@@ -28,7 +28,7 @@ export default {
   plugins: [
     resolve(),
     commonjs(),
-    finalExport({moduleName: 'extensionCommon'}),
+    // finalExport({moduleName: 'extensionCommon'}),
     // production && terser(),
   ],
   external: ['vscode']

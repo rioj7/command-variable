@@ -2,6 +2,8 @@
 
 ### Changed
 - node v22.12 ; npm v10.9; rollup v2.79
+### Fixed
+- `${index}` variable, rememberstore and `__key` names
 
 ## [1.70.0] 2026-04-04
 ### Added

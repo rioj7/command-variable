@@ -39,8 +39,15 @@ let numberStore = {};
 
 let rememberStore = { __not_yet: "I don't remember", empty: "", "__undefined": undefined, "__zero": '0' };
 
+let rememberKeepKeySet = new Set();
+for (const key in rememberStore) {
+  if (rememberStore.hasOwnProperty(key)) {
+    rememberKeepKeySet.add(key);
+  };
+}
+
 function rememberKeepKey(key) {
-  return key === 'empty' || key.startsWith('__');
+  return rememberKeepKeySet.has(key);
 }
 
 function getRememberStore() {

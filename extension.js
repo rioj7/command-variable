@@ -255,6 +255,8 @@ function activate(context) {
     return transformResult(args, result, '${result}', args.key);
   }
   async function pickStringRemember(args) { // pass variableSubstitution
+    await readOptionsFromFile(args);
+    await readOptionGroupsFromFile(args);
     return common.pickStringRemember(args, variableSubstitution);
   }
   /** @param {string} text @param {string} filter */
@@ -939,7 +941,8 @@ function activate(context) {
     })
   );
   async function expandJSON(property, args, resultArray, content) {
-    const objectTemplate = getProperty(args, property, {});
+    var objectTemplate = getProperty(args, property, {});
+    objectTemplate = await dataStructSubstitution(objectTemplate, args, (s, args) => variableSubstitution(s, args));
     const data = JSON.parse(utils.cleanJSONString(content));
     const convertString = (s, cbData) => {
       s = s.replace(/(__itemIdx__)/g, 'contentExt.$1');
@@ -1042,9 +1045,7 @@ function activate(context) {
     vscode.commands.registerCommand('extension.commandvariable.pickStringRemember', async args => {
       args = common.checkIfArgsIsLaunchConfig(args);
       if (!args) { args = {}; }
-      await readOptionsFromFile(args);
-      await readOptionGroupsFromFile(args);
-      return common.pickStringRemember(args, variableSubstitution);
+      return pickStringRemember(args);
     })
   );
   context.subscriptions.push(

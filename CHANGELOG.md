@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.71.0] 2026-05-30
+### Added
+- `pickStringRemember`: json templates (options, optionGroups) can contain variables
 ### Changed
 - node v22.12 ; npm v10.9; rollup v2.79
 ### Fixed

@@ -1394,12 +1394,16 @@ The command has the following configuration attributes:
   * `option`: (Optional) In the `options` array you can specify an option in multiple ways. The `option` property can be any of those alternatives but the strings contain capture group references <code>&dollar;<em>n</em></code> (like `$1`) as found by searching the `regexp`. If `option` specified the properties `label`, `value` and `json` are ignored.  
   A possible attribute of `option` is `json`. If specified and the resulting string is non empty, the string is parsed as a JSON object string and the result is set as the property `value`.  
   See a [complete example where you select an SSH server](#select-server-from-pattern).
-* `jsonOption` : (**Not in Web**) In the `options` array you can specify an option in multiple ways. The `jsonOption` property can be any of those alternatives but the strings are JavaScript expressions that gets the value you want from the variable `content`. The variable `content` is the parsed JSON file. You can even use the _`value`_ as object with _key_-_value_ pair(s). The expressions **must** use the variable `__itemIdx__` to address an item in some array of the JSON file. The expression can manipulate the retieved data in any way.  
+* `jsonOption` : (**Not in Web**) In the `options` array you can specify an option in multiple ways. The `jsonOption` property is a template for any of those alternatives but the strings are JavaScript expressions that gets the value you want from the variable `content`. The variable `content` is the parsed JSON file. You can even use the _`value`_ as object with _key_-_value_ pair(s). The expressions **must** use the variable `__itemIdx__` to address an item in some array of the JSON file. The expression can manipulate the retieved data in any way.  
   As an example you can concatenate multiple items from different arrays:  
       `content.Array1[__itemIdx__].p1+'-'+content.Array2[__itemIdx__].p2`  
+  Or you can iterate over the keys of an object:  
+      `Object.keys(content.servers)[__itemIdx__]`  
   The maximum number of items read is 10000. To prevent an infinite loop if expressions contain an error.  
   The JSON file can contain comments and trailing commas.  
-  See a [complete example where you select a server](#select-server-from-json) and Example 12 for a usage in a multi pick list.
+  See a [complete example where you select a server](#select-server-from-json) and Example 12 for a usage in a multi pick list.  
+  The Javascript expression strings can contain variables. The template variables are resolved once before the template is used in a loop to construct all the options. The properties for these variables are stored as siblings of the `jsonOption` property. Use remember variables if you need the result of a pickStringRemember multiple times in the template.  
+  Example 15 uses a pickStringRemember variable to choose a key and then construct a pickString with the elements of the array for that key.
 * [`checkEscapedUI`](#checkescapedui) : (Optional) [ `true` | `false` ] Check if in a compound task/launch a previous UI has been escaped, if `true` behave as if this UI is escaped. This will not start the task/launch. (default: `false`)
 
 (**Not in Web**) The `value` string can contain [variables](#variables), so you can add a pickFile or promptString or .... and use that result.  
@@ -2393,6 +2397,65 @@ If there are a lot of options in a group or they are dynamic or the option group
         "value": "path/to/sample2",
         "sample-name": "sample2",
         "__key": "value"
+      }
+    }
+  ]
+}
+```
+
+**Example 15**
+
+The `jsonOption` property can contain variables to dynamically modify the expression used.
+
+In the root of the workspace you have a file `distros.json` containing different distribution names that are arrays with architecture options for cross compilation.
+
+**`distros.json`**
+
+```json
+{
+  "bullseye": [
+    "armhf",
+    "amd64"
+  ],
+  "trixie": [
+    "arm64",
+    "amd64"
+  ]
+}
+```
+
+The following `inputs` entry first shows a pick list for **distribution** and then a pick list for the **architectures** that are available.
+
+```jsonc
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ....
+  ],
+  "inputs": [
+    {
+      "id": "cross-compilation",
+      "type": "command",
+      "command": "extension.commandvariable.pickStringRemember",
+      "args": {
+        "description": "Which architecture?",
+        "key": "architecture",
+        "fileName": "${workspaceFolder}/distros.json",
+        "fileFormat": "json",
+        "jsonOption": {
+          "value": "content['${pickStringRemember:distro}'][__itemIdx__]"
+        },
+        "pickStringRemember": {
+          "distro": {
+            "description": "Which distribution?",
+            "key": "distribution",
+            "fileName": "${workspaceFolder}/distros.json",
+            "fileFormat": "json",
+            "jsonOption": {
+              "value": "Object.keys(content)[__itemIdx__]"
+            }
+          }
+        }
       }
     }
   ]
